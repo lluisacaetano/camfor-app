@@ -1,0 +1,22 @@
+@import './CamforHome.css';
+
+.fp-subtitle {
+  color: rgba(255,255,255,0.95);
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-top: 6px;
+  margin-bottom: 8px;
+}
+
+.fp-note {
+  color: #fff;
+  text-align: center;
+  margin-bottom: 12px;
+  opacity: 0.95;
+}
+
+.fp-options .ch-btn {
+  padding-top: 14px;
+  padding-bottom: 14px;
+}

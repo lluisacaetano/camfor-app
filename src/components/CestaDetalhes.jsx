@@ -1,9 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './CestaDetalhes.css';
+import FinalizarPedido from './FinalizarPedido';
+import Retirada from './Retirada';
+import Entrega from './Entrega'; 
 
 export default function CestaDetalhes({ size, onClose, onFinish }) {
-  // exemplo de produtos disponíveis — substitua por dados reais quando tiver
+  const [showFinalize, setShowFinalize] = useState(false);
+  const [showRetirada, setShowRetirada] = useState(false);
+  const [showEntrega, setShowEntrega] = useState(false); 
+
+  // Exemplos de produtos Disponíveis 
+  // Pensei em colocar foto de cada produto, mas por hora deixei assim
   const produtos = [
     'Tomate',
     'Cenoura',
@@ -24,6 +32,44 @@ export default function CestaDetalhes({ size, onClose, onFinish }) {
     'Leite',
     'Manteiga'
   ];
+
+  // Finalizar Pedido
+  if (showRetirada) {
+    return (
+      <Retirada
+        size={size}
+        onBack={() => setShowRetirada(false)}
+        onFinish={() => {
+          alert('Finalizado com sucesso (Retirada). Obrigado.');
+          onFinish && onFinish();
+        }}
+      />
+    );
+  }
+
+  if (showEntrega) {
+    return (
+      <Entrega
+        size={size}
+        onBack={() => setShowEntrega(false)}
+        onFinish={() => {
+          alert('Finalizado com sucesso (Entrega). Obrigado.');
+          onFinish && onFinish();
+        }}
+      />
+    );
+  }
+
+  if (showFinalize) {
+    return (
+      <FinalizarPedido
+        size={size}
+        onBack={() => setShowFinalize(false)}
+        onRetirada={() => setShowRetirada(true)}
+        onEntrega={() => setShowEntrega(true)} 
+      />
+    );
+  }
 
   return (
     <div className="ch-root">
@@ -67,22 +113,18 @@ export default function CestaDetalhes({ size, onClose, onFinish }) {
               Observação: os itens serão selecionados de forma aleatória conforme a quantidade escolhida ({size}) — a lista abaixo mostra todos os produtos possíveis.
             </p>
 
-            {/* Listagem de produtos */}
+            {/* Listagem de Produtos */}
             <ul className="cd-list">
               {produtos.map((p, idx) => (
                 <li key={idx} className="cd-item">{p}</li>
               ))}
             </ul>
 
-            {/* Finalizar pedido */}
+            {/* Finalizar Pedido */}
             <div className="d-grid gap-3 mb-4 ch-btn-group" style={{ marginTop: '18px' }}>
               <button 
                 className="ch-btn"
-                onClick={() => {
-                  // ação mínima: notificar e voltar (ajuste conforme fluxo real)
-                  alert('Pedido finalizado! Obrigado.');
-                  onFinish && onFinish();
-                }}
+                onClick={() => setShowFinalize(true)}
               >
                 FINALIZAR PEDIDO
               </button>
@@ -92,7 +134,7 @@ export default function CestaDetalhes({ size, onClose, onFinish }) {
         </div>
       </div>
 
-      {/* logo sicoob no final (mantém estética) */}
+      {/* Logo Sicoob */}
       <img src="/images/logo-sicoob.png" alt="SICOOB" className="ch-sicoob-bottom" />
     </div>
   );

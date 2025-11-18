@@ -1,0 +1,24 @@
+@import './CamforHome.css';
+
+.ret-form {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 6px;
+}
+.ret-label {
+  display: block;
+  color: #fff;
+  font-weight: 600;
+  margin: 8px 0 6px;
+}
+.ret-input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: none;
+  outline: none;
+  box-shadow: inset 0 1px 4px rgba(0,0,0,0.2);
+  margin-bottom: 8px;
+  font-size: 1rem;
+}
+
