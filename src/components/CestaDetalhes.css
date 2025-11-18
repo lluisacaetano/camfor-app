@@ -8,6 +8,9 @@
   max-width: 560px;
 }
 .cd-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
   background: rgba(255,255,255,0.06);
   color: #fff;
   padding: 12px 16px;
@@ -15,6 +18,19 @@
   margin-bottom: 10px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.12);
   font-weight: 600;
+}
+.cd-prod-img {
+  width: 64px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 8px;
+  background: #fff;
+  flex-shrink: 0;
+}
+.cd-prod-name {
+  font-weight: 600;
+  color: #fff;
+  font-size: 1rem;
 }
 
 /* Subtítulo */
@@ -34,4 +50,3 @@
   text-align: center;
   margin-bottom: 16px;
 }
-

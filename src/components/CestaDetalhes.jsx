@@ -10,27 +10,13 @@ export default function CestaDetalhes({ size, onClose, onFinish }) {
   const [showRetirada, setShowRetirada] = useState(false);
   const [showEntrega, setShowEntrega] = useState(false); 
 
-  // Exemplos de produtos Disponíveis 
-  // Pensei em colocar foto de cada produto, mas por hora deixei assim
+  // Produtos
   const produtos = [
     'Tomate',
     'Cenoura',
     'Alface',
     'Batata',
-    'Cebola',
-    'Ovo (dúzia)',
-    'Queijo',
-    'Pão caseiro',
-    'Mel',
-    'Abóbora',
-    'Maçã',
-    'Banana',
-    'Pepino',
-    'Feijão',
-    'Arroz',
-    'Farinha',
-    'Leite',
-    'Manteiga'
+    'Cebola'
   ];
 
   // Finalizar Pedido
@@ -113,12 +99,39 @@ export default function CestaDetalhes({ size, onClose, onFinish }) {
               Observação: os itens serão selecionados de forma aleatória conforme a quantidade escolhida ({size}) — a lista abaixo mostra todos os produtos possíveis.
             </p>
 
-            {/* Listagem de Produtos */}
+            {/* Listagem de Produtos*/}
             <ul className="cd-list">
-              {produtos.map((p, idx) => (
-                <li key={idx} className="cd-item">{p}</li>
-              ))}
+              {produtos.map((p, idx) => {
+                let triedJpeg = false;
+                const imgId = p
+                  .normalize('NFD').replace(/[\u0300-\u036f]/g, '') 
+                  .toLowerCase().replace(/[^a-z0-9]/g, ''); 
+                const imgSrc = `/images/produtos/${imgId}.jpg`;
+                return (
+                  <li key={idx} className="cd-item">
+                    <img
+                      src={imgSrc}
+                      alt={p}
+                      className="cd-prod-img"
+                      onError={e => {
+                        if (!triedJpeg) {
+                          e.currentTarget.src = `/images/produtos/${imgId}.jpeg`;
+                          triedJpeg = true;
+                        } else {
+                          e.currentTarget.src = '/images/placeholder.png';
+                        }
+                      }}
+                    />
+                    <span className="cd-prod-name">{p}</span>
+                  </li>
+                );
+              })}
             </ul>
+
+            {/* Nota sobre Quantidade */}
+            <div className="cd-note" style={{ marginBottom: 8 }}>
+              Obs: A quantidade de cada produto varia de 200g a 500g.
+            </div>
 
             {/* Finalizar Pedido */}
             <div className="d-grid gap-3 mb-4 ch-btn-group" style={{ marginTop: '18px' }}>

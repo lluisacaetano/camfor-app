@@ -167,6 +167,11 @@ export default function MontarCesta({ onBack }) {
               ))}
             </div>
 
+            {/* Nota sobre Quantidade */}
+            <div className="cd-note">
+              Obs: A quantidade de cada produto varia de 200g a 500g.
+            </div>
+
             {/* Carrinho */}
             <h3 className="mc-cart-title">Carrinho</h3>
             <div className="mc-cart">

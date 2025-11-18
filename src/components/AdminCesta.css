@@ -1,0 +1,125 @@
+@import './CamforHome.css';
+
+.admin-gear {
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 0) + 12px); 
+  right: 12px;
+  background: rgba(255,255,255,0.06);
+  border: none;
+  color: #fff;        
+  padding: 6px 10px;   
+  border-radius: 8px;
+  cursor: pointer;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .15s ease, opacity .15s ease;
+  font-size: 16px;     
+}
+.admin-gear:hover {
+  background: rgba(255,255,255,0.10);
+  opacity: 1;
+}
+
+.admin-login {
+  max-width: 320px;
+  margin: 0 auto 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.admin-label {
+  color: #fff;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.admin-input {
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: none;
+  outline: none;
+  margin-bottom: 8px;
+  font-size: 1.05rem;
+  background: rgba(255,255,255,0.04);
+  color: #fff;
+}
+
+.admin-note {
+  color: #fff;
+  text-align: center;
+  margin-bottom: 12px;
+  font-size: 1rem;
+  opacity: 0.95;
+}
+
+.admin-prod-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  justify-items: stretch;
+  align-items: start;
+  margin-bottom: 18px;
+}
+
+.admin-prod-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255,255,255,0.04);
+  padding: 8px 12px;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  font-weight: 600;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.admin-prod-img {
+  width: 48px;
+  height: 36px;
+  object-fit: cover;
+  border-radius: 8px;
+  background: #fff;
+  flex-shrink: 0;
+}
+.admin-prod-name {
+  color: #fff;
+  font-size: 1rem;
+}
+
+@media (max-width: 576px) {
+  .admin-prod-list {
+    grid-template-columns: 1fr;
+  }
+  .admin-values { max-width: 100%; padding: 0 12px; }
+  .admin-input { font-size: 1rem; padding: 10px 12px; }
+}
+
+.admin-prod-item input[type="checkbox"] {
+  accent-color: #26c6da;
+  width: 20px;
+  height: 20px;
+}
+
+.admin-values {
+  width: 100%;
+  max-width: 540px; 
+  margin: 0 auto 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.admin-remaining {
+  font-size: 0.95rem;
+  opacity: 0.95;
+  color: #fff;
+}
+
+.admin-ready {
+  color: #c8f6d2;
+  font-weight: 700;
+}
