@@ -1,0 +1,108 @@
+@import './CamforHome.css';
+
+.mc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 12px;
+}
+.mc-item {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  background: rgba(255,255,255,0.03);
+  padding: 10px;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+.mc-prod-img {
+  width: 88px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 8px;
+  flex-shrink: 0;
+  background: #fff;
+}
+.mc-prod-info { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+.mc-prod-name { color: #fff; font-weight: 700; }
+.mc-controls { display: flex; gap: 8px; align-items: center; }
+
+.mc-qty-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mc-qty-display {
+  min-width: 36px;
+  text-align: center;
+  background: rgba(255,255,255,0.06);
+  color: #fff;
+  padding: 6px 8px;
+  border-radius: 8px;
+  font-weight: 700;
+}
+
+.mc-plus-btn {
+  background: rgba(255,255,255,0.06);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.08);
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+}
+.mc-plus-btn:hover { background: rgba(255,255,255,0.1); }
+
+.mc-remove-btn {
+  background: transparent;
+  border: none;
+  color: #ffdddd;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 6px;
+  border-radius: 6px;
+}
+.mc-remove-btn:hover { background: rgba(255,0,0,0.06); }
+
+.mc-add-btn {
+  background: linear-gradient(135deg, #26c6da 0%, #00acc1 100%);
+  color: #fff;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+/* Carrinho */
+.mc-cart-title {
+  color: #fff;
+  margin-top: 18px;
+  font-weight: 700;
+}
+.mc-cart { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+.mc-empty { color: rgba(255,255,255,0.7); text-align: center; padding: 8px; }
+.mc-cart-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255,255,255,0.03);
+  padding: 10px;
+  border-radius: 10px;
+}
+.mc-cart-img { width: 60px; height: 48px; object-fit: cover; border-radius: 6px; }
+.mc-cart-name { color: #fff; font-weight: 600; flex: 1; }
+.mc-cart-qty { width: 72px; padding: 6px; border-radius: 8px; border: none; }
+.mc-trash {
+  color: #ff4444;
+  cursor: pointer;
+  font-size: 18px;
+}
+.mc-trash:hover { color: #ff0000; }
+
+.mc-finalize-btn:disabled,
+.ch-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
+}

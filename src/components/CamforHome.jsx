@@ -2,13 +2,18 @@ import React, { useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './CamforHome.css';
 
-import CestaCompleta from './CestaCompleta'; 
+import CestaCompleta from './CestaCompleta';
+import MontarCesta from './MontarCesta'; 
 
 export default function CamforHome() {
   const [showCesta, setShowCesta] = useState(false);
+  const [showMontar, setShowMontar] = useState(false);
 
   if (showCesta) {
     return <CestaCompleta onBack={() => setShowCesta(false)} />;
+  }
+  if (showMontar) {
+    return <MontarCesta onBack={() => setShowMontar(false)} />; 
   }
 
   return (
@@ -50,7 +55,7 @@ export default function CamforHome() {
               >
                 PEDIR CESTA COMPLETA
               </button>
-              <button className="ch-btn">MONTAR MINHA CESTA</button>
+              <button className="ch-btn" onClick={() => setShowMontar(true)}>MONTAR MINHA CESTA</button>
             </div>
           </div>
         </div>
