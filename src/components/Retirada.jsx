@@ -42,7 +42,6 @@ export default function Retirada({ size, onBack, onFinish }) {
             </div>
 
             <h2 className="ch-title">RETIRADA</h2>
-            <div className="cd-subtitle">Cesta de {size} itens</div>
 
             <form className="ret-form" onSubmit={(e) => {
               e.preventDefault();
