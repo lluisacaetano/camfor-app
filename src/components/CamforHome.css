@@ -1,5 +1,6 @@
-/* Root */
+/* Root: permitir posicionamento do overlay */
 .ch-root {
+  position: relative;
   min-height: 100vh;
   background: linear-gradient(135deg, #0a4d5c 0%, #0d6478 100%);
   display: flex;
@@ -91,6 +92,17 @@
   gap: 28px !important; 
 }
 
+/* Botões quando a loja está fechada */
+.ch-btn.closed,
+.ch-btn[disabled] {
+  background: linear-gradient(135deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.55) 100%);
+  box-shadow: none;
+  color: rgba(255,255,255,0.85);
+  cursor: not-allowed;
+  transform: none;
+  opacity: 0.95;
+}
+
 /* Imagem Sicoob */
 .ch-sicoob-img {
   display: block;
@@ -113,6 +125,36 @@
   opacity: 0.96;
 }
 
+/* Overlay mensagem de loja fechada (central, mas não bloqueia navegação completa se quiser abrir admin) */
+.ch-closed-overlay-message {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -20%);
+  z-index: 40;
+  background: rgba(0,0,0,0.55);
+  padding: 18px 22px;
+  border-radius: 12px;
+  text-align: center;
+  color: #fff;
+  max-width: 92%;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+}
+
+/* Texto principal do overlay */
+.ch-closed-title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+
+/* Horários */
+.ch-closed-hours {
+  font-size: 0.98rem;
+  opacity: 0.95;
+}
+
 /* Botão Voltar */
 .cc-back {
   position: absolute;
@@ -129,6 +171,55 @@
   cursor: pointer;
 }
 .cc-back:hover { background: rgba(255,255,255,1); }
+
+/* Backdrop full-screen que bloqueia interações */
+.ch-closed-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 80;
+  padding: 20px;
+}
+
+/* Caixa modal central */
+.ch-closed-modal {
+  background: #ffffff;
+  color: #0b2b2f;
+  padding: 22px 26px;
+  border-radius: 12px;
+  max-width: 520px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+}
+
+/* Texto grande do modal */
+.ch-closed-title {
+  font-size: 1.6rem;
+  font-weight: 900;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+  color: #062b2e;
+}
+
+/* Horários */
+.ch-closed-hours {
+  font-size: 1rem;
+  opacity: 0.95;
+  color: #16393b;
+  margin-bottom: 6px;
+}
+
+/* Nota menor */
+.ch-closed-note {
+  font-size: 0.95rem;
+  margin-top: 6px;
+  opacity: 0.85;
+  color: #234a4b;
+}
 
 /* Versão Mobile */
 @media (max-width: 576px) {

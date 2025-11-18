@@ -11,6 +11,45 @@ export default function CamforHome() {
   const [showMontar, setShowMontar] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
 
+  const [isOpenTime, setIsOpenTime] = useState(false);
+  const [hasProducts, setHasProducts] = useState(false);
+
+  useEffect(() => {
+    function clearAdminConfig() {
+      localStorage.removeItem('camfor_selected_items');
+      localStorage.removeItem('camfor_prices');
+    }
+    function performDailyResetIfNeeded() {
+      try {
+        const now = new Date();
+        const today = now.toISOString().slice(0,10);
+        const lastReset = localStorage.getItem('camfor_last_reset');
+        // reset diário às 17:00 (fechamento)
+        if (now.getHours() >= 17 && lastReset !== today) {
+          clearAdminConfig();
+          localStorage.setItem('camfor_last_reset', today);
+        }
+      } catch (e) { console.warn(e); }
+    }
+    function checkBusinessHours() {
+      const h = new Date().getHours();
+      return h >= 7 && h < 18; // loja aberta 07:00 - 17:00
+    }
+    function refreshMain() {
+      performDailyResetIfNeeded();
+      setIsOpenTime(checkBusinessHours());
+      try {
+        const rawItems = localStorage.getItem('camfor_selected_items');
+        setHasProducts(rawItems ? (JSON.parse(rawItems).length > 0) : false);
+      } catch (e) {
+        setHasProducts(false);
+      }
+    }
+    refreshMain();
+    const id = setInterval(refreshMain, 60*1000);
+    return () => clearInterval(id);
+  }, []);
+
   useEffect(() => {
     const setFavicon = (url) => {
       try {
@@ -87,15 +126,29 @@ export default function CamforHome() {
             <div className="d-grid gap-3 mb-4 ch-btn-group">
               <button
                 className="ch-btn"
-                onClick={() => setShowCesta(true)} 
+                onClick={() => setShowCesta(true)}
+                disabled={!isOpenTime || !hasProducts}
               >
                 PEDIR CESTA COMPLETA
               </button>
-              <button className="ch-btn" onClick={() => setShowMontar(true)}>MONTAR MINHA CESTA</button>
+              <button className="ch-btn" onClick={() => setShowMontar(true)} disabled={!isOpenTime || !hasProducts}>MONTAR MINHA CESTA</button>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Overlay LOJA FECHADA (backdrop escuro + modal branco) */}
+      {!isOpenTime && (
+        <div className="ch-closed-backdrop" role="dialog" aria-modal="true">
+          <div className="ch-closed-modal">
+            <div className="ch-closed-title">LOJA FECHADA</div>
+            <div className="ch-closed-hours"><strong>Horário de Funcionamento da Loja:</strong> </div>
+            <div className="ch-closed-hours"> 07:00 às 17:00</div>
+            <div className="ch-closed-hours"><strong>Horário de Entregas:</strong> 07:00 às 16:00</div>
+            <div className="ch-closed-note">Por favor, retorne no horário de funcionamento.</div>
+          </div>
+        </div>
+      )}
 
       {/* Logo SICOOB */}
       <img src="/images/logo-sicoob.png" alt="SICOOB" className="ch-sicoob-bottom" />

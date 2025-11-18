@@ -9,7 +9,7 @@ import ResumoPedido from './ResumoPedido';
 export default function MontarCesta({ onBack }) {
   const [produtosDisponiveis, setProdutosDisponiveis] = useState([]);
   const [prices, setPrices] = useState({10:0,15:0,18:0});
-  const [isOpenTime, setIsOpenTime] = useState(false);
+  // const [isOpenTime, setIsOpenTime] = useState(false);
 
   useEffect(() => {
     function clearAdminConfig() {
@@ -21,15 +21,12 @@ export default function MontarCesta({ onBack }) {
         const now = new Date();
         const today = now.toISOString().slice(0,10);
         const lastReset = localStorage.getItem('camfor_last_reset');
-        if (now.getHours() >= 16 && lastReset !== today) {
+        // reset diário às 17:00 (fechamento centralizado na home)
+        if (now.getHours() >= 17 && lastReset !== today) {
           clearAdminConfig();
           localStorage.setItem('camfor_last_reset', today);
         }
       } catch (e) { console.warn(e); }
-    }
-    function checkBusinessHours() {
-      const h = new Date().getHours();
-      return h >= 7 && h < 16;
     }
     function refresh() {
       performDailyResetIfNeeded();
@@ -46,7 +43,7 @@ export default function MontarCesta({ onBack }) {
         }
         if (rawPrices) setPrices(JSON.parse(rawPrices));
       } catch (e) { console.warn(e); }
-      setIsOpenTime(checkBusinessHours());
+      // setIsOpenTime(checkBusinessHours());
     }
     refresh();
     const id = setInterval(refresh, 60*1000);
@@ -81,7 +78,8 @@ export default function MontarCesta({ onBack }) {
   const allowedTotals = [10, 15, 18];
   const finalPrice = allowedTotals.includes(totalCount) ? (prices[totalCount] || 0) : null;
 
-  const storeClosed = produtosDisponiveis.length === 0 || !isOpenTime;
+  // const storeClosed = produtosDisponiveis.length === 0 || !isOpenTime;
+  const storeClosed = produtosDisponiveis.length === 0;
 
   // Incrementa quantidade e atualiza carrinho automaticamente
   function handleIncrement(prod) {
@@ -322,9 +320,9 @@ export default function MontarCesta({ onBack }) {
             <div className="d-grid gap-3 mb-4 ch-btn-group" style={{ marginTop: '10px' }}>
               <button
                 className="ch-btn mc-finalize-btn"
-                disabled={!isOpenTime || !allowedTotals.includes(totalCount)}
+                disabled={storeClosed || !allowedTotals.includes(totalCount)}
                 onClick={() => {
-                  if (!isOpenTime || !allowedTotals.includes(totalCount)) return;
+                  if (storeClosed || !allowedTotals.includes(totalCount)) return;
                   setShowResumo(true); // abre ResumoPedido
                 }}
               >

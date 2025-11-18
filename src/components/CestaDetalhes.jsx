@@ -15,15 +15,9 @@ export default function CestaDetalhes({ onClose, onFinish }) {
 
   const [produtos, setProdutos] = useState([]);
   const [prices, setPrices] = useState({10:0,15:0,18:0});
-  const [isOpenTime, setIsOpenTime] = useState(false);
-
   const [basketCounts, setBasketCounts] = useState({10:0,15:0,18:0});
 
-  // Verifica horário (07:00-16:00) e reset diário às 16:00
-  function checkBusinessHours() {
-    const h = new Date().getHours();
-    return h >= 7 && h < 16;
-  }
+  // Reset diário às 17:00 (fechamento centralizado na home)
   function clearAdminConfig() {
     localStorage.removeItem('camfor_selected_items');
     localStorage.removeItem('camfor_prices');
@@ -33,7 +27,7 @@ export default function CestaDetalhes({ onClose, onFinish }) {
       const now = new Date();
       const today = now.toISOString().slice(0,10);
       const lastReset = localStorage.getItem('camfor_last_reset');
-      if (now.getHours() >= 16 && lastReset !== today) {
+      if (now.getHours() >= 17 && lastReset !== today) {
         clearAdminConfig();
         localStorage.setItem('camfor_last_reset', today);
       }
@@ -53,7 +47,6 @@ export default function CestaDetalhes({ onClose, onFinish }) {
         setProdutos([]);
         setPrices({10:0,15:0,18:0});
       }
-      setIsOpenTime(checkBusinessHours());
     }
     refresh();
     const id = setInterval(refresh, 60*1000);
@@ -71,9 +64,8 @@ export default function CestaDetalhes({ onClose, onFinish }) {
   const totalBaskets = (basketCounts[10]||0) + (basketCounts[15]||0) + (basketCounts[18]||0);
   const totalValue = (basketCounts[10]||0) * (prices[10]||0) + (basketCounts[15]||0) * (prices[15]||0) + (basketCounts[18]||0) * (prices[18]||0);
 
-  // Pode finalizar se pelo menos 1 cesta e preços configurados para as selecionadas, e loja aberta
+  // Pode finalizar se pelo menos 1 cesta e preços configurados para as selecionadas
   function canFinalize() {
-    if (!isOpenTime) return false;
     if (totalBaskets === 0) return false;
     for (const sz of [10,15,18]) {
       if ((basketCounts[sz]||0) > 0 && !(prices[sz] && prices[sz] > 0)) return false;
@@ -140,7 +132,7 @@ export default function CestaDetalhes({ onClose, onFinish }) {
     catch { return 'R$ 0,00'; }
   };
 
-  const storeClosed = produtos.length === 0 || !isOpenTime;
+  const storeClosed = produtos.length === 0;
 
   return (
     <div className="ch-root">
