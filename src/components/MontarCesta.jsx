@@ -9,7 +9,6 @@ import ResumoPedido from './ResumoPedido';
 export default function MontarCesta({ onBack }) {
   const [produtosDisponiveis, setProdutosDisponiveis] = useState([]);
   const [prices, setPrices] = useState({10:0,15:0,18:0});
-  // const [isOpenTime, setIsOpenTime] = useState(false);
 
   useEffect(() => {
     function clearAdminConfig() {
@@ -43,7 +42,6 @@ export default function MontarCesta({ onBack }) {
         }
         if (rawPrices) setPrices(JSON.parse(rawPrices));
       } catch (e) { console.warn(e); }
-      // setIsOpenTime(checkBusinessHours());
     }
     refresh();
     const id = setInterval(refresh, 60*1000);
@@ -66,7 +64,6 @@ export default function MontarCesta({ onBack }) {
 
   const [cart, setCart] = useState([]);
 
-  // qual view abriu a tela de retirada/entrega: 'resumo' | 'finalize' | null
   const [prevView, setPrevView] = useState(null);
 
   const [showFinalize, setShowFinalize] = useState(false);
@@ -78,7 +75,6 @@ export default function MontarCesta({ onBack }) {
   const allowedTotals = [10, 15, 18];
   const finalPrice = allowedTotals.includes(totalCount) ? (prices[totalCount] || 0) : null;
 
-  // const storeClosed = produtosDisponiveis.length === 0 || !isOpenTime;
   const storeClosed = produtosDisponiveis.length === 0;
 
   // Incrementa quantidade e atualiza carrinho automaticamente
@@ -146,7 +142,7 @@ export default function MontarCesta({ onBack }) {
           setPrevView(null);
         }}
         onFinish={() => {
-          // finalizar => volta ao home (comportamento anterior)
+          // finalizar => volta ao home
           onBack && onBack();
         }}
       />
@@ -157,6 +153,7 @@ export default function MontarCesta({ onBack }) {
     return (
       <Entrega
         size={totalCount}
+        totalPrice={finalPrice || 0}
         onBack={() => {
           setShowEntrega(false);
           if (prevView === 'finalize') setShowFinalize(true);

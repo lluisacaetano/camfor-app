@@ -91,6 +91,7 @@ export default function CestaDetalhes({ onClose, onFinish }) {
     return (
       <Entrega
         size={null}
+        totalPrice={totalValue}
         onBack={() => {
           setShowEntrega(false);
           if (prevView === 'finalize') setShowFinalize(true);

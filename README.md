@@ -1,70 +1,73 @@
-# Getting Started with Create React App
+# CAMFOR App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Aplicação frontend em React para pedidos de cestas de produtos da agricultura familiar (mobile-first).
 
-## Available Scripts
+## Resumo
 
-In the project directory, you can run:
+- Permite escolher entre "Pedir cesta completa" ou "Montar minha cesta".
+- Painel admin (localStorage) para configurar lista de produtos e preços por tamanho de cesta.
+- Senha administrador = admin
+- Horário de funcionamento: loja 07:00 — 17:00. Horário de entregas: 07:00 — 16:00.
+- Reset diário automático das configurações administrativas às 17:00 (limpa chaves do localStorage).
 
-### `npm start`
+## Rápido start
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+1. Instalar dependências:
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+   ```bash
+   npm install
+   ```
 
-### `npm test`
+2. Rodar em modo desenvolvimento:
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+   ```bash
+   npm start
+   ```
 
-### `npm run build`
+   Abrir [http://localhost:3000](http://localhost:3000)
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Build para produção
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```bash
+npm run build
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## Estrutura relevante
 
-### `npm run eject`
+- `src/components/CamforHome.jsx` — tela principal, controle de horários, overlay "LOJA FECHADA".
+- `src/components/CestaDetalhes.jsx` — pedido de cesta completa (leitura de produtos/preços do localStorage).
+- `src/components/MontarCesta.jsx` — montar cesta personalizada.
+- `src/components/AdminCesta.jsx` — painel admin que salva `camfor_selected_items` e `camfor_prices` no localStorage.
+- `src/components/Entrega.jsx`, `Retirada.jsx`, `FinalizarPedido.jsx`, `ResumoPedido.jsx` — fluxos de finalização.
+- `src/components/*.css` — estilos por componente.
+- `public/images` — imagens usadas (capa, logo, produtos, placeholder, logo-sicoob).
+- Favicon: definido em runtime por CamforHome.
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## Configuração de produtos e preços
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+- O Admin salva duas chaves no localStorage:
+  - `camfor_selected_items` — array JSON com nomes dos produtos.
+  - `camfor_prices` — objeto JSON com preços por tamanho: e.g. `{ "10": 30, "15": 45, "18": 55 }`.
+- O app converte nomes para IDs de imagem (normalização) e tenta carregar `/images/produtos/{id}.jpg` (fallback para .jpeg ou placeholder).
+- Para limpar manualmente: remover as chaves acima do localStorage ou usar o botão de reset no admin (se disponível).
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## Comportamento de horários
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+- A validação de horário principal está em CamforHome. Quando fechada:
+  - Os botões principais ficam desabilitados.
+  - Aparece um backdrop com modal informando "LOJA FECHADA" e horários.
+- Observação: entregas têm janela levemente diferente (07:00–16:00), tratada nas telas de entrega.
 
-## Learn More
+## Validações de pagamento
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+- Em Entrega, se pagamento em dinheiro com troco solicitado, o campo de troco precisa ser maior que o total do pedido (validação em centavos).
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## Boas práticas
 
-### Code Splitting
+- Imagens de produtos devem ser nomeadas conforme a normalização (remover acentos e caracteres especiais, lowercase).
+- Testar em mobile e desktop; o layout usa Bootstrap e estilos customizados.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+## Contribuições / desenvolvimento
 
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- Manter componentes pequenos e reusáveis.
+- Atualizar README quando alterar horários ou lógica de reset.

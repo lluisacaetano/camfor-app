@@ -33,7 +33,7 @@ export default function CamforHome() {
     }
     function checkBusinessHours() {
       const h = new Date().getHours();
-      return h >= 7 && h < 18; // loja aberta 07:00 - 17:00
+      return h >= 7 && h < 17; // loja aberta 07:00 - 17:00
     }
     function refreshMain() {
       performDailyResetIfNeeded();

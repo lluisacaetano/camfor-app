@@ -2,14 +2,14 @@ import React, { useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './Entrega.css';
 
-export default function Entrega({ size, onBack, onFinish }) {
+export default function Entrega({ size, onBack, onFinish, totalPrice = 0 }) {
   const [nome, setNome] = useState('');
-  const [telefoneRaw, setTelefoneRaw] = useState(''); // somente dígitos
-  const [telefoneMask, setTelefoneMask] = useState(''); // exibido com máscara
+  const [telefoneRaw, setTelefoneRaw] = useState(''); 
+  const [telefoneMask, setTelefoneMask] = useState(''); 
 
-  const [cepRaw, setCepRaw] = useState('');   // somente dígitos
-  const [cepMask, setCepMask] = useState(''); // exibido com traço
-  const [cep, setCep] = useState('');        // mantém compatibilidade para lookupCep
+  const [cepRaw, setCepRaw] = useState('');   
+  const [cepMask, setCepMask] = useState(''); 
+  const [cep, setCep] = useState('');        
   const [rua, setRua] = useState('');
   const [numero, setNumero] = useState('');
   const [bairro, setBairro] = useState('');
@@ -29,7 +29,7 @@ export default function Entrega({ size, onBack, onFinish }) {
     const raw = String(e.target.value || '').replace(/\D/g, '');
     setCepRaw(raw);
     setCepMask(formatCep(raw));
-    setCep(raw); // para compatibilidade com lookupCep
+    setCep(raw); 
   }
 
   // formata telefone BR: (99) 9999-9999 ou (99) 99999-9999
@@ -49,11 +49,14 @@ export default function Entrega({ size, onBack, onFinish }) {
   }
 
   // pagamento local (Entrega)
-  const [payment, setPayment] = useState('pix'); // 'pix'|'card'|'cash'
+  const [payment, setPayment] = useState('pix'); 
   const [needChange, setNeedChange] = useState(false);
-  const [changeForRaw, setChangeForRaw] = useState('');   // somente dígitos (centavos)
-  const [changeForMask, setChangeForMask] = useState(''); // exibido como R$ 0,00
+  const [changeForRaw, setChangeForRaw] = useState('');  
+  const [changeForMask, setChangeForMask] = useState(''); 
   const [showSuccess, setShowSuccess] = useState(false);
+  const totalPriceCents = Math.round((Number(totalPrice) || 0) * 100);
+  const changeForCents = Number(String(changeForRaw || '').replace(/\D/g, '')) || 0;
+  const isChangeValid = !needChange || (changeForCents > totalPriceCents);
 
   // formata número de centavos para "R$ 1.234,56"
   function formatCurrencyFromRaw(raw) {
@@ -200,13 +203,20 @@ export default function Entrega({ size, onBack, onFinish }) {
                   <div className="ent-cash-row ent-cash-centered">
                     <label className="ent-cash-checkbox"><input type="checkbox" checked={needChange} onChange={e => setNeedChange(e.target.checked)} /> Precisa de troco?</label>
                     {needChange && (
-                      <input
-                        className="ent-input ent-change-input"
-                        placeholder="R$ 0,00"
-                        value={changeForMask}
-                        onChange={handleChangeForInput}
-                        inputMode="numeric"
-                      />
+                      <>
+                        <input
+                          className="ent-input ent-change-input"
+                          placeholder="R$ 0,00"
+                          value={changeForMask}
+                          onChange={handleChangeForInput}
+                          inputMode="numeric"
+                        />
+                        {!isChangeValid && changeForRaw && (
+                          <div style={{ color: '#ffffffff', fontSize: '0.9rem', marginTop: 6 }}>
+                            Obs: O valor informado deve ser maior que o valor do pedido ({Number(totalPrice).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}).
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
                 )}
@@ -216,14 +226,13 @@ export default function Entrega({ size, onBack, onFinish }) {
                 <button
                   type="submit"
                   className="ch-btn"
-                  disabled={!nome || !numero || (payment==='cash' && needChange && !changeForRaw)}
+                  disabled={!nome || !numero || (payment==='cash' && needChange && (!changeForRaw || !isChangeValid))}
                 >
                   {loadingCep ? 'Carregando...' : 'Finalizar Pedido'}
                 </button>
               </div>
             </form>
 
-            {/* Modal simples de sucesso */}
             {showSuccess && (
               <div style={{
                 position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
