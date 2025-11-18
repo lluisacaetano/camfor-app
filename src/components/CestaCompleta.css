@@ -1,0 +1,17 @@
+@import './CamforHome.css';
+
+/* Botão Voltar */
+.cc-back {
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-weight: 600;
+  margin-bottom: 8px;
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 6px;
+}
+.cc-back:hover {
+  background: rgba(255,255,255,0.06);
+}
+

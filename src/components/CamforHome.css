@@ -1,0 +1,198 @@
+/* Root */
+.ch-root {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0a4d5c 0%, #0d6478 100%);
+  display: flex;
+  flex-direction: column; 
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+/* Capa */
+.ch-cover-wrapper {
+  position: relative;
+  width: 100%;
+  margin-bottom: 90px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+.ch-cover-inner {
+  overflow: hidden;
+  border-radius: 12px;
+}
+.ch-cover-img {
+  width: 100%;
+  height: 400px; 
+  object-fit: cover;
+  display: block;
+}
+
+/* Logo */
+.ch-logo {
+  position: absolute;
+  left: 50%;
+  bottom: -70px;
+  transform: translateX(-50%);
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  border: 5px solid #0a4d5c; 
+  padding: 10px;
+  z-index: 10;
+}
+.ch-logo-img {
+  width: 95%;
+  height: 95%;
+  object-fit: cover;
+  border-radius: 25%;
+  border-top-left-radius: 30%;
+  border-top-right-radius: 30%;
+  transform: translateY(-3%); 
+  object-position: center 30%;
+}
+
+/* Título */
+.ch-title {
+  margin-top: -10px;
+  text-align: center;
+  color: #fff;
+  font-size: 1.8rem;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+.ch-title + .ch-btn-group {
+  margin-top: 28px; 
+}
+
+/* Botões */
+.ch-btn {
+  background: linear-gradient(135deg, #26c6da 0%, #00acc1 100%);
+  color: white;
+  border: none;
+  border-radius: 50px;
+  padding: 18px 40px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  letter-spacing: 1px;
+  box-shadow: 0 4px 15px rgba(38, 198, 218, 0.4);
+  transition: transform .2s ease, box-shadow .2s ease;
+  text-transform: uppercase;
+}
+.ch-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(38, 198, 218, 0.5);
+}
+.ch-btn-group {
+  gap: 28px !important; 
+}
+
+/* Imagem Sicoob */
+.ch-sicoob-img {
+  display: block;
+  margin-left: auto;      
+  margin-top: 12px;      
+  width: 150px;          
+  height: auto;
+  object-fit: contain;
+}
+
+/* Logo SICOOB fixa no rodapé da página */
+.ch-sicoob-bottom {
+  display: block;
+  position: static;         
+  margin: 28px auto 12px;  
+  margin-top: auto;        
+  align-self: center;
+  width: 140px;
+  height: auto;
+  object-fit: contain;
+  opacity: 0.96;
+}
+
+/* Botão Voltar */
+.cc-back {
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 0) + 12px);
+  left: 12px;
+  z-index: 30;
+  background: rgba(255,255,255,0.95);
+  border: none;
+  color: #0a4d5c;
+  font-weight: 700;
+  padding: 6px 10px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  cursor: pointer;
+}
+.cc-back:hover { background: rgba(255,255,255,1); }
+
+/* Versão Mobile */
+@media (max-width: 576px) {
+
+  /* Root */
+  .ch-root {
+    align-items: flex-start;
+    padding-top: 0 !important;        
+    justify-content: flex-start;      
+    padding-left: 0;
+    padding-right: 0;
+  }
+    /* Torna a capa full-bleed */
+  .ch-cover-wrapper {
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+    margin-top: 0 !important; 
+    margin-bottom: 70px; 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    border-radius: 0; 
+  }
+
+  .ch-cover-inner {
+    border-radius: 0;
+  }
+
+  .ch-cover-img {
+    height: 220px;
+  }
+
+  .ch-logo {
+    width: 120px;
+    height: 120px;
+    bottom: -60px;
+    padding: 8px;
+  }
+
+  .ch-logo-img {
+    width: 92%;
+    height: 92%;
+    transform: translateY(-4%);
+  }
+
+  .ch-title {
+    font-size: 1.4rem;
+    margin-top: 70px;
+  }
+  
+  .ch-sicoob-img {
+    width: 100px;
+    margin-top: 8px;
+  }
+
+  .ch-sicoob-bottom {
+    width: 100px;
+    margin: 20px auto 16px;
+  }
+
+  .cc-back {
+    top: calc(env(safe-area-inset-top, 0) + 8px);
+    left: 8px;
+    padding: 6px 8px;
+    font-size: 16px;
+  }
+}
