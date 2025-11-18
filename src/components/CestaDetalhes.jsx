@@ -3,12 +3,15 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import './CestaDetalhes.css';
 import FinalizarPedido from './FinalizarPedido';
 import Retirada from './Retirada';
-import Entrega from './Entrega'; 
+import Entrega from './Entrega';
+import ResumoPedido from './ResumoPedido'; 
 
 export default function CestaDetalhes({ onClose, onFinish }) {
   const [showFinalize, setShowFinalize] = useState(false);
   const [showRetirada, setShowRetirada] = useState(false);
   const [showEntrega, setShowEntrega] = useState(false);
+  const [showResumo, setShowResumo] = useState(false);
+  const [prevView, setPrevView] = useState(null);
 
   const [produtos, setProdutos] = useState([]);
   const [prices, setPrices] = useState({10:0,15:0,18:0});
@@ -79,13 +82,57 @@ export default function CestaDetalhes({ onClose, onFinish }) {
   }
 
   if (showRetirada) {
-    return <Retirada size={null} onBack={() => setShowRetirada(false)} onFinish={() => { alert('Finalizado (Retirada)'); onFinish && onFinish(); }} />;
+    return (
+      <Retirada
+        size={null}
+        onBack={() => {
+          setShowRetirada(false);
+          if (prevView === 'finalize') setShowFinalize(true);
+          else if (prevView === 'resumo') setShowResumo(true);
+          setPrevView(null);
+        }}
+        onFinish={() => { onFinish && onFinish(); }}
+      />
+    );
   }
   if (showEntrega) {
-    return <Entrega size={null} onBack={() => setShowEntrega(false)} onFinish={() => { alert('Finalizado (Entrega)'); onFinish && onFinish(); }} />;
+    return (
+      <Entrega
+        size={null}
+        onBack={() => {
+          setShowEntrega(false);
+          if (prevView === 'finalize') setShowFinalize(true);
+          else if (prevView === 'resumo') setShowResumo(true);
+          setPrevView(null);
+        }}
+        onFinish={() => { onFinish && onFinish(); }}
+      />
+    );
   }
+
+  // Mostra o Resumo do Pedido antes de Finalizar Pedido
+  if (showResumo) {
+    return (
+      <ResumoPedido
+        order={{ basketCounts }}
+        totalPrice={totalValue}
+        onBack={() => setShowResumo(false)}
+        onFinalize={() => { setShowResumo(false); setShowFinalize(true); }}
+        onRetirada={() => { setPrevView('resumo'); setShowResumo(false); setShowRetirada(true); }}
+        onEntrega={() => { setPrevView('resumo'); setShowResumo(false); setShowEntrega(true); }}
+      />
+    );
+  }
+
   if (showFinalize) {
-    return <FinalizarPedido size={null} onBack={() => setShowFinalize(false)} onRetirada={() => setShowRetirada(true)} onEntrega={() => setShowEntrega(true)} />;
+    return (
+      <FinalizarPedido
+        size={totalBaskets || 0}
+        onBack={() => { setShowFinalize(false); setShowResumo(true); }}
+        onRetirada={() => { setPrevView('finalize'); setShowFinalize(false); setShowRetirada(true); }}
+        onEntrega={() => { setPrevView('finalize'); setShowFinalize(false); setShowEntrega(true); }}
+      />
+    );
   }
 
   const formatBRL = v => {
@@ -214,8 +261,8 @@ export default function CestaDetalhes({ onClose, onFinish }) {
             </div>
 
             <div className="d-grid gap-3 mb-4 ch-btn-group" style={{ marginTop: 18 }}>
-              <button className="ch-btn" onClick={() => setShowFinalize(true)} disabled={!canFinalize() || storeClosed}>
-                FINALIZAR PEDIDO
+              <button className="ch-btn" onClick={() => setShowResumo(true)} disabled={!canFinalize() || storeClosed}>
+                RESUMO DO PEDIDO
               </button>
             </div>
 

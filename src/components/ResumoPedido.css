@@ -1,0 +1,191 @@
+@import './CamforHome.css';
+
+.rp-section { 
+  color: #fff; margin-top: 10px; 
+}
+
+.rp-section-title { 
+  font-weight:700; 
+  margin-bottom:8px; 
+  color: #fff; 
+}
+
+.rp-items { 
+  display:flex; 
+  flex-direction:column; 
+  gap:10px; 
+}
+
+.rp-item { 
+  display:flex; 
+  gap:12px; 
+  align-items:center; 
+  background: rgba(255,255,255,0.03); 
+  padding:10px; 
+  border-radius:8px; 
+}
+
+.rp-item-img { 
+  width:64px; 
+  height:48px; 
+  object-fit:cover; 
+  border-radius:6px; 
+  background:#fff; 
+  flex-shrink:0; 
+}
+
+.rp-item-desc { 
+  flex:1; 
+  color:#fff; 
+}
+
+.rp-item-title { 
+  font-weight:700; 
+  margin-bottom:6px; 
+}
+
+.rp-item-qty, 
+.rp-item-price { 
+  color: rgba(255,255,255,0.9); 
+}
+
+.rp-item-unit { 
+  font-weight:700; 
+  color:#fff; 
+  min-width:90px; 
+  text-align:right; 
+}
+
+.rp-contact { 
+  color:#fff; 
+  font-size:0.95rem; 
+}
+
+.rp-payments { 
+  display:flex; 
+  gap:12px; 
+  flex-direction:column; 
+  margin-top:8px; 
+  color:#fff; 
+}
+
+.rp-pay-option { 
+  display:flex; 
+  gap:8px; 
+  align-items:center; 
+  font-weight:600; 
+}
+
+.rp-cash { 
+  margin-top:8px; 
+  display:flex; 
+  gap:8px; 
+  align-items:center; 
+  flex-direction:column; 
+}
+
+.rp-cash-input { 
+  width:140px; 
+  padding:8px 10px; 
+  border-radius:8px; 
+  border:1px solid #e6e6e6; 
+  background:#fff; 
+  color:#111; 
+}
+
+.rp-total { 
+  margin-top:12px; 
+  font-size:1.05rem; 
+  color:#fff; 
+  font-weight:700; 
+}
+
+.rp-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+  justify-content: center;
+  width: 100%;
+}
+
+.rp-order-panel {
+  background: #fff;
+  color: #111;
+  padding: 12px;
+  border-radius: 10px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.rp-order-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: transparent;
+  padding: 8px;
+  border-radius: 8px;
+}
+
+.rp-order-img {
+  width:64px;
+  height:48px;
+  object-fit:cover;
+  border-radius:8px;
+  flex-shrink:0;
+  background: #f5f5f5;
+}
+
+.rp-order-info { 
+  flex:1; 
+}
+
+.rp-order-title { 
+  font-weight:700; 
+  margin-bottom:4px; 
+  color:#111; 
+}
+
+.rp-order-meta { 
+  color:#444; 
+  margin-bottom:2px; 
+}
+
+.rp-order-value { 
+  font-weight:700; 
+  color:#111; 
+  min-width:90px; 
+  text-align:right; 
+}
+
+.rp-divider {
+  height: 1px;
+  background: #e6e6e6;
+  margin: 8px 0;
+  width: 100%;
+}
+
+.rp-order-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 6px;
+  font-weight: 800;
+  color: #111;
+}
+
+.rp-order-total-label { 
+  font-size: 1rem; 
+}
+
+.rp-order-total-value { 
+  font-size: 1.05rem; 
+}
+
+.rp-actions .ch-btn.rp-small {
+  padding: 8px 12px;
+  font-size: 0.95rem;
+  border-radius: 10px;
+}

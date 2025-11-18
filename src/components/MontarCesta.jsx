@@ -4,6 +4,7 @@ import './MontarCesta.css';
 import FinalizarPedido from './FinalizarPedido';
 import Retirada from './Retirada';
 import Entrega from './Entrega';
+import ResumoPedido from './ResumoPedido';
 
 export default function MontarCesta({ onBack }) {
   const [produtosDisponiveis, setProdutosDisponiveis] = useState([]);
@@ -68,9 +69,13 @@ export default function MontarCesta({ onBack }) {
 
   const [cart, setCart] = useState([]);
 
+  // qual view abriu a tela de retirada/entrega: 'resumo' | 'finalize' | null
+  const [prevView, setPrevView] = useState(null);
+
   const [showFinalize, setShowFinalize] = useState(false);
   const [showRetirada, setShowRetirada] = useState(false);
   const [showEntrega, setShowEntrega] = useState(false);
+  const [showResumo, setShowResumo] = useState(false); 
 
   const totalCount = cart.reduce((sum, it) => sum + (it.qty || 0), 0);
   const allowedTotals = [10, 15, 18];
@@ -135,9 +140,15 @@ export default function MontarCesta({ onBack }) {
     return (
       <Retirada
         size={totalCount}
-        onBack={() => setShowRetirada(false)}
+        onBack={() => {
+          setShowRetirada(false);
+          // restaura para a view anterior (resumo ou finalize)
+          if (prevView === 'finalize') setShowFinalize(true);
+          else if (prevView === 'resumo') setShowResumo(true);
+          setPrevView(null);
+        }}
         onFinish={() => {
-          alert('Finalizado com sucesso (Retirada). Obrigado.');
+          // finalizar => volta ao home (comportamento anterior)
           onBack && onBack();
         }}
       />
@@ -148,11 +159,30 @@ export default function MontarCesta({ onBack }) {
     return (
       <Entrega
         size={totalCount}
-        onBack={() => setShowEntrega(false)}
+        onBack={() => {
+          setShowEntrega(false);
+          if (prevView === 'finalize') setShowFinalize(true);
+          else if (prevView === 'resumo') setShowResumo(true);
+          setPrevView(null);
+        }}
         onFinish={() => {
-          alert('Finalizado com sucesso (Entrega). Obrigado.');
           onBack && onBack();
         }}
+      />
+    );
+  }
+
+  // Renderizar ResumoPedido antes de FinalizarPedido
+  if (showResumo) {
+    return (
+      <ResumoPedido
+        cart={cart}
+        size={totalCount}
+        totalPrice={finalPrice}
+        onBack={() => setShowResumo(false)}
+        onFinalize={() => { setShowResumo(false); setShowFinalize(true); }}
+        onRetirada={() => { setPrevView('resumo'); setShowResumo(false); setShowRetirada(true); }}
+        onEntrega={() => { setPrevView('resumo'); setShowResumo(false); setShowEntrega(true); }}
       />
     );
   }
@@ -161,9 +191,10 @@ export default function MontarCesta({ onBack }) {
     return (
       <FinalizarPedido
         size={totalCount}
-        onBack={() => setShowFinalize(false)}
-        onRetirada={() => { setShowFinalize(false); setShowRetirada(true); }}
-        onEntrega={() => { setShowFinalize(false); setShowEntrega(true); }}
+        // voltar de Finalizar -> mostrar Resumo
+        onBack={() => { setShowFinalize(false); setShowResumo(true); }}
+        onRetirada={() => { setPrevView('finalize'); setShowFinalize(false); setShowRetirada(true); }}
+        onEntrega={() => { setPrevView('finalize'); setShowFinalize(false); setShowEntrega(true); }}
       />
     );
   }
@@ -294,10 +325,10 @@ export default function MontarCesta({ onBack }) {
                 disabled={!isOpenTime || !allowedTotals.includes(totalCount)}
                 onClick={() => {
                   if (!isOpenTime || !allowedTotals.includes(totalCount)) return;
-                  setShowFinalize(true);
+                  setShowResumo(true); // abre ResumoPedido
                 }}
               >
-                FINALIZAR PEDIDO
+                RESUMO DO PEDIDO
               </button>
             </div>
 

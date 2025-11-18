@@ -22,10 +22,9 @@ export default function FinalizarPedido({ size, onBack, onConfirm, onRetirada, o
 
             {/* Título */}
             <h2 className="ch-title">FINALIZAR PEDIDO</h2>
-            <div className="fp-subtitle">Cesta de {size} itens</div>
 
             {/* Nota */}
-            <p className="fp-note">Escolha como prefere receber sua cesta.</p>
+            <p className="fp-note">Escolha como prefere receber seu pedido.</p>
 
             {/* Opções */}
             <div className="d-grid gap-3 mb-4 ch-btn-group fp-options" style={{ marginTop: '18px' }}>
