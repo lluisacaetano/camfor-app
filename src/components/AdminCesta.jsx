@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './AdminCesta.css';
 
@@ -20,6 +20,28 @@ export default function AdminCesta({ onBack }) {
   const [valor10, setValor10] = useState(''); 
   const [valor15, setValor15] = useState('');
   const [valor18, setValor18] = useState('');
+
+  // Carrega configuração salva
+  useEffect(() => {
+    try {
+      const rawItems = localStorage.getItem('camfor_selected_items');
+      const rawPrices = localStorage.getItem('camfor_prices');
+      if (rawItems) {
+        const parsed = JSON.parse(rawItems);
+        if (Array.isArray(parsed)) setSelecionados(parsed);
+      }
+      if (rawPrices) {
+        const parsed = JSON.parse(rawPrices);
+        if (parsed && typeof parsed === 'object') {
+          if (parsed[10]) setValor10(formatBRL(String(Math.round(parsed[10] * 100))));
+          if (parsed[15]) setValor15(formatBRL(String(Math.round(parsed[15] * 100))));
+          if (parsed[18]) setValor18(formatBRL(String(Math.round(parsed[18] * 100))));
+        }
+      }
+    } catch (e) {
+      console.warn('Erro ao carregar configuração admin', e);
+    }
+  }, []);
 
   function formatBRL(input) {
     const digits = (input || '').replace(/\D/g, '');
@@ -73,6 +95,15 @@ export default function AdminCesta({ onBack }) {
       alert('Preencha todos os valores das cestas (valores válidos maiores que 0).');
       return;
     }
+
+    // Salva seleção e preços no localStorage
+    try {
+      localStorage.setItem('camfor_selected_items', JSON.stringify(selecionados));
+      localStorage.setItem('camfor_prices', JSON.stringify({ 10: v10, 15: v15, 18: v18 }));
+    } catch (e) {
+      console.warn('Falha ao salvar configuração no localStorage', e);
+    }
+
     alert('Configuração salva com sucesso!');
     onBack && onBack();
   }
@@ -150,7 +181,7 @@ export default function AdminCesta({ onBack }) {
                   })}
                 </div>
                 <div className="admin-values">
-                  <label className="admin-label">Valor cesta 10 itens</label>
+                  <label className="admin-label">Valor da Cesta Pequena (10 itens)</label>
                   <input
                     className="admin-input"
                     type="text"
@@ -158,7 +189,7 @@ export default function AdminCesta({ onBack }) {
                     value={valor10}
                     onChange={e => setValor10(formatBRL(e.target.value))}
                   />
-                  <label className="admin-label">Valor cesta 15 itens</label>
+                  <label className="admin-label">Valor da Cesta Média (15 itens)</label>
                   <input
                     className="admin-input"
                     type="text"
@@ -166,7 +197,7 @@ export default function AdminCesta({ onBack }) {
                     value={valor15}
                     onChange={e => setValor15(formatBRL(e.target.value))}
                   />
-                  <label className="admin-label">Valor cesta 18 itens</label>
+                  <label className="admin-label">Valor da Cesta Grande (18 itens)</label>
                   <input
                     className="admin-input"
                     type="text"

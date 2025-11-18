@@ -1,24 +1,71 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './MontarCesta.css';
-import FinalizarPedido from './FinalizarPedido'; 
-import Retirada from './Retirada';               
-import Entrega from './Entrega';                 
+import FinalizarPedido from './FinalizarPedido';
+import Retirada from './Retirada';
+import Entrega from './Entrega';
 
 export default function MontarCesta({ onBack }) {
-  // Produtos de Exemplos
-  const produtosDisponiveis = [
-    { id: 'tomate', name: 'Tomate', img: '/images/produtos/tomate.jpg' },
-    { id: 'cenoura', name: 'Cenoura', img: '/images/produtos/cenoura.jpg' },
-    { id: 'batata', name: 'Batata', img: '/images/produtos/batata.jpg' },
-    { id: 'alface', name: 'Alface', img: '/images/produtos/alface.jpeg' },
-    { id: 'cebola', name: 'Cebola', img: '/images/produtos/cebola.jpg' },
-  ];
+  const [produtosDisponiveis, setProdutosDisponiveis] = useState([]);
+  const [prices, setPrices] = useState({10:0,15:0,18:0});
+  const [isOpenTime, setIsOpenTime] = useState(false);
 
-  // Quantidades começam em 0
-  const [quantidades, setQuantidades] = useState(() =>
-    produtosDisponiveis.reduce((acc, p) => ({ ...acc, [p.id]: 0 }), {})
-  );
+  useEffect(() => {
+    function clearAdminConfig() {
+      localStorage.removeItem('camfor_selected_items');
+      localStorage.removeItem('camfor_prices');
+    }
+    function performDailyResetIfNeeded() {
+      try {
+        const now = new Date();
+        const today = now.toISOString().slice(0,10);
+        const lastReset = localStorage.getItem('camfor_last_reset');
+        if (now.getHours() >= 16 && lastReset !== today) {
+          clearAdminConfig();
+          localStorage.setItem('camfor_last_reset', today);
+        }
+      } catch (e) { console.warn(e); }
+    }
+    function checkBusinessHours() {
+      const h = new Date().getHours();
+      return h >= 7 && h < 16;
+    }
+    function refresh() {
+      performDailyResetIfNeeded();
+      try {
+        const rawItems = localStorage.getItem('camfor_selected_items');
+        const rawPrices = localStorage.getItem('camfor_prices');
+        if (rawItems) {
+          const items = JSON.parse(rawItems);
+          const mapped = items.map(name => {
+            const id = name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
+            return { id, name, img: `/images/produtos/${id}.jpg` };
+          });
+          if (mapped.length) setProdutosDisponiveis(mapped);
+        }
+        if (rawPrices) setPrices(JSON.parse(rawPrices));
+      } catch (e) { console.warn(e); }
+      setIsOpenTime(checkBusinessHours());
+    }
+    refresh();
+    const id = setInterval(refresh, 60*1000);
+    return () => clearInterval(id);
+  }, []);
+
+  // Quantidades começam vazias
+  const [quantidades, setQuantidades] = useState({});
+
+  useEffect(() => {
+    if (!produtosDisponiveis || produtosDisponiveis.length === 0) {
+      setQuantidades({});
+      return;
+    }
+    setQuantidades(prev => {
+      const map = produtosDisponiveis.reduce((acc, p) => ({ ...acc, [p.id]: prev[p.id] || 0 }), {});
+      return map;
+    });
+  }, [produtosDisponiveis]);
+
   const [cart, setCart] = useState([]);
 
   const [showFinalize, setShowFinalize] = useState(false);
@@ -27,7 +74,9 @@ export default function MontarCesta({ onBack }) {
 
   const totalCount = cart.reduce((sum, it) => sum + (it.qty || 0), 0);
   const allowedTotals = [10, 15, 18];
-  const canFinalize = allowedTotals.includes(totalCount);
+  const finalPrice = allowedTotals.includes(totalCount) ? (prices[totalCount] || 0) : null;
+
+  const storeClosed = produtosDisponiveis.length === 0 || !isOpenTime;
 
   // Incrementa quantidade e atualiza carrinho automaticamente
   function handleIncrement(prod) {
@@ -82,7 +131,6 @@ export default function MontarCesta({ onBack }) {
     setQuantidades(q => ({ ...q, [id]: v }));
   }
 
-  // Fluxo: se usuário já escolheu finalizar, renderiza as telas correspondentes
   if (showRetirada) {
     return (
       <Retirada
@@ -143,7 +191,22 @@ export default function MontarCesta({ onBack }) {
             <div className="mc-list">
               {produtosDisponiveis.map(prod => (
                 <div className="mc-item" key={prod.id}>
-                  <img className="mc-prod-img" src={prod.img} alt={prod.name} onError={(e)=>{e.currentTarget.src='/images/placeholder.png'}} />
+                  <img
+                    className="mc-prod-img"
+                    src={prod.img}
+                    alt={prod.name}
+                    onError={e => {
+                      const cur = e.currentTarget;
+                      const src = cur.src || '';
+                      if (src.match(/\.jpg$/i)) {
+                        cur.src = src.replace(/\.jpg$/i, '.jpeg');
+                      } else if (src.match(/\.jpeg$/i)) {
+                        cur.src = '/images/placeholder.png';
+                      } else {
+                        cur.src = '/images/placeholder.png';
+                      }
+                    }}
+                  />
                   <div className="mc-prod-info">
                     <div className="mc-prod-name">{prod.name}</div>
                     <div className="mc-controls">
@@ -178,7 +241,22 @@ export default function MontarCesta({ onBack }) {
               {cart.length === 0 && <div className="mc-empty">Carrinho vazio</div>}
               {cart.map(item => (
                 <div className="mc-cart-item" key={item.id}>
-                  <img className="mc-cart-img" src={item.img} alt={item.name} onError={(e)=>{e.currentTarget.src='/images/placeholder.png'}} />
+                  <img
+                    className="mc-cart-img"
+                    src={item.img}
+                    alt={item.name}
+                    onError={e => {
+                      const cur = e.currentTarget;
+                      const src = cur.src || '';
+                      if (src.match(/\.jpg$/i)) {
+                        cur.src = src.replace(/\.jpg$/i, '.jpeg');
+                      } else if (src.match(/\.jpeg$/i)) {
+                        cur.src = '/images/placeholder.png';
+                      } else {
+                        cur.src = '/images/placeholder.png';
+                      }
+                    }}
+                  />
                   <div className="mc-cart-name">{item.name}</div>
                   <input
                     className="mc-cart-qty"
@@ -196,18 +274,26 @@ export default function MontarCesta({ onBack }) {
             {/* Resumo */}
             <div className="mc-cart-summary" style={{ marginTop: '14px', textAlign: 'center', color: 'rgba(255,255,255,0.95)' }}>
               <div style={{ fontWeight: 700, marginBottom: 6 }}>Total: {totalCount} itens</div>
-              <div style={{ fontSize: '0.95rem', opacity: 0.9 }}>
-                Pedidos só podem ser finalizados com exatamente {allowedTotals.join(', ')} itens.
-              </div>
+              {storeClosed ? (
+                <div style={{ fontSize: '0.95rem', opacity: 0.9 }}>Loja fechada</div>
+              ) : finalPrice !== null ? (
+                <div style={{ fontSize: '1.05rem', fontWeight: 700 }}>
+                  Valor final: {Number(finalPrice).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                </div>
+              ) : (
+                <div style={{ fontSize: '0.95rem', opacity: 0.9 }}>
+                  Para finalizar, a quantidade deve ser exatamente 10, 15 ou 18 itens.
+                </div>
+              )}
             </div>
-+
-            {/* Botão */}
+
+            {/* Botão finalizar pedido */}
             <div className="d-grid gap-3 mb-4 ch-btn-group" style={{ marginTop: '10px' }}>
               <button
                 className="ch-btn mc-finalize-btn"
-                disabled={!canFinalize}
+                disabled={!isOpenTime || !allowedTotals.includes(totalCount)}
                 onClick={() => {
-                  if (!canFinalize) return;
+                  if (!isOpenTime || !allowedTotals.includes(totalCount)) return;
                   setShowFinalize(true);
                 }}
               >

@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './CamforHome.css';
 
-import CestaCompleta from './CestaCompleta';
+import CestaDetalhes from './CestaDetalhes';
 import MontarCesta from './MontarCesta';
 import AdminCesta from './AdminCesta';
 
@@ -11,8 +11,26 @@ export default function CamforHome() {
   const [showMontar, setShowMontar] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
 
+  useEffect(() => {
+    const setFavicon = (url) => {
+      try {
+        let link = document.querySelector("link[rel*='icon']");
+        if (!link) {
+          link = document.createElement('link');
+          link.rel = 'icon';
+          document.head.appendChild(link);
+        }
+        link.type = 'image/png';
+        link.href = url;
+      } catch (e) {
+        console.warn('Erro ao definir favicon', e);
+      }
+    };
+    setFavicon('/images/logo.png');
+  }, []);
+
   if (showCesta) {
-    return <CestaCompleta onBack={() => setShowCesta(false)} />;
+    return <CestaDetalhes onClose={() => setShowCesta(false)} onFinish={() => setShowCesta(false)} />;
   }
   if (showMontar) {
     return <MontarCesta onBack={() => setShowMontar(false)} />;
