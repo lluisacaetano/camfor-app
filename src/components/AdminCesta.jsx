@@ -1,21 +1,80 @@
 import React, { useState, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './AdminCesta.css';
+import { handleImageError } from '../utils/imageUtils';
 
 const produtos = [
-  'Tomate', 'Cenoura', 'Alface', 'Batata', 'Cebola'
+  'Abacate', 'Abacaxi', 'Abóbora', 'Abobrinha Italiana', 'Abobrinha Caipira', 'Acelga', 'Acerola',
+  'Agrião', 'Alface', 'Alho', 'Alho Poró', 'Almeirão', 'Banana', 'Batata', 'Batata Doce',
+  'Beterraba', 'Biscoito', 'Rosquinha', 'Brócolis Chinês', 'Brócolis Ramoso', 'Cara', 'Cebola',
+  'Cebolinha', 'Cenoura', 'Chicória', 'Chuchu', 'Couve', 'Couve Flor', 'Espinafre', 'Goiaba',
+  'Inhame', 'Inhame Cabeça', 'Jabuticaba', 'Jilo', 'Laranja', 'Limão', 'Maçã', 'Mamão',
+  'Mandioca Congelada', 'Manga', 'Maracujá', 'Melão', 'Laranjinha', 'Mexerica', 'Milho',
+  'Mostarda', 'Pera', 'Pêssego', 'Pimentão', 'Repolho', 'Rúcula', 'Salsinha', 'Tomate', 'Vagem'
 ];
 
 function getImgSrc(nome) {
-  const imgId = nome
-    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase().replace(/[^a-z0-9]/g, '');
-  return `/images/produtos/${imgId}.jpg`;
+  const imgMap = {
+    'Abacate': 'abacate.jpg',
+    'Abacaxi': 'abacaxi.jpg',
+    'Abóbora': 'abobora.jpg',
+    'Abobrinha Italiana': 'abobrinhaitaliana.jpg',
+    'Abobrinha Caipira': 'abobrinhacaipira.jpg',
+    'Acelga': 'acelga.png',
+    'Acerola': 'acerola.jpg',
+    'Agrião': 'agriao.jpg',
+    'Alface': 'alface.jpeg',
+    'Alho': 'alho.jpg',
+    'Alho Poró': 'alhoPoro.jpg',
+    'Almeirão': 'almeirao.jpeg',
+    'Banana': 'banana.jpg',
+    'Batata': 'batata.jpg',
+    'Batata Doce': 'batataDoce.jpg',
+    'Beterraba': 'beterraba.jpg',
+    'Biscoito': 'biscoito.jpg',
+    'Rosquinha': 'rosquinha.png',
+    'Brócolis Chinês': 'brocolisChines.jpg',
+    'Brócolis Ramoso': 'brocolisRamoso.png',
+    'Cara': 'cara.jpg',
+    'Cebola': 'cebola.jpg',
+    'Cebolinha': 'cebolinha.jpg',
+    'Cenoura': 'cenoura.jpg',
+    'Chicória': 'chicoria.jpg',
+    'Chuchu': 'chuchu.jpg',
+    'Couve': 'couve.jpg',
+    'Couve Flor': 'couveFlor.jpg',
+    'Espinafre': 'espinafre.jpg',
+    'Goiaba': 'goiaba.jpg',
+    'Inhame': 'inhame.jpg',
+    'Inhame Cabeça': 'inhameCabeca.jpg',
+    'Jabuticaba': 'jabuticaba.jpg',
+    'Jilo': 'jilo.jpg',
+    'Laranja': 'laranja.jpg',
+    'Limão': 'limao.jpeg',
+    'Maçã': 'maca.jpg',
+    'Mamão': 'mamao.jpg',
+    'Mandioca Congelada': 'mandiocaCongelada.png',
+    'Manga': 'manga.jpg',
+    'Maracujá': 'maracuja.jpg',
+    'Melão': 'melao.jpg',
+    'Laranjinha': 'laranjinha.png',
+    'Mexerica': 'mexerica.jpg',
+    'Milho': 'milho.jpg',
+    'Mostarda': 'mostarda.jpg',
+    'Pera': 'pera.jpg',
+    'Pêssego': 'pessego.jpg',
+    'Pimentão': 'pimentao.jpg',
+    'Repolho': 'repolho.jpg',
+    'Rúcula': 'rucula.jpg',
+    'Salsinha': 'salsinha.png',
+    'Tomate': 'tomate.jpg',
+    'Vagem': 'vagem.png'
+  };
+  
+  return `/images/produtos/${imgMap[nome] || nome.toLowerCase().replace(/\s+/g, '') + '.jpg'}`;
 }
 
 export default function AdminCesta({ onBack }) {
-  const [isLogged, setIsLogged] = useState(false);
-  const [senha, setSenha] = useState('');
   const [selecionados, setSelecionados] = useState([]);
   const [valor10, setValor10] = useState(''); 
   const [valor15, setValor15] = useState('');
@@ -77,12 +136,6 @@ export default function AdminCesta({ onBack }) {
     });
   }
 
-  function handleLogin(e) {
-    e.preventDefault();
-    if (senha === 'admin') setIsLogged(true);
-    else alert('Senha inválida');
-  }
-
   function handleSalvar() {
     if (selecionados.length < 1) {
       alert('Selecione pelo menos 1 item.');
@@ -122,102 +175,77 @@ export default function AdminCesta({ onBack }) {
                 <img src="/images/logo.png" alt="CAMFOR" className="ch-logo-img" />
               </div>
             </div>
-            <h2 className="ch-title">ADMINISTRADOR</h2>
-            {!isLogged ? (
-              <form className="admin-login" onSubmit={handleLogin}>
-                <label className="admin-label">Senha de administrador</label>
-                <input
-                  className="admin-input"
-                  type="password"
-                  value={senha}
-                  onChange={e => setSenha(e.target.value)}
-                  required
-                />
-                <button className="ch-btn" type="submit">Entrar</button>
-              </form>
-            ) : (
-              <>
-                {/* Contador de Itens */}
-                <div className="admin-note" style={{ marginBottom: 8 }}>
-                  <div className="admin-remaining" style={{ marginTop: 6 }}>
-                    {totalSelected === 0
-                      ? 'Selecione os itens que deseja incluir na cesta.'
-                      : `Você selecionou ${totalSelected} item${totalSelected > 1 ? 's' : ''}.`}
-                  </div>
-                </div>
+            <h2 className="ch-title">SELECIONAR PRODUTOS</h2>
 
-                <div className="admin-prod-list">
-                  {produtos.map((nome, idx) => {
-                    const imgJpg = getImgSrc(nome); 
-                    return (
-                      <label key={nome} className="admin-prod-item">
-                        <input
-                          type="checkbox"
-                          checked={selecionados.includes(nome)}
-                          onChange={() => handleCheck(nome)}
-                          disabled={
-                            !selecionados.includes(nome) && selecionados.length >= 18
-                          }
-                        />
-                        <img
-                          src={imgJpg}
-                          alt={nome}
-                          className="admin-prod-img"
-                          onError={e => {
-                            const cur = e.currentTarget;
-                            const src = cur.src || '';
-                            if (src.match(/\.jpg$/i)) {
-                              cur.src = src.replace(/\.jpg$/i, '.jpeg');
-                            } else if (src.match(/\.jpeg$/i)) {
-                              cur.src = '/images/placeholder.png';
-                            } else {
-                              cur.src = '/images/placeholder.png';
-                            }
-                          }}
-                        />
-                        <span className="admin-prod-name">{nome}</span>
-                      </label>
-                    );
-                  })}
-                </div>
-                <div className="admin-values">
-                  <label className="admin-label">Valor da Cesta Pequena (10 itens)</label>
-                  <input
-                    className="admin-input"
-                    type="text"
-                    placeholder="R$ 0,00"
-                    value={valor10}
-                    onChange={e => setValor10(formatBRL(e.target.value))}
-                  />
-                  <label className="admin-label">Valor da Cesta Média (15 itens)</label>
-                  <input
-                    className="admin-input"
-                    type="text"
-                    placeholder="R$ 0,00"
-                    value={valor15}
-                    onChange={e => setValor15(formatBRL(e.target.value))}
-                  />
-                  <label className="admin-label">Valor da Cesta Grande (18 itens)</label>
-                  <input
-                    className="admin-input"
-                    type="text"
-                    placeholder="R$ 0,00"
-                    value={valor18}
-                    onChange={e => setValor18(formatBRL(e.target.value))}
-                  />
-                </div>
-                <div className="d-grid gap-3 mb-4 ch-btn-group" style={{ marginTop: '18px' }}>
-                  <button
-                    className="ch-btn"
-                    onClick={handleSalvar}
-                    disabled={!canSave}
-                    title={!canSave ? 'Selecione ao menos 1 item e preencha todos os valores' : 'Salvar configuração'}
-                  >
-                    SALVAR
-                  </button>
-                </div>
-              </>
-            )}
+            {/* Contador de Itens */}
+            <div className="admin-note" style={{ marginBottom: 8 }}>
+              <div className="admin-remaining" style={{ marginTop: 6 }}>
+                {totalSelected === 0
+                  ? 'Selecione os itens que deseja incluir na cesta.'
+                  : `Você selecionou ${totalSelected} item${totalSelected > 1 ? 's' : ''}.`}
+              </div>
+            </div>
+
+            <div className="admin-prod-list">
+              {produtos.map((nome) => {
+                const imgSrc = getImgSrc(nome); 
+                return (
+                  <label key={nome} className="admin-prod-item">
+                    <input
+                      type="checkbox"
+                      checked={selecionados.includes(nome)}
+                      onChange={() => handleCheck(nome)}
+                      disabled={
+                        !selecionados.includes(nome) && selecionados.length >= 18
+                      }
+                    />
+                    <img
+                      src={imgSrc}
+                      alt={nome}
+                      className="admin-prod-img"
+                      onError={handleImageError}
+                    />
+                    <span className="admin-prod-name">{nome}</span>
+                  </label>
+                );
+              })}
+            </div>
+            <div className="admin-values">
+              <label className="admin-label">Valor da Cesta Pequena (10 itens)</label>
+              <input
+                className="admin-input"
+                type="text"
+                placeholder="R$ 0,00"
+                value={valor10}
+                onChange={e => setValor10(formatBRL(e.target.value))}
+              />
+              <label className="admin-label">Valor da Cesta Média (15 itens)</label>
+              <input
+                className="admin-input"
+                type="text"
+                placeholder="R$ 0,00"
+                value={valor15}
+                onChange={e => setValor15(formatBRL(e.target.value))}
+              />
+              <label className="admin-label">Valor da Cesta Grande (18 itens)</label>
+              <input
+                className="admin-input"
+                type="text"
+                placeholder="R$ 0,00"
+                value={valor18}
+                onChange={e => setValor18(formatBRL(e.target.value))}
+              />
+            </div>
+            <div className="d-grid gap-3 mb-4 ch-btn-group" style={{ marginTop: '18px' }}>
+              <button
+                className="ch-btn"
+                onClick={handleSalvar}
+                disabled={!canSave}
+                title={!canSave ? 'Selecione ao menos 1 item e preencha todos os valores' : 'Salvar configuração'}
+              >
+                SALVAR
+              </button>
+            </div>
           </div>
         </div>
       </div>

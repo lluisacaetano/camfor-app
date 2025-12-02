@@ -4,7 +4,15 @@ import './CestaDetalhes.css';
 import FinalizarPedido from './FinalizarPedido';
 import Retirada from './Retirada';
 import Entrega from './Entrega';
-import ResumoPedido from './ResumoPedido'; 
+import ResumoPedido from './ResumoPedido';
+import { handleImageError } from '../utils/imageUtils';
+
+function cestaImgForSize(sz) {
+  if (sz === 10) return '/images/cesta10itens.png';
+  if (sz === 15) return '/images/cesta15itens.png';
+  if (sz === 18) return '/images/cesta18itens.png';
+  return '/images/cestaCompleta.jpg';
+}
 
 export default function CestaDetalhes({ onClose, onFinish }) {
   const [showFinalize, setShowFinalize] = useState(false);
@@ -74,9 +82,23 @@ export default function CestaDetalhes({ onClose, onFinish }) {
   }
 
   if (showRetirada) {
+    // Converte basketCounts em itens para salvar/visualizar
+    const basketItems = [];
+    for (const sz of [10,15,18]) {
+      const qty = Number(basketCounts[sz] || 0);
+      if (qty > 0) {
+        basketItems.push({
+          id: `cesta${sz}`,
+          name: `Cesta ${sz} itens`,
+          qty,
+          price: prices[sz] || 0
+        });
+      }
+    }
     return (
       <Retirada
         size={null}
+        cartItems={basketItems} // <-- passar itens convertidos
         onBack={() => {
           setShowRetirada(false);
           if (prevView === 'finalize') setShowFinalize(true);
@@ -88,10 +110,23 @@ export default function CestaDetalhes({ onClose, onFinish }) {
     );
   }
   if (showEntrega) {
+    const basketItems = [];
+    for (const sz of [10,15,18]) {
+      const qty = Number(basketCounts[sz] || 0);
+      if (qty > 0) {
+        basketItems.push({
+          id: `cesta${sz}`,
+          name: `Cesta ${sz} itens`,
+          qty,
+          price: prices[sz] || 0
+        });
+      }
+    }
     return (
       <Entrega
         size={null}
         totalPrice={totalValue}
+        cartItems={basketItems} // <-- passar itens convertidos
         onBack={() => {
           setShowEntrega(false);
           if (prevView === 'finalize') setShowFinalize(true);
@@ -182,11 +217,7 @@ export default function CestaDetalhes({ onClose, onFinish }) {
                   const imgSrc = `/images/produtos/${imgId}.jpg`;
                   return (
                     <li key={idx} className="cd-item">
-                      <img src={imgSrc} alt={p} className="cd-prod-img" onError={e => {
-                        const cur = e.currentTarget;
-                        if (cur.src.match(/\.jpg$/i)) cur.src = cur.src.replace(/\.jpg$/i, '.jpeg');
-                        else cur.src = '/images/placeholder.png';
-                      }} />
+                      <img src={imgSrc} alt={p} className="cd-prod-img" onError={handleImageError} />
                       <span className="cd-prod-name">{p}</span>
                     </li>
                   );
@@ -207,9 +238,9 @@ export default function CestaDetalhes({ onClose, onFinish }) {
                   <div className="mc-cart-item" key={sz} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <img
                       className="mc-cart-img"
-                      src="/images/cestaCompleta.jpg"
+                      src={cestaImgForSize(sz)}
                       alt={`Cesta ${sz}`}
-                      onError={e => { e.currentTarget.src = '/images/placeholder.png'; }}
+                      onError={handleImageError}
                     />
                     <div className="mc-cart-name">Cesta de {sz} itens</div>
 

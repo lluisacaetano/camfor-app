@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './Entrega.css';
+import { saveOrder } from '../utils/orderStorage';
 
-export default function Entrega({ size, onBack, onFinish, totalPrice = 0 }) {
+export default function Entrega({ size, onBack, onFinish, totalPrice = 0, cartItems = [] }) {
   const [nome, setNome] = useState('');
   const [telefoneRaw, setTelefoneRaw] = useState(''); 
   const [telefoneMask, setTelefoneMask] = useState(''); 
@@ -92,6 +93,32 @@ export default function Entrega({ size, onBack, onFinish, totalPrice = 0 }) {
     }
   }
 
+  function handleSubmit(e) {
+    e.preventDefault();
+    
+    // Salvar pedido
+    const total = Array.isArray(cartItems) && cartItems.length > 0
+      ? cartItems.reduce((sum, item) => sum + ((item.qty || 0) * (item.price || 0)), 0)
+      : totalPrice;
+    
+    saveOrder({
+      tipo: 'entrega',
+      nome,
+      telefone: telefoneMask,
+      cep,
+      rua,
+      numero,
+      bairro,
+      cidade,
+      uf,
+      items: cartItems,
+      total,
+      source: Array.isArray(cartItems) && cartItems.length > 0 ? 'montar' : 'cesta'
+    });
+
+    setShowSuccess(true);
+  }
+
   return (
     <div className="ch-root">
       <div className="container">
@@ -112,11 +139,7 @@ export default function Entrega({ size, onBack, onFinish, totalPrice = 0 }) {
             <h2 className="ch-title">ENTREGA</h2>
             <p className="fp-note">Preencha seus dados para entrega.</p>
 
-            <form className="ent-form" onSubmit={(e) => {
-              e.preventDefault();
-              // abrir modal de sucesso; onFinish será chamado quando o usuário confirmar
-              setShowSuccess(true);
-            }}>
+            <form className="ent-form" onSubmit={handleSubmit}>
               <label className="ent-label">Nome</label>
               <input className="ent-input" value={nome} onChange={(e) => setNome(e.target.value)} required />
 

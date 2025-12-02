@@ -1,0 +1,14 @@
+@import './CamforHome.css';
+
+.ch-title {
+  color: #fff;
+  text-align: center;
+  margin: 24px 0 30px;
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+.ch-btn-group {
+  margin-top: 24px;
+  margin-bottom: 24px;
+}

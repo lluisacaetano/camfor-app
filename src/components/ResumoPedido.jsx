@@ -1,6 +1,14 @@
 import React, { useState, useMemo } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './ResumoPedido.css';
+import { handleImageError } from '../utils/imageUtils';
+
+function cestaImgForSize(sz) {
+  if (sz === 10) return '/images/cesta10itens.png';
+  if (sz === 15) return '/images/cesta15itens.png';
+  if (sz === 18) return '/images/cesta18itens.png';
+  return '/images/cestaCompleta.jpg';
+}
 
 export default function ResumoPedido({
   order = {},
@@ -56,7 +64,7 @@ export default function ResumoPedido({
             qty,
             unit: Number(prices[sz] || 0),
             total: qty * Number(prices[sz] || 0),
-            img: '/images/cestaCompleta.jpg'
+            img: cestaImgForSize(sz)
           });
         }
       }
@@ -71,7 +79,7 @@ export default function ResumoPedido({
         qty,
         unit: Number(prices[sz] || 0),
         total: qty * Number(prices[sz] || 0),
-        img: '/images/cestaCompleta.jpg'
+        img: cestaImgForSize(sz)
       });
     }
     // c) Itens detalhados 
@@ -138,13 +146,7 @@ export default function ResumoPedido({
                           src={line.img}
                           alt={line.title}
                           className="rp-order-img"
-                          onError={e => {
-                            const cur = e.currentTarget;
-                            const src = cur.src || '';
-                            if (src.match(/\.jpg$/i)) cur.src = src.replace(/\.jpg$/i, '.jpeg');
-                            else if (src.match(/\.jpeg$/i)) cur.src = src.replace(/\.jpeg$/i, '.jpg');
-                            else cur.src = '/images/placeholder.png';
-                          }}
+                          onError={handleImageError}
                         />
                         <div className="rp-order-info">
                           <div className="rp-order-title">{line.title}</div>

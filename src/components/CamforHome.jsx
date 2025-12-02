@@ -4,12 +4,18 @@ import './CamforHome.css';
 
 import CestaDetalhes from './CestaDetalhes';
 import MontarCesta from './MontarCesta';
+import AdminLogin from './AdminLogin';
+import AdminHome from './AdminHome';
 import AdminCesta from './AdminCesta';
+import AdminPedidos from './AdminPedidos';
 
 export default function CamforHome() {
   const [showCesta, setShowCesta] = useState(false);
   const [showMontar, setShowMontar] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
+  const [showAdminHome, setShowAdminHome] = useState(false);
+  const [showAdminCesta, setShowAdminCesta] = useState(false);
+  const [showAdminPedidos, setShowAdminPedidos] = useState(false);
 
   const [isOpenTime, setIsOpenTime] = useState(false);
   const [hasProducts, setHasProducts] = useState(false);
@@ -75,7 +81,45 @@ export default function CamforHome() {
     return <MontarCesta onBack={() => setShowMontar(false)} />;
   }
   if (showAdmin) {
-    return <AdminCesta onBack={() => setShowAdmin(false)} />;
+    return <AdminLogin 
+      onBack={() => setShowAdmin(false)} 
+      onLoginSuccess={() => {
+        setShowAdmin(false);
+        setShowAdminHome(true);
+      }} 
+    />;
+  }
+  if (showAdminHome) {
+    return <AdminHome 
+      onBack={() => {
+        setShowAdminHome(false);
+        localStorage.removeItem('adminLogged');
+      }}
+      onSelectProducts={() => {
+        setShowAdminHome(false);
+        setShowAdminCesta(true);
+      }}
+      onViewOrders={() => {
+        setShowAdminHome(false);
+        setShowAdminPedidos(true);
+      }}
+    />;
+  }
+  if (showAdminCesta) {
+    return <AdminCesta 
+      onBack={() => {
+        setShowAdminCesta(false);
+        setShowAdminHome(true);
+      }} 
+    />;
+  }
+  if (showAdminPedidos) {
+    return <AdminPedidos 
+      onBack={() => {
+        setShowAdminPedidos(false);
+        setShowAdminHome(true);
+      }} 
+    />;
   }
 
   return (
@@ -89,7 +133,7 @@ export default function CamforHome() {
       >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
           <path d="M12 15.5a3.5 3.5 0 100-7 3.5 3.5 0 000 7z" stroke="#ffffff" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-          <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09c0-.65-.39-1.24-1-1.51a1.65 1.65 0 00-1.82.33l-.06.06A2 2 0 112.27 16.9l.06-.06c.49-.49.55-1.2.33-1.82A1.65 1.65 0 002 13.5H2a2 2 0 110-4h.09c.65 0 1.24-.39 1.51-1a1.65 1.65 0 00-.33-1.82l-.06-.06A2 2 0 016.1 2.27l.06.06c.49.49 1.2.55 1.82.33.6-.26 1.2-.95 1-1.51V2a2 2 0 114 0v.09c0 .65.39 1.24 1 1.51.62.22 1.33.16 1.82-.33l.06-.06A2 2 0 1121.73 7.1l-.06.06c-.22.62-.16 1.33.33 1.82.62.62.95 1.5.33 1.82h-.01c-.6.26-1.2.95-1 1.51V12a2 2 0 110 4v-.01z" stroke="#ffffff" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+          <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09c0-.65-.39-1.24-1-1.51a1.65 1.65 0 00-.33-1.82l-.06-.06A2 2 0 112.27 16.9l.06-.06c.49-.49.55-1.2.33-1.82A1.65 1.65 0 002 13.5H2a2 2 0 110-4h.09c.65 0 1.24-.39 1.51-1a1.65 1.65 0 00-.33-1.82l-.06-.06A2 2 0 016.1 2.27l.06.06c.49.49 1.2.55 1.82.33.6-.26 1.2-.95 1-1.51V2a2 2 0 114 0v.09c0 .65.39 1.24 1 1.51.62.22 1.33.16 1.82-.33l.06-.06A2 2 0 1121.73 7.1l-.06.06c-.22.62-.16 1.33.33 1.82.62.62.95 1.5.33 1.82h-.01c-.6.26-1.2.95-1 1.51V12a2 2 0 110 4v-.01z" stroke="#ffffff" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
         </svg>
       </button>
 
@@ -137,7 +181,7 @@ export default function CamforHome() {
         </div>
       </div>
 
-      {/* Overlay LOJA FECHADA (backdrop escuro + modal branco) */}
+      {/* Overlay LOJA FECHADA */}
       {!isOpenTime && (
         <div className="ch-closed-backdrop" role="dialog" aria-modal="true">
           <div className="ch-closed-modal">

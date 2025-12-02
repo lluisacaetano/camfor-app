@@ -1,0 +1,187 @@
+@import './CamforHome.css';
+
+.ap-section-title {
+  color: #fff;
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 20px 0 12px;
+  opacity: 0.95;
+}
+
+.ap-orders-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ap-order-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 14px 16px;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  gap: 12px;
+}
+
+.ap-card-content {
+  flex: 1;
+}
+
+.ap-order-name {
+  color: #fff;
+  font-weight: 700;
+  font-size: 1rem;
+  margin-bottom: 4px;
+}
+
+.ap-order-meta {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+}
+
+.ap-view-btn {
+  background: #26c6da;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.15s ease;
+  white-space: nowrap;
+}
+
+.ap-view-btn:hover {
+  background: #1fa5b8;
+}
+
+/* ORDER DETAIL */
+.od-section {
+  background: rgba(255, 255, 255, 0.04);
+  padding: 16px;
+  border-radius: 10px;
+  margin-bottom: 16px;
+}
+
+.od-subtitle {
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 0 0 12px;
+  opacity: 0.95;
+}
+
+.od-info {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.od-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #fff;
+  font-size: 0.95rem;
+}
+
+.od-label {
+  font-weight: 600;
+  opacity: 0.8;
+}
+
+.od-value {
+  opacity: 0.95;
+  text-align: right;
+  max-width: 60%;
+}
+
+.od-items {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.od-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  padding: 10px 12px;
+  border-radius: 8px;
+}
+
+.od-item-img {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 6px;
+  background: #fff;
+  flex-shrink: 0;
+}
+
+.od-item-info {
+  flex: 1;
+}
+
+.od-item-name {
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.od-item-qty {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.85rem;
+  margin-top: 2px;
+}
+
+.od-item-price {
+  color: #26c6da;
+  font-weight: 700;
+  font-size: 0.95rem;
+  flex-shrink: 0;
+}
+
+.od-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(38, 198, 218, 0.08);
+  border: 1px solid rgba(38, 198, 218, 0.2);
+}
+
+.od-total-label {
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.od-total-value {
+  color: #26c6da;
+  font-weight: 700;
+  font-size: 1.2rem;
+}
+
+@media (max-width: 576px) {
+  .ap-order-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .ap-view-btn {
+    align-self: flex-end;
+  }
+
+  .od-info-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .od-value {
+    max-width: 100%;
+  }
+}

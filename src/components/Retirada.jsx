@@ -1,15 +1,14 @@
 import React, { useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './Retirada.css';
+import { saveOrder } from '../utils/orderStorage';
 
-export default function Retirada({ size, onBack, onFinish }) {
+export default function Retirada({ size, onBack, onFinish, cartItems = [] }) {
   const [nome, setNome] = useState('');
   const [telefoneRaw, setTelefoneRaw] = useState('');   
   const [telefoneMask, setTelefoneMask] = useState('');  
-  // sucesso modal
   const [showSuccess, setShowSuccess] = useState(false);
 
-  // Formata telefone
   function formatPhone(value) {
     const d = String(value || '').replace(/\D/g, '');
     if (!d) return '';
@@ -23,6 +22,26 @@ export default function Retirada({ size, onBack, onFinish }) {
     const raw = String(e.target.value || '').replace(/\D/g, '');
     setTelefoneRaw(raw);
     setTelefoneMask(formatPhone(raw));
+  }
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    
+    // Salvar pedido
+    const total = Array.isArray(cartItems) && cartItems.length > 0
+      ? cartItems.reduce((sum, item) => sum + ((item.qty || 0) * (item.price || 0)), 0)
+      : 0;
+    
+    saveOrder({
+      tipo: 'retirada',
+      nome,
+      telefone: telefoneMask,
+      items: cartItems,
+      total,
+      source: Array.isArray(cartItems) && cartItems.length > 0 ? 'montar' : 'cesta'
+    });
+
+    setShowSuccess(true);
   }
 
   return (
@@ -43,11 +62,7 @@ export default function Retirada({ size, onBack, onFinish }) {
 
             <h2 className="ch-title">RETIRADA</h2>
 
-            <form className="ret-form" onSubmit={(e) => {
-              e.preventDefault();
-              // abrir modal de sucesso; onFinish será chamado quando o usuário confirmar
-              setShowSuccess(true);
-            }}>
+            <form className="ret-form" onSubmit={handleSubmit}>
               <label className="ret-label">Nome</label>
               <input className="ret-input" value={nome} onChange={(e) => setNome(e.target.value)} required />
               
@@ -67,7 +82,6 @@ export default function Retirada({ size, onBack, onFinish }) {
               </div>
             </form>
 
-            {/* Modal simples de sucesso */}
             {showSuccess && (
               <div style={{
                 position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
