@@ -123,3 +123,16 @@
   color: #c8f6d2;
   font-weight: 700;
 }
+
+/* estado visual quando o item está desativado por atingir limite de seleção */
+.admin-prod-item[aria-disabled="true"],
+.admin-prod-item.admin-prod-item--disabled {
+  opacity: 0.55;
+  pointer-events: none; /* bloqueia interações em desktop e mobile */
+  filter: grayscale(20%);
+}
+
+/* mantém o checkbox visível mesmo com pointer-events:none */
+.admin-prod-item[aria-disabled="true"] input[type="checkbox"] {
+  pointer-events: auto;
+}

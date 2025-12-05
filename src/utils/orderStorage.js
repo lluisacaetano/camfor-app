@@ -33,3 +33,13 @@ export function getOrderById(id) {
     return null;
   }
 }
+
+export function clearOrders() {
+  try {
+    localStorage.removeItem('camfor_orders');
+    return true;
+  } catch (e) {
+    console.warn('Erro ao limpar pedidos', e);
+    return false;
+  }
+}

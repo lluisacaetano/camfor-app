@@ -24,22 +24,93 @@ export default function Retirada({ size, onBack, onFinish, cartItems = [] }) {
     setTelefoneMask(formatPhone(raw));
   }
 
+  function getResumoPedidoMsg({ nome, telefone, items, total, pagamento, source }) {
+    let msg = `-----------------------------\n`;
+    msg += `▶️ RESUMO DO PEDIDO\n\n`;
+    msg += `Pedido CAMFOR\n\n`;
+
+    msg += `Itens:\n`;
+    if (Array.isArray(items) && items.length > 0) {
+      items.forEach((item, idx) => {
+        // Se for pedido montado, não mostra valor unitário
+        if (source === 'montar') {
+          msg += `${item.qty}x ${item.name}\n`;
+        } else {
+          msg += `${item.qty}x ${item.name}${item.price ? ` (R$ ${Number(item.price).toLocaleString('pt-BR', {minimumFractionDigits:2})})` : ''}\n`;
+        }
+      });
+    }
+    msg += `\n-----------------------------\n`;
+    msg += `SUBTOTAL: R$ ${Number(total).toLocaleString('pt-BR', {minimumFractionDigits:2})}\n`;
+    msg += `-----------------------------\n`;
+    msg += `▶️ Dados para retirada\n\n`;
+    msg += `Nome: ${nome}\n`;
+    msg += `Telefone: ${telefone}\n`;
+    msg += `-----------------------------\n`;
+    msg += `▶️ TOTAL = R$ ${Number(total).toLocaleString('pt-BR', {minimumFractionDigits:2})}\n`;
+    msg += `-----------------------------\n`;
+    msg += `▶️ PAGAMENTO\n\n`;
+    msg += `Pagamento: ${pagamento ? pagamento : 'Não informado'}\n`;
+    msg += `-----------------------------\n`;
+    return msg;
+  }
+
   function handleSubmit(e) {
     e.preventDefault();
-    
-    // Salvar pedido
-    const total = Array.isArray(cartItems) && cartItems.length > 0
-      ? cartItems.reduce((sum, item) => sum + ((item.qty || 0) * (item.price || 0)), 0)
-      : 0;
-    
-    saveOrder({
+
+    // Recupera itens do carrinho, garantindo que tenham o campo price
+    let itemsForMsg = Array.isArray(cartItems) && cartItems.length > 0 ? cartItems : [];
+    if (itemsForMsg.length === 0) {
+      try {
+        const raw = localStorage.getItem('camfor_last_cart');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length > 0) itemsForMsg = parsed;
+        }
+      } catch (e) { /* ignore */ }
+    }
+
+    // Recupera preços das cestas
+    let prices = {10:0,15:0,18:0};
+    try {
+      const rawPrices = localStorage.getItem('camfor_prices');
+      if (rawPrices) prices = JSON.parse(rawPrices);
+    } catch (e) {}
+
+    // Calcula o total: se todos os itens têm price zerado, usa o preço da cesta pelo tamanho
+    let total = 0;
+    if (Array.isArray(itemsForMsg) && itemsForMsg.length > 0) {
+      const allZero = itemsForMsg.every(item => !item.price || Number(item.price) === 0);
+      if (allZero) {
+        const count = itemsForMsg.reduce((sum, item) => sum + (Number(item.qty) || 0), 0);
+        total = prices[count] || 0;
+        // Preenche o campo price nos itens para exibir no WhatsApp
+        itemsForMsg = itemsForMsg.map(item => ({
+          ...item,
+          price: prices[count] ? (prices[count] / count) : 0
+        }));
+      } else {
+        total = itemsForMsg.reduce((sum, item) => sum + ((Number(item.qty) || 0) * (Number(item.price) || 0)), 0);
+      }
+    }
+
+    const pedido = {
       tipo: 'retirada',
       nome,
       telefone: telefoneMask,
-      items: cartItems,
+      items: itemsForMsg,
       total,
-      source: Array.isArray(cartItems) && cartItems.length > 0 ? 'montar' : 'cesta'
-    });
+      size: size || 0,
+      source: Array.isArray(itemsForMsg) && itemsForMsg.length > 0 ? 'montar' : 'cesta',
+      pagamento: 'Retirada no local'
+    };
+
+    saveOrder(pedido);
+
+    // Gera mensagem e link WhatsApp (usa itemsForMsg)
+    const msg = encodeURIComponent(getResumoPedidoMsg({ ...pedido, items: itemsForMsg, source: pedido.source }));
+    const wppLink = `https://wa.me/5537991927076?text=${msg}`;
+    window.open(wppLink, '_blank');
 
     setShowSuccess(true);
   }

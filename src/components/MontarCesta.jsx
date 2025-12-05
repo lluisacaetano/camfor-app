@@ -5,7 +5,6 @@ import FinalizarPedido from './FinalizarPedido';
 import Retirada from './Retirada';
 import Entrega from './Entrega';
 import ResumoPedido from './ResumoPedido';
-import { handleImageError } from '../utils/imageUtils';
 
 export default function MontarCesta({ onBack }) {
   const [produtosDisponiveis, setProdutosDisponiveis] = useState([]);
@@ -135,7 +134,6 @@ export default function MontarCesta({ onBack }) {
     return (
       <Retirada
         size={totalCount}
-        cartItems={cart} // <-- passar itens do carrinho
         onBack={() => {
           setShowRetirada(false);
           // restaura para a view anterior (resumo ou finalize)
@@ -156,7 +154,6 @@ export default function MontarCesta({ onBack }) {
       <Entrega
         size={totalCount}
         totalPrice={finalPrice || 0}
-        cartItems={cart} // <-- passar itens do carrinho
         onBack={() => {
           setShowEntrega(false);
           if (prevView === 'finalize') setShowFinalize(true);
@@ -224,7 +221,19 @@ export default function MontarCesta({ onBack }) {
                     className="mc-prod-img"
                     src={prod.img}
                     alt={prod.name}
-                    onError={handleImageError}
+                    onError={e => {
+                      const cur = e.currentTarget;
+                      const src = cur.src || '';
+                      if (src.match(/\.jpg$/i)) {
+                        cur.src = src.replace(/\.jpg$/i, '.png');
+                      } else if (src.match(/\.jpeg$/i)) {
+                        cur.src = src.replace(/\.jpeg$/i, '.png');
+                      } else if (src.match(/\.png$/i)) {
+                        cur.src = '/images/placeholder.png';
+                      } else {
+                        cur.src = '/images/placeholder.png';
+                      }
+                    }}
                   />
                   <div className="mc-prod-info">
                     <div className="mc-prod-name">{prod.name}</div>
@@ -264,7 +273,19 @@ export default function MontarCesta({ onBack }) {
                     className="mc-cart-img"
                     src={item.img}
                     alt={item.name}
-                    onError={handleImageError}
+                    onError={e => {
+                      const cur = e.currentTarget;
+                      const src = cur.src || '';
+                      if (src.match(/\.jpg$/i)) {
+                        cur.src = src.replace(/\.jpg$/i, '.png');
+                      } else if (src.match(/\.jpeg$/i)) {
+                        cur.src = src.replace(/\.jpeg$/i, '.png');
+                      } else if (src.match(/\.png$/i)) {
+                        cur.src = '/images/placeholder.png';
+                      } else {
+                        cur.src = '/images/placeholder.png';
+                      }
+                    }}
                   />
                   <div className="mc-cart-name">{item.name}</div>
                   <input

@@ -93,15 +93,54 @@ export default function Entrega({ size, onBack, onFinish, totalPrice = 0, cartIt
     }
   }
 
+  function getResumoPedidoMsg({ nome, telefone, rua, numero, bairro, cidade, uf, items, total, pagamento, size }) {
+    const allowed = [10,15,18];
+    let msg = `-----------------------------\n`;
+    msg += `▶️ RESUMO DO PEDIDO\n\n`;
+    msg += `Pedido CAMFOR\n\n`;
+
+    msg += `Itens:\n`;
+    if (Array.isArray(items) && items.length > 0 && items.some(it => it && (it.name || it.id))) {
+      items.forEach((item, idx) => {
+        const name = item.name || item.id || 'Item';
+        const qty = Number(item.qty || 0);
+        const unit = Number(item.price || 0);
+        msg += `${qty}x ${name}${unit ? ` (R$ ${unit.toLocaleString('pt-BR',{minimumFractionDigits:2})})` : ''}\n`;
+      });
+    } else if (allowed.includes(Number(size))) {
+      msg += `1x Cesta de ${size} itens (R$ ${Number(total).toLocaleString('pt-BR',{minimumFractionDigits:2})})\n`;
+    } else if (total && Number(total) > 0) {
+      msg += `Pedido não detalhado — Valor: R$ ${Number(total).toLocaleString('pt-BR',{minimumFractionDigits:2})}\n`;
+    } else {
+      msg += `Nenhum item registrado.\n`;
+    }
+
+    msg += `\n-----------------------------\n`;
+    msg += `SUBTOTAL: R$ ${Number(total).toLocaleString('pt-BR', {minimumFractionDigits:2})}\n`;
+    msg += `-----------------------------\n`;
+    msg += `▶️ Dados para entrega\n\n`;
+    msg += `Nome: ${nome}\n`;
+    msg += `Endereço: ${rua}, nº: ${numero}\n`;
+    msg += `Bairro: ${bairro}\n`;
+    msg += `Cidade/UF: ${cidade} - ${uf}\n`;
+    msg += `Telefone: ${telefone}\n`;
+    msg += `-----------------------------\n`;
+    msg += `▶️ TOTAL = R$ ${Number(total).toLocaleString('pt-BR', {minimumFractionDigits:2})}\n`;
+    msg += `-----------------------------\n`;
+    msg += `▶️ PAGAMENTO\n\n`;
+    msg += `Pagamento: ${pagamento ? pagamento : 'Não informado'}\n`;
+    msg += `-----------------------------\n`;
+    return msg;
+  }
+
   function handleSubmit(e) {
     e.preventDefault();
-    
-    // Salvar pedido
+
     const total = Array.isArray(cartItems) && cartItems.length > 0
-      ? cartItems.reduce((sum, item) => sum + ((item.qty || 0) * (item.price || 0)), 0)
-      : totalPrice;
-    
-    saveOrder({
+      ? cartItems.reduce((sum, item) => sum + ((Number(item.qty) || 0) * (Number(item.price) || 0)), 0)
+      : Number(totalPrice);
+
+    const pedido = {
       tipo: 'entrega',
       nome,
       telefone: telefoneMask,
@@ -113,8 +152,29 @@ export default function Entrega({ size, onBack, onFinish, totalPrice = 0, cartIt
       uf,
       items: cartItems,
       total,
-      source: Array.isArray(cartItems) && cartItems.length > 0 ? 'montar' : 'cesta'
-    });
+      size: size || 0,
+      source: Array.isArray(cartItems) && cartItems.length > 0 ? 'montar' : 'cesta',
+      pagamento: payment === 'pix' ? 'PIX' : payment === 'card' ? 'Cartão' : payment === 'cash' ? 'Dinheiro' : 'Não informado'
+    };
+
+    saveOrder(pedido);
+
+    // fallback para items na mensagem
+    let itemsForMsg = pedido.items;
+    if ((!Array.isArray(itemsForMsg) || itemsForMsg.length === 0)) {
+      try {
+        const raw = localStorage.getItem('camfor_last_cart');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length > 0) itemsForMsg = parsed;
+        }
+      } catch (e) { /* ignore */ }
+    }
+
+    // Gera mensagem e link WhatsApp
+    const msg = encodeURIComponent(getResumoPedidoMsg({ ...pedido, items: itemsForMsg }));
+    const wppLink = `https://wa.me/5537991927076?text=${msg}`;
+    window.open(wppLink, '_blank');
 
     setShowSuccess(true);
   }

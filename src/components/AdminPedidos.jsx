@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './AdminPedidos.css';
-import { getOrders, getOrderById } from '../utils/orderStorage';
+import { getOrders, getOrderById, clearOrders } from '../utils/orderStorage';
 import { handleImageError } from '../utils/imageUtils';
 
 function cestaImgForSize(sz) {
@@ -11,12 +11,10 @@ function cestaImgForSize(sz) {
   return '/images/cestaCompleta.jpg';
 }
 
-// Determina imagem de preview para o card do pedido
+// nova função: determina imagem de preview para o card do pedido
 function previewImgForOrder(order) {
   if (!order) return '/images/placeholder.png';
-  // pedidos originados de Montar Cesta usam imagem da cesta completa
   if (order.source === 'montar') return '/images/cestaCompleta.jpg';
-  // se houver items, preferir a primeira imagem / cesta por tamanho
   if (Array.isArray(order.items) && order.items.length > 0) {
     const first = order.items[0];
     if (first && first.id && String(first.id).toLowerCase().startsWith('cesta')) {
@@ -42,6 +40,40 @@ export default function AdminPedidos({ onBack }) {
     }, 2000);
     return () => clearInterval(id);
   }, []);
+
+  useEffect(() => {
+    // Auto-clear orders at midnight
+    function scheduleAutoCleanup() {
+      const now = new Date();
+      const tomorrow = new Date(now);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(0, 0, 0, 0);
+      
+      const timeUntilMidnight = tomorrow - now;
+      
+      const timeoutId = setTimeout(() => {
+        clearOrders();
+        setOrders([]);
+        scheduleAutoCleanup(); // reschedule for next day
+      }, timeUntilMidnight);
+      
+      return timeoutId;
+    }
+    
+    const timeoutId = scheduleAutoCleanup();
+    return () => clearTimeout(timeoutId);
+  }, []);
+
+  function handleClearAll() {
+    if (!window.confirm('Deseja realmente apagar TODOS os pedidos salvos? Esta ação não pode ser desfeita.')) return;
+    const ok = clearOrders();
+    if (ok) {
+      setOrders([]);
+      alert('Todos os pedidos foram removidos do localStorage.');
+    } else {
+      alert('Falha ao limpar pedidos. Veja console para detalhes.');
+    }
+  }
 
   const retiradaOrders = orders.filter(o => o.tipo === 'retirada');
   const entregaOrders = orders.filter(o => o.tipo === 'entrega');
@@ -97,7 +129,6 @@ export default function AdminPedidos({ onBack }) {
                               </div>
                             </div>
                           </div>
-
                           <button
                             className="ap-view-btn"
                             onClick={() => setSelectedOrderId(order.id)}
@@ -131,7 +162,6 @@ export default function AdminPedidos({ onBack }) {
                               </div>
                             </div>
                           </div>
-
                           <button
                             className="ap-view-btn"
                             onClick={() => setSelectedOrderId(order.id)}
@@ -143,6 +173,18 @@ export default function AdminPedidos({ onBack }) {
                     </div>
                   </>
                 )}
+
+                {/* CLEAR BUTTON - centered at bottom */}
+                <div style={{ display: 'flex', justifyContent: 'center', marginTop: 24, marginBottom: 12 }}>
+                  <button
+                    className="ap-view-btn"
+                    onClick={handleClearAll}
+                    title="Limpar todos os pedidos do localStorage"
+                    style={{ background: '#ff6b6b', borderRadius: 8 }}
+                  >
+                    LIMPAR PEDIDOS
+                  </button>
+                </div>
               </>
             )}
           </div>
@@ -159,6 +201,79 @@ function OrderDetail({ order, onBack }) {
     try { return Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
     catch { return 'R$ 0,00'; }
   };
+
+  // normalize name -> product id filename
+  function imgFromName(name) {
+    if (!name) return null;
+    const id = String(name || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    return `/images/produtos/${id}.jpg`;
+  }
+
+  // Resolve itens a serem exibidos no detalhe (com fallbacks e merge)
+  function getDisplayItems(order) {
+    const tryLoadLastCart = () => {
+      try {
+        const raw = localStorage.getItem('camfor_last_cart');
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed) || parsed.length === 0) return null;
+        return parsed;
+      } catch (e) { return null; }
+    };
+
+    // 1) se order.items existe, preferir e tentar enriquecer
+    if (Array.isArray(order.items) && order.items.length > 0) {
+      const lastCart = tryLoadLastCart();
+      return order.items.map(it => {
+        const id = it.id || (it.name ? it.name.toLowerCase().replace(/\s+/g,'-') : null);
+        let name = it.name || null;
+        let img = it.img || null;
+        // se faltar nome/img, tentar buscar no lastCart por id ou nome
+        if ((!name || !img) && lastCart) {
+          const found = lastCart.find(l => (l.id && it.id && l.id === it.id) || (l.name && name && l.name.toLowerCase() === name.toLowerCase()));
+          if (found) {
+            name = name || found.name;
+            img = img || found.img || imgFromName(found.name);
+          }
+        }
+        // fallback img from name
+        if (!img && name) img = imgFromName(name);
+        return {
+          id,
+          name: name || id || 'Item',
+          qty: it.qty || 1,
+          price: Number(it.price || 0),
+          img: img || null
+        };
+      });
+    }
+
+    // 2) se veio de "montar", tentar last_cart e mostrar produtos avulsos com suas imagens
+    if (order.source === 'montar') {
+      const last = tryLoadLastCart();
+      if (last) {
+        return last.map(it => ({
+          id: it.id || (it.name ? it.name.toLowerCase().replace(/\s+/g,'-') : 'item'),
+          name: it.name || it.id || 'Item',
+          qty: it.qty || 1,
+          price: Number(it.price || 0),
+          img: it.img || imgFromName(it.name || it.id)
+        }));
+      }
+      // fallback: single representational line
+      return [{ id: 'cesta-completa', name: 'Cesta Completa (montagem)', qty: 1, price: Number(order.total || 0), img: '/images/cestaCompleta.jpg' }];
+    }
+
+    // 3) se pedido for de cesta (size)
+    if (order.size) {
+      const sz = Number(order.size);
+      return [{ id: `cesta${sz}`, name: `Cesta ${sz} itens`, qty: 1, price: Number(order.total || 0), img: cestaImgForSize(sz) }];
+    }
+
+    return [];
+  }
+
+  const itemsToRender = getDisplayItems(order);
 
   return (
     <div className="ch-root">
@@ -208,20 +323,10 @@ function OrderDetail({ order, onBack }) {
             <div className="od-section">
               <h3 className="od-subtitle">Itens do Pedido</h3>
               <div className="od-items">
-                {order.items && order.items.length > 0 ? (
-                  order.items.map((item, idx) => {
-                    // se o item for uma cesta (id 'cesta10' / 'cesta15' / 'cesta18')
-                    let imgSrc;
-                    if (item && item.id && String(item.id).toLowerCase().startsWith('cesta')) {
-                      const match = String(item.id).match(/cesta(\d{2})/i);
-                      const sz = match ? Number(match[1]) : null;
-                      imgSrc = cestaImgForSize(sz);
-                    } else if (order.source === 'montar') {
-                      imgSrc = '/images/cestaCompleta.jpg';
-                    } else {
-                      imgSrc = item.img || '/images/placeholder.png';
-                    }
-
+                {itemsToRender.length > 0 ? (
+                  itemsToRender.map((item, idx) => {
+                    const isCesta = item.id && String(item.id).toLowerCase().startsWith('cesta');
+                    const imgSrc = item.img || (isCesta ? cestaImgForSize(Number((String(item.id||'').match(/cesta(\d{2})/i)||[])[1])) : '/images/placeholder.png');
                     return (
                       <div key={idx} className="od-item">
                         <img
@@ -231,12 +336,13 @@ function OrderDetail({ order, onBack }) {
                           onError={handleImageError}
                         />
                         <div className="od-item-info">
-                          <div className="od-item-name">{item.name}</div>
-                          <div className="od-item-qty">Quantidade: {item.qty}</div>
+                          <div className="od-item-name">{item.name || 'Item'}</div>
+                          <div className="od-item-qty">Quantidade: {item.qty || 1}</div>
                         </div>
-                        {item.price && (
-                          <div className="od-item-price">{formatBRL(item.qty * item.price)}</div>
-                        )}
+                        {/* Só mostra valor unitário se não for pedido montado */}
+                        {order.source !== 'montar' && item.price ? (
+                          <div className="od-item-price">{formatBRL((item.qty || 1) * Number(item.price))}</div>
+                        ) : null}
                       </div>
                     );
                   })

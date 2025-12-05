@@ -178,7 +178,7 @@ export default function AdminCesta({ onBack }) {
             <h2 className="ch-title">SELECIONAR PRODUTOS</h2>
 
             {/* Contador de Itens */}
-            <div className="admin-note" style={{ marginBottom: 8 }}>
+            <div className="admin-note" style={{ marginBottom: 8, marginTop: -10 }}>
               <div className="admin-remaining" style={{ marginTop: 6 }}>
                 {totalSelected === 0
                   ? 'Selecione os itens que deseja incluir na cesta.'
@@ -188,16 +188,19 @@ export default function AdminCesta({ onBack }) {
 
             <div className="admin-prod-list">
               {produtos.map((nome) => {
-                const imgSrc = getImgSrc(nome); 
+                const imgSrc = getImgSrc(nome);
+                const isDisabled = !selecionados.includes(nome) && selecionados.length >= 18;
                 return (
-                  <label key={nome} className="admin-prod-item">
+                  <label
+                    key={nome}
+                    className={`admin-prod-item ${isDisabled ? 'admin-prod-item--disabled' : ''}`}
+                    aria-disabled={isDisabled ? 'true' : 'false'}
+                  >
                     <input
                       type="checkbox"
                       checked={selecionados.includes(nome)}
                       onChange={() => handleCheck(nome)}
-                      disabled={
-                        !selecionados.includes(nome) && selecionados.length >= 18
-                      }
+                      disabled={isDisabled}
                     />
                     <img
                       src={imgSrc}

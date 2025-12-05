@@ -16,7 +16,7 @@
 
 .ap-order-card {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   justify-content: space-between;
   background: rgba(255, 255, 255, 0.04);
   padding: 14px 16px;
@@ -25,7 +25,23 @@
   gap: 12px;
 }
 
+.card-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+
 .ap-card-content {
+  flex: 1;
+}
+
+.basket-image {
+  height: 80px;
+  width: auto;
+}
+
+.order-info {
   flex: 1;
 }
 
@@ -99,6 +115,12 @@
   max-width: 60%;
 }
 
+.order-value {
+  font-weight: bold;
+  color: #333;
+  margin-top: 0.25rem;
+}
+
 .od-items {
   display: flex;
   flex-direction: column;
@@ -121,6 +143,17 @@
   border-radius: 6px;
   background: #fff;
   flex-shrink: 0;
+}
+
+.view-icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 80px;
+  padding: 0 1rem;
 }
 
 .od-item-info {
@@ -164,6 +197,46 @@
   color: #26c6da;
   font-weight: 700;
   font-size: 1.2rem;
+}
+
+.ap-counter {
+  text-align: center;
+  color: #fff;
+  margin-bottom: 24px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.ap-counter-number {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #fff;
+  margin-left: 4px;
+}
+
+.ap-order-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #4CAF50;
+  margin-top: 4px;
+}
+
+.ap-icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  transition: opacity 0.2s;
+  flex-shrink: 0;
+}
+
+.ap-icon-btn:hover {
+  opacity: 0.7;
 }
 
 @media (max-width: 576px) {

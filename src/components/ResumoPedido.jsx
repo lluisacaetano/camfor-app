@@ -116,6 +116,20 @@ export default function ResumoPedido({
     onConfirm && onConfirm({ total: computedTotal, payment, changeFor });
   }
 
+  // grava o cart atual para fallback (para garantir que Retirada/Entrega consigam recuperar os itens
+  // ao gerar a mensagem de WhatsApp, caso a prop items venha vazia)
+  React.useEffect(() => {
+    try {
+      if (Array.isArray(cart) && cart.length > 0) {
+        localStorage.setItem('camfor_last_cart', JSON.stringify(cart));
+      } else {
+        localStorage.removeItem('camfor_last_cart');
+      }
+    } catch (e) {
+      // ignore
+    }
+  }, [cart]);
+
   return (
     <div className="ch-root">
       <div className="container">
@@ -146,7 +160,19 @@ export default function ResumoPedido({
                           src={line.img}
                           alt={line.title}
                           className="rp-order-img"
-                          onError={handleImageError}
+                          onError={e => {
+                            const cur = e.currentTarget;
+                            const src = cur.src || '';
+                            if (src.match(/\.jpg$/i)) {
+                              cur.src = src.replace(/\.jpg$/i, '.png');
+                            } else if (src.match(/\.jpeg$/i)) {
+                              cur.src = src.replace(/\.jpeg$/i, '.png');
+                            } else if (src.match(/\.png$/i)) {
+                              cur.src = '/images/placeholder.png';
+                            } else {
+                              cur.src = '/images/placeholder.png';
+                            }
+                          }}
                         />
                         <div className="rp-order-info">
                           <div className="rp-order-title">{line.title}</div>
