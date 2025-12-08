@@ -3,7 +3,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import './Entrega.css';
 import { saveOrder } from '../utils/orderStorage';
 
-export default function Entrega({ size, onBack, onFinish, totalPrice = 0, cartItems = [] }) {
+export default function Entrega({ size, onBack, onFinish, totalPrice = 0, cartItems = [], isMontarCesta = false }) {
   const [nome, setNome] = useState('');
   const [telefoneRaw, setTelefoneRaw] = useState(''); 
   const [telefoneMask, setTelefoneMask] = useState(''); 
@@ -93,7 +93,7 @@ export default function Entrega({ size, onBack, onFinish, totalPrice = 0, cartIt
     }
   }
 
-  function getResumoPedidoMsg({ nome, telefone, rua, numero, bairro, cidade, uf, items, total, pagamento, size }) {
+  function getResumoPedidoMsg({ nome, telefone, rua, numero, bairro, cidade, uf, items, total, pagamento, size, source }) {
     const allowed = [10,15,18];
     let msg = `-----------------------------\n`;
     msg += `▶️ RESUMO DO PEDIDO\n\n`;
@@ -105,7 +105,12 @@ export default function Entrega({ size, onBack, onFinish, totalPrice = 0, cartIt
         const name = item.name || item.id || 'Item';
         const qty = Number(item.qty || 0);
         const unit = Number(item.price || 0);
-        msg += `${qty}x ${name}${unit ? ` (R$ ${unit.toLocaleString('pt-BR',{minimumFractionDigits:2})})` : ''}\n`;
+        // Se for montar cesta, não mostra preço unitário
+        if (source === 'montar') {
+          msg += `${qty}x ${name}\n`;
+        } else {
+          msg += `${qty}x ${name}${unit ? ` (R$ ${unit.toLocaleString('pt-BR',{minimumFractionDigits:2})})` : ''}\n`;
+        }
       });
     } else if (allowed.includes(Number(size))) {
       msg += `1x Cesta de ${size} itens (R$ ${Number(total).toLocaleString('pt-BR',{minimumFractionDigits:2})})\n`;
@@ -136,9 +141,41 @@ export default function Entrega({ size, onBack, onFinish, totalPrice = 0, cartIt
   function handleSubmit(e) {
     e.preventDefault();
 
-    const total = Array.isArray(cartItems) && cartItems.length > 0
-      ? cartItems.reduce((sum, item) => sum + ((Number(item.qty) || 0) * (Number(item.price) || 0)), 0)
-      : Number(totalPrice);
+    // Tenta recuperar itens do cartItems ou do localStorage
+    let itemsForOrder = Array.isArray(cartItems) && cartItems.length > 0 ? cartItems : [];
+    if (itemsForOrder.length === 0) {
+      try {
+        const raw = localStorage.getItem('camfor_last_cart');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length > 0) itemsForOrder = parsed;
+        }
+      } catch (e) { /* ignore */ }
+    }
+
+    // Recupera preços das cestas
+    let prices = {10:0,15:0,18:0};
+    try {
+      const rawPrices = localStorage.getItem('camfor_prices');
+      if (rawPrices) prices = JSON.parse(rawPrices);
+    } catch (e) {}
+
+    // Calcula o total: se todos os itens têm price zerado, usa o preço da cesta pelo tamanho
+    let total = 0;
+    if (itemsForOrder.length > 0) {
+      const allZero = itemsForOrder.every(item => !item.price || Number(item.price) === 0);
+      if (allZero) {
+        const count = itemsForOrder.reduce((sum, item) => sum + (Number(item.qty) || 0), 0);
+        total = prices[count] || 0;
+      } else {
+        total = itemsForOrder.reduce((sum, item) => sum + ((Number(item.qty) || 0) * (Number(item.price) || 0)), 0);
+      }
+    } else {
+      total = Number(totalPrice);
+    }
+
+    // Define source baseado em isMontarCesta ou se tem items válidos
+    const source = isMontarCesta || (itemsForOrder.length > 0 && [10,15,18].includes(itemsForOrder.length)) ? 'montar' : 'cesta';
 
     const pedido = {
       tipo: 'entrega',
@@ -150,29 +187,18 @@ export default function Entrega({ size, onBack, onFinish, totalPrice = 0, cartIt
       bairro,
       cidade,
       uf,
-      items: cartItems,
+      items: itemsForOrder,
       total,
-      size: size || 0,
-      source: Array.isArray(cartItems) && cartItems.length > 0 ? 'montar' : 'cesta',
+      size: itemsForOrder.length || size || 0,
+      source: source,
       pagamento: payment === 'pix' ? 'PIX' : payment === 'card' ? 'Cartão' : payment === 'cash' ? 'Dinheiro' : 'Não informado'
     };
 
+    console.log('🔍 DEBUG ENTREGA - Pedido sendo salvo:', pedido);
     saveOrder(pedido);
 
-    // fallback para items na mensagem
-    let itemsForMsg = pedido.items;
-    if ((!Array.isArray(itemsForMsg) || itemsForMsg.length === 0)) {
-      try {
-        const raw = localStorage.getItem('camfor_last_cart');
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          if (Array.isArray(parsed) && parsed.length > 0) itemsForMsg = parsed;
-        }
-      } catch (e) { /* ignore */ }
-    }
-
     // Gera mensagem e link WhatsApp
-    const msg = encodeURIComponent(getResumoPedidoMsg({ ...pedido, items: itemsForMsg }));
+    const msg = encodeURIComponent(getResumoPedidoMsg({ ...pedido }));
     const wppLink = `https://wa.me/5537991927076?text=${msg}`;
     window.open(wppLink, '_blank');
 

@@ -3,7 +3,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import './Retirada.css';
 import { saveOrder } from '../utils/orderStorage';
 
-export default function Retirada({ size, onBack, onFinish, cartItems = [] }) {
+export default function Retirada({ size, onBack, onFinish, cartItems = [], isMontarCesta = false }) {
   const [nome, setNome] = useState('');
   const [telefoneRaw, setTelefoneRaw] = useState('');   
   const [telefoneMask, setTelefoneMask] = useState('');  
@@ -58,14 +58,14 @@ export default function Retirada({ size, onBack, onFinish, cartItems = [] }) {
   function handleSubmit(e) {
     e.preventDefault();
 
-    // Recupera itens do carrinho, garantindo que tenham o campo price
-    let itemsForMsg = Array.isArray(cartItems) && cartItems.length > 0 ? cartItems : [];
-    if (itemsForMsg.length === 0) {
+    // Tenta recuperar itens do cartItems ou do localStorage
+    let itemsForOrder = Array.isArray(cartItems) && cartItems.length > 0 ? cartItems : [];
+    if (itemsForOrder.length === 0) {
       try {
         const raw = localStorage.getItem('camfor_last_cart');
         if (raw) {
           const parsed = JSON.parse(raw);
-          if (Array.isArray(parsed) && parsed.length > 0) itemsForMsg = parsed;
+          if (Array.isArray(parsed) && parsed.length > 0) itemsForOrder = parsed;
         }
       } catch (e) { /* ignore */ }
     }
@@ -79,36 +79,35 @@ export default function Retirada({ size, onBack, onFinish, cartItems = [] }) {
 
     // Calcula o total: se todos os itens têm price zerado, usa o preço da cesta pelo tamanho
     let total = 0;
-    if (Array.isArray(itemsForMsg) && itemsForMsg.length > 0) {
-      const allZero = itemsForMsg.every(item => !item.price || Number(item.price) === 0);
+    if (itemsForOrder.length > 0) {
+      const allZero = itemsForOrder.every(item => !item.price || Number(item.price) === 0);
       if (allZero) {
-        const count = itemsForMsg.reduce((sum, item) => sum + (Number(item.qty) || 0), 0);
+        const count = itemsForOrder.reduce((sum, item) => sum + (Number(item.qty) || 0), 0);
         total = prices[count] || 0;
-        // Preenche o campo price nos itens para exibir no WhatsApp
-        itemsForMsg = itemsForMsg.map(item => ({
-          ...item,
-          price: prices[count] ? (prices[count] / count) : 0
-        }));
       } else {
-        total = itemsForMsg.reduce((sum, item) => sum + ((Number(item.qty) || 0) * (Number(item.price) || 0)), 0);
+        total = itemsForOrder.reduce((sum, item) => sum + ((Number(item.qty) || 0) * (Number(item.price) || 0)), 0);
       }
     }
+
+    // Define source baseado em isMontarCesta ou se tem items válidos
+    const source = isMontarCesta || (itemsForOrder.length > 0 && [10,15,18].includes(itemsForOrder.length)) ? 'montar' : 'cesta';
 
     const pedido = {
       tipo: 'retirada',
       nome,
       telefone: telefoneMask,
-      items: itemsForMsg,
+      items: itemsForOrder,
       total,
-      size: size || 0,
-      source: Array.isArray(itemsForMsg) && itemsForMsg.length > 0 ? 'montar' : 'cesta',
+      size: itemsForOrder.length || size || 0,
+      source: source,
       pagamento: 'Retirada no local'
     };
 
+    console.log('🔍 DEBUG RETIRADA - Pedido sendo salvo:', pedido);
     saveOrder(pedido);
 
-    // Gera mensagem e link WhatsApp (usa itemsForMsg)
-    const msg = encodeURIComponent(getResumoPedidoMsg({ ...pedido, items: itemsForMsg, source: pedido.source }));
+    // Gera mensagem e link WhatsApp
+    const msg = encodeURIComponent(getResumoPedidoMsg({ ...pedido }));
     const wppLink = `https://wa.me/5537991927076?text=${msg}`;
     window.open(wppLink, '_blank');
 
