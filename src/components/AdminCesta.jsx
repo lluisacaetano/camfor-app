@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import { supabase } from '../supabaseCliente'; // <--- Importando Supabase
 import './AdminCesta.css';
 import { handleImageError } from '../utils/imageUtils';
 
@@ -70,38 +71,19 @@ function getImgSrc(nome) {
     'Tomate': 'tomate.jpg',
     'Vagem': 'vagem.png'
   };
-  
+
   return `/images/produtos/${imgMap[nome] || nome.toLowerCase().replace(/\s+/g, '') + '.jpg'}`;
 }
 
 export default function AdminCesta({ onBack }) {
   const [selecionados, setSelecionados] = useState([]);
-  const [valor10, setValor10] = useState(''); 
+  const [valor10, setValor10] = useState('');
   const [valor15, setValor15] = useState('');
   const [valor18, setValor18] = useState('');
+  const [loading, setLoading] = useState(true); // Estado de carregamento
+  const [saving, setSaving] = useState(false);  // Estado de salvamento
 
-  // Carrega configuração salva
-  useEffect(() => {
-    try {
-      const rawItems = localStorage.getItem('camfor_selected_items');
-      const rawPrices = localStorage.getItem('camfor_prices');
-      if (rawItems) {
-        const parsed = JSON.parse(rawItems);
-        if (Array.isArray(parsed)) setSelecionados(parsed);
-      }
-      if (rawPrices) {
-        const parsed = JSON.parse(rawPrices);
-        if (parsed && typeof parsed === 'object') {
-          if (parsed[10]) setValor10(formatBRL(String(Math.round(parsed[10] * 100))));
-          if (parsed[15]) setValor15(formatBRL(String(Math.round(parsed[15] * 100))));
-          if (parsed[18]) setValor18(formatBRL(String(Math.round(parsed[18] * 100))));
-        }
-      }
-    } catch (e) {
-      console.warn('Erro ao carregar configuração admin', e);
-    }
-  }, []);
-
+  // --- Função auxiliar de formatação ---
   function formatBRL(input) {
     const digits = (input || '').replace(/\D/g, '');
     if (!digits) return '';
@@ -115,7 +97,40 @@ export default function AdminCesta({ onBack }) {
     return parseInt(digits, 10) / 100;
   }
 
-  // Validação para habilitar salvar: pelo menos 1 item selecionado e valores preenchidos
+  // --- 1. CARREGAR DO SUPABASE AO INICIAR ---
+  useEffect(() => {
+    async function loadConfig() {
+      setLoading(true);
+      try {
+        const { data, error } = await supabase
+            .from('store_config')
+            .select('active_products, prices')
+            .eq('id', 1)
+            .single();
+
+        if (error) throw error;
+
+        if (data) {
+          // Preenche os produtos selecionados
+          setSelecionados(data.active_products || []);
+
+          // Preenche os preços
+          const p = data.prices || {};
+          if (p[10]) setValor10(formatBRL(String(Math.round(p[10] * 100))));
+          if (p[15]) setValor15(formatBRL(String(Math.round(p[15] * 100))));
+          if (p[18]) setValor18(formatBRL(String(Math.round(p[18] * 100))));
+        }
+      } catch (err) {
+        console.error('Erro ao carregar configurações:', err);
+        alert('Erro ao carregar dados do servidor.');
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadConfig();
+  }, []);
+
+  // Validação
   const totalSelected = selecionados.length;
   const v10 = parseBRL(valor10);
   const v15 = parseBRL(valor15);
@@ -123,20 +138,20 @@ export default function AdminCesta({ onBack }) {
   const canSave = totalSelected >= 1 && v10 > 0 && v15 > 0 && v18 > 0;
 
   function handleCheck(nome) {
-    // Toggle com limite de 18 itens
     setSelecionados(sel => {
       if (sel.includes(nome)) {
         return sel.filter(n => n !== nome);
       }
       if (sel.length >= 18) {
         alert('Você já selecionou o máximo de 18 itens.');
-        return sel; 
+        return sel;
       }
       return [...sel, nome];
     });
   }
 
-  function handleSalvar() {
+  // --- 2. SALVAR NO SUPABASE ---
+  async function handleSalvar() {
     if (selecionados.length < 1) {
       alert('Selecione pelo menos 1 item.');
       return;
@@ -144,115 +159,137 @@ export default function AdminCesta({ onBack }) {
     const v10 = parseBRL(valor10);
     const v15 = parseBRL(valor15);
     const v18 = parseBRL(valor18);
+
     if (!v10 || !v15 || !v18) {
-      alert('Preencha todos os valores das cestas (valores válidos maiores que 0).');
+      alert('Preencha todos os valores das cestas.');
       return;
     }
 
-    // Salva seleção e preços no localStorage
+    setSaving(true);
     try {
-      localStorage.setItem('camfor_selected_items', JSON.stringify(selecionados));
-      localStorage.setItem('camfor_prices', JSON.stringify({ 10: v10, 15: v15, 18: v18 }));
-    } catch (e) {
-      console.warn('Falha ao salvar configuração no localStorage', e);
-    }
+      // Objeto de preços para salvar no JSONB
+      const precosParaSalvar = { 10: v10, 15: v15, 18: v18 };
 
-    alert('Configuração salva com sucesso!');
-    onBack && onBack();
+      const { error } = await supabase
+          .from('store_config')
+          .update({
+            active_products: selecionados,
+            prices: precosParaSalvar,
+            updated_at: new Date()
+          })
+          .eq('id', 1);
+
+      if (error) throw error;
+
+      alert('Configuração salva com sucesso!');
+      onBack && onBack();
+
+    } catch (err) {
+      console.error('Erro ao salvar:', err);
+      alert('Erro ao salvar alterações. Verifique sua conexão ou permissões.');
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
-    <div className="ch-root">
-      <div className="container">
-        <div className="row justify-content-center">
-          <div className="col-12 col-md-10 col-lg-8">
-            <div className="ch-cover-wrapper">
-              <button className="cc-back" onClick={onBack} aria-label="Voltar">←</button>
-              <div className="ch-cover-inner">
-                <img src="/images/capa.jpg" alt="Capa" className="ch-cover-img" />
+      <div className="ch-root">
+        <div className="container">
+          <div className="row justify-content-center">
+            <div className="col-12 col-md-10 col-lg-8">
+              <div className="ch-cover-wrapper">
+                <button className="cc-back" onClick={onBack} aria-label="Voltar">←</button>
+                <div className="ch-cover-inner">
+                  <img src="/images/capa.jpg" alt="Capa" className="ch-cover-img" />
+                </div>
+                <div className="ch-logo">
+                  <img src="/images/logo.png" alt="CAMFOR" className="ch-logo-img" />
+                </div>
               </div>
-              <div className="ch-logo">
-                <img src="/images/logo.png" alt="CAMFOR" className="ch-logo-img" />
-              </div>
-            </div>
-            <h2 className="ch-title">SELECIONAR PRODUTOS</h2>
+              <h2 className="ch-title">SELECIONAR PRODUTOS</h2>
 
-            {/* Contador de Itens */}
-            <div className="admin-note" style={{ marginBottom: 8, marginTop: -10 }}>
-              <div className="admin-remaining" style={{ marginTop: 6 }}>
-                {totalSelected === 0
-                  ? 'Selecione os itens que deseja incluir na cesta.'
-                  : `Você selecionou ${totalSelected} item${totalSelected > 1 ? 's' : ''}.`}
-              </div>
-            </div>
+              {/* Loading Indicator */}
+              {loading ? (
+                  <div style={{ textAlign: 'center', color: '#fff', padding: '20px' }}>Carregando dados...</div>
+              ) : (
+                  <>
+                    <div className="admin-note" style={{ marginBottom: 8, marginTop: -10 }}>
+                      <div className="admin-remaining" style={{ marginTop: 6 }}>
+                        {totalSelected === 0
+                            ? 'Selecione os itens que deseja incluir na cesta.'
+                            : `Você selecionou ${totalSelected} item${totalSelected > 1 ? 's' : ''}.`}
+                      </div>
+                    </div>
 
-            <div className="admin-prod-list">
-              {produtos.map((nome) => {
-                const imgSrc = getImgSrc(nome);
-                const isDisabled = !selecionados.includes(nome) && selecionados.length >= 18;
-                return (
-                  <label
-                    key={nome}
-                    className={`admin-prod-item ${isDisabled ? 'admin-prod-item--disabled' : ''}`}
-                    aria-disabled={isDisabled ? 'true' : 'false'}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selecionados.includes(nome)}
-                      onChange={() => handleCheck(nome)}
-                      disabled={isDisabled}
-                    />
-                    <img
-                      src={imgSrc}
-                      alt={nome}
-                      className="admin-prod-img"
-                      onError={handleImageError}
-                    />
-                    <span className="admin-prod-name">{nome}</span>
-                  </label>
-                );
-              })}
-            </div>
-            <div className="admin-values">
-              <label className="admin-label">Valor da Cesta Pequena (10 itens)</label>
-              <input
-                className="admin-input"
-                type="text"
-                placeholder="R$ 0,00"
-                value={valor10}
-                onChange={e => setValor10(formatBRL(e.target.value))}
-              />
-              <label className="admin-label">Valor da Cesta Média (15 itens)</label>
-              <input
-                className="admin-input"
-                type="text"
-                placeholder="R$ 0,00"
-                value={valor15}
-                onChange={e => setValor15(formatBRL(e.target.value))}
-              />
-              <label className="admin-label">Valor da Cesta Grande (18 itens)</label>
-              <input
-                className="admin-input"
-                type="text"
-                placeholder="R$ 0,00"
-                value={valor18}
-                onChange={e => setValor18(formatBRL(e.target.value))}
-              />
-            </div>
-            <div className="d-grid gap-3 mb-4 ch-btn-group" style={{ marginTop: '18px' }}>
-              <button
-                className="ch-btn"
-                onClick={handleSalvar}
-                disabled={!canSave}
-                title={!canSave ? 'Selecione ao menos 1 item e preencha todos os valores' : 'Salvar configuração'}
-              >
-                SALVAR
-              </button>
+                    <div className="admin-prod-list">
+                      {produtos.map((nome) => {
+                        const imgSrc = getImgSrc(nome);
+                        const isDisabled = !selecionados.includes(nome) && selecionados.length >= 18;
+                        return (
+                            <label
+                                key={nome}
+                                className={`admin-prod-item ${isDisabled ? 'admin-prod-item--disabled' : ''}`}
+                                aria-disabled={isDisabled ? 'true' : 'false'}
+                            >
+                              <input
+                                  type="checkbox"
+                                  checked={selecionados.includes(nome)}
+                                  onChange={() => handleCheck(nome)}
+                                  disabled={isDisabled}
+                              />
+                              <img
+                                  src={imgSrc}
+                                  alt={nome}
+                                  className="admin-prod-img"
+                                  onError={handleImageError}
+                              />
+                              <span className="admin-prod-name">{nome}</span>
+                            </label>
+                        );
+                      })}
+                    </div>
+                    <div className="admin-values">
+                      <label className="admin-label">Valor da Cesta Pequena (10 itens)</label>
+                      <input
+                          className="admin-input"
+                          type="text"
+                          placeholder="R$ 0,00"
+                          value={valor10}
+                          onChange={e => setValor10(formatBRL(e.target.value))}
+                      />
+                      <label className="admin-label">Valor da Cesta Média (15 itens)</label>
+                      <input
+                          className="admin-input"
+                          type="text"
+                          placeholder="R$ 0,00"
+                          value={valor15}
+                          onChange={e => setValor15(formatBRL(e.target.value))}
+                      />
+                      <label className="admin-label">Valor da Cesta Grande (18 itens)</label>
+                      <input
+                          className="admin-input"
+                          type="text"
+                          placeholder="R$ 0,00"
+                          value={valor18}
+                          onChange={e => setValor18(formatBRL(e.target.value))}
+                      />
+                    </div>
+                    <div className="d-grid gap-3 mb-4 ch-btn-group" style={{ marginTop: '18px' }}>
+                      <button
+                          className="ch-btn"
+                          onClick={handleSalvar}
+                          disabled={!canSave || saving}
+                          title={!canSave ? 'Selecione ao menos 1 item e preencha todos os valores' : 'Salvar configuração'}
+                      >
+                        {saving ? 'SALVANDO...' : 'SALVAR'}
+                      </button>
+                    </div>
+                  </>
+              )}
             </div>
           </div>
         </div>
+        <img src="/images/logo-sicoob.png" alt="SICOOB" className="ch-sicoob-bottom" />
       </div>
-      <img src="/images/logo-sicoob.png" alt="SICOOB" className="ch-sicoob-bottom" />
-    </div>
   );
 }
