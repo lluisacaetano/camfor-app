@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './AdminPedidos.css';
-import { getOrders, getOrderById, clearOrders } from '../utils/orderStorage';
+import { getOrders, getOrderById, clearOrders, updateOrder } from '../utils/orderStorage';
 import { handleImageError } from '../utils/imageUtils';
 
 function cestaImgForSize(sz) {
@@ -31,6 +31,7 @@ function getMontarCestaCount(order) {
 export default function AdminPedidos({ onBack }) {
   const [orders, setOrders] = useState([]);
   const [selectedOrderId, setSelectedOrderId] = useState(null);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   useEffect(() => {
     // carregar inicialmente
@@ -66,13 +67,24 @@ export default function AdminPedidos({ onBack }) {
   }, []);
 
   function handleClearAll() {
-    if (!window.confirm('Deseja realmente apagar TODOS os pedidos salvos? Esta ação não pode ser desfeita.')) return;
+    setShowClearConfirm(true);
+  }
+
+  function confirmClearAll() {
     const ok = clearOrders();
     if (ok) {
       setOrders([]);
-      alert('Todos os pedidos foram removidos do localStorage.');
-    } else {
-      alert('Falha ao limpar pedidos. Veja console para detalhes.');
+    }
+    setShowClearConfirm(false);
+  }
+
+  function handleToggleEntregue(orderId) {
+    const order = orders.find(o => o.id === orderId);
+    if (order) {
+      const updated = updateOrder(orderId, { entregue: !order.entregue });
+      if (updated) {
+        setOrders(getOrders());
+      }
     }
   }
 
@@ -97,7 +109,7 @@ export default function AdminPedidos({ onBack }) {
                 <img src="/images/capa.jpg" alt="Capa" className="ch-cover-img" />
               </div>
               <div className="ch-logo">
-                <img src="/images/logo.png" alt="CAMFOR" className="ch-logo-img" />
+                <img src="/images/logoImagem.png" alt="CAMFOR" className="ch-logo-img" />
               </div>
             </div>
 
@@ -115,7 +127,7 @@ export default function AdminPedidos({ onBack }) {
                     <h3 className="ap-section-title">RETIRADA</h3>
                     <div className="ap-orders-list">
                       {retiradaOrders.map(order => (
-                        <div key={order.id} className="ap-order-card">
+                        <div key={order.id} className={`ap-order-card ${order.entregue ? 'ap-order-entregue' : ''}`}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1 }}>
                             <img
                               src={previewImgForOrder(order)}
@@ -132,12 +144,20 @@ export default function AdminPedidos({ onBack }) {
                               </div>
                             </div>
                           </div>
-                          <button
-                            className="ap-view-btn"
-                            onClick={() => setSelectedOrderId(order.id)}
-                          >
-                            Visualizar
-                          </button>
+                          <div className="ap-btn-group">
+                            <button
+                              className="ap-view-btn"
+                              onClick={() => setSelectedOrderId(order.id)}
+                            >
+                              Visualizar
+                            </button>
+                            <button
+                              className={`ap-entregue-btn ${order.entregue ? 'ap-entregue-ativo' : ''}`}
+                              onClick={() => handleToggleEntregue(order.id)}
+                            >
+                              {order.entregue ? '✓ Entregue' : 'Entregue'}
+                            </button>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -150,7 +170,7 @@ export default function AdminPedidos({ onBack }) {
                     <h3 className="ap-section-title" style={{ marginTop: '24px' }}>ENTREGA</h3>
                     <div className="ap-orders-list">
                       {entregaOrders.map(order => (
-                        <div key={order.id} className="ap-order-card">
+                        <div key={order.id} className={`ap-order-card ${order.entregue ? 'ap-order-entregue' : ''}`}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1 }}>
                             <img
                               src={previewImgForOrder(order)}
@@ -167,12 +187,20 @@ export default function AdminPedidos({ onBack }) {
                               </div>
                             </div>
                           </div>
-                          <button
-                            className="ap-view-btn"
-                            onClick={() => setSelectedOrderId(order.id)}
-                          >
-                            Visualizar
-                          </button>
+                          <div className="ap-btn-group">
+                            <button
+                              className="ap-view-btn"
+                              onClick={() => setSelectedOrderId(order.id)}
+                            >
+                              Visualizar
+                            </button>
+                            <button
+                              className={`ap-entregue-btn ${order.entregue ? 'ap-entregue-ativo' : ''}`}
+                              onClick={() => handleToggleEntregue(order.id)}
+                            >
+                              {order.entregue ? '✓ Entregue' : 'Entregue'}
+                            </button>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -197,6 +225,76 @@ export default function AdminPedidos({ onBack }) {
       </div>
 
       <img src="/images/logo-sicoob.png" alt="SICOOB" className="ch-sicoob-bottom" />
+
+      {/* Popup de confirmação para limpar pedidos */}
+      {showClearConfirm && (
+        <div style={{
+          position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: 'rgba(10, 77, 92, 0.85)', zIndex: 9999
+        }}>
+          <div style={{
+            background: 'linear-gradient(135deg, #0a4d5c 0%, #0d6478 100%)',
+            color: '#fff',
+            padding: '30px 24px',
+            borderRadius: 16,
+            width: '90%',
+            maxWidth: 380,
+            textAlign: 'center',
+            boxShadow: '0 10px 40px rgba(0,0,0,0.4)'
+          }}>
+            <div style={{
+              width: 70,
+              height: 70,
+              margin: '0 auto 16px',
+              background: 'rgba(255, 107, 107, 0.15)',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              border: '3px solid #ff6b6b'
+            }}>
+              <span style={{ fontSize: 32 }}>⚠️</span>
+            </div>
+            <h3 style={{ margin: '0 0 8px', fontSize: '1.3rem', fontWeight: 800, letterSpacing: '1px' }}>LIMPAR PEDIDOS</h3>
+            <p style={{ margin: '0 0 24px', opacity: 0.95, fontSize: '0.95rem', lineHeight: 1.5 }}>
+              Deseja realmente apagar TODOS os pedidos?<br/>Esta ação não pode ser desfeita.
+            </p>
+            <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+              <button
+                onClick={() => setShowClearConfirm(false)}
+                style={{
+                  background: 'rgba(255,255,255,0.15)',
+                  color: '#fff',
+                  border: '2px solid rgba(255,255,255,0.3)',
+                  padding: '12px 24px',
+                  borderRadius: 50,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  fontSize: '0.95rem'
+                }}
+              >
+                CANCELAR
+              </button>
+              <button
+                onClick={confirmClearAll}
+                style={{
+                  background: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%)',
+                  color: '#fff',
+                  border: 'none',
+                  padding: '12px 24px',
+                  borderRadius: 50,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  fontSize: '0.95rem',
+                  boxShadow: '0 4px 15px rgba(255, 107, 107, 0.4)'
+                }}
+              >
+                LIMPAR
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -279,7 +377,7 @@ function OrderDetail({ order, onBack }) {
                 <img src="/images/capa.jpg" alt="Capa" className="ch-cover-img" />
               </div>
               <div className="ch-logo">
-                <img src="/images/logo.png" alt="CAMFOR" className="ch-logo-img" />
+                <img src="/images/logoImagem.png" alt="CAMFOR" className="ch-logo-img" />
               </div>
             </div>
 

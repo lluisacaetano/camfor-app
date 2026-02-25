@@ -172,7 +172,7 @@ export default function AdminCesta({ onBack }) {
                 <img src="/images/capa.jpg" alt="Capa" className="ch-cover-img" />
               </div>
               <div className="ch-logo">
-                <img src="/images/logo.png" alt="CAMFOR" className="ch-logo-img" />
+                <img src="/images/logoImagem.png" alt="CAMFOR" className="ch-logo-img" />
               </div>
             </div>
             <h2 className="ch-title">SELECIONAR PRODUTOS</h2>
