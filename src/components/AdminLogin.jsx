@@ -55,7 +55,7 @@ export default function AdminLogin({ onBack, onLoginSuccess }) {
                 <img src="/images/capa.jpg" alt="Capa" className="ch-cover-img" />
               </div>
               <div className="ch-logo">
-                <img src="/images/logo.png" alt="CAMFOR" className="ch-logo-img" />
+                <img src="/images/logoImagem.png" alt="CAMFOR" className="ch-logo-img" />
               </div>
             </div>
 

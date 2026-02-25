@@ -25,33 +25,36 @@ export default function Retirada({ size, onBack, onFinish, cartItems = [], isMon
   }
 
   function getResumoPedidoMsg({ nome, telefone, items, total, pagamento, source }) {
-    let msg = `-----------------------------\n`;
-    msg += `▶️ RESUMO DO PEDIDO\n\n`;
-    msg += `Pedido CAMFOR\n\n`;
+    let msg = '';
+    msg += '*CAMFOR*\n';
+    msg += 'Conectando Agricultura e Tecnologia\n';
+    msg += '--------------------------------\n\n';
+    msg += '*PEDIDO - RETIRADA*\n\n';
 
-    msg += `Itens:\n`;
+    msg += '*Itens do Pedido:*\n';
     if (Array.isArray(items) && items.length > 0) {
-      items.forEach((item, idx) => {
-        // Se for pedido montado, não mostra valor unitário
+      items.forEach((item) => {
         if (source === 'montar') {
-          msg += `${item.qty}x ${item.name}\n`;
+          msg += `- ${item.qty}x ${item.name}\n`;
         } else {
-          msg += `${item.qty}x ${item.name}${item.price ? ` (R$ ${Number(item.price).toLocaleString('pt-BR', {minimumFractionDigits:2})})` : ''}\n`;
+          msg += `- ${item.qty}x ${item.name}${item.price ? ` (R$ ${Number(item.price).toLocaleString('pt-BR', {minimumFractionDigits:2})})` : ''}\n`;
         }
       });
     }
-    msg += `\n-----------------------------\n`;
-    msg += `SUBTOTAL: R$ ${Number(total).toLocaleString('pt-BR', {minimumFractionDigits:2})}\n`;
-    msg += `-----------------------------\n`;
-    msg += `▶️ Dados para retirada\n\n`;
-    msg += `Nome: ${nome}\n`;
-    msg += `Telefone: ${telefone}\n`;
-    msg += `-----------------------------\n`;
-    msg += `▶️ TOTAL = R$ ${Number(total).toLocaleString('pt-BR', {minimumFractionDigits:2})}\n`;
-    msg += `-----------------------------\n`;
-    msg += `▶️ PAGAMENTO\n\n`;
-    msg += `Pagamento: ${pagamento ? pagamento : 'Não informado'}\n`;
-    msg += `-----------------------------\n`;
+
+    msg += '--------------------------------\n';
+    msg += '*Cliente:*\n';
+    msg += 'Nome: ' + nome + '\n';
+    msg += 'Telefone: ' + telefone + '\n';
+
+    msg += '--------------------------------\n';
+    msg += '*Pagamento:*\n';
+    msg += (pagamento || 'Retirada no local') + '\n';
+
+    msg += '\n--------------------------------\n';
+    msg += '*TOTAL: R$ ' + Number(total).toLocaleString('pt-BR', {minimumFractionDigits:2}) + '*\n';
+    msg += '--------------------------------';
+
     return msg;
   }
 
@@ -126,7 +129,7 @@ export default function Retirada({ size, onBack, onFinish, cartItems = [], isMon
                 <img src="/images/capa.jpg" alt="Produtos Agricultura Familiar" className="ch-cover-img" />
               </div>
               <div className="ch-logo">
-                <img src="/images/logo.png" alt="CAMFOR - Agricultura Familiar" className="ch-logo-img" />
+                <img src="/images/logoImagem.png" alt="CAMFOR - Agricultura Familiar" className="ch-logo-img" />
               </div>
             </div>
 
@@ -155,14 +158,42 @@ export default function Retirada({ size, onBack, onFinish, cartItems = [], isMon
             {showSuccess && (
               <div style={{
                 position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                background: 'rgba(0,0,0,0.45)', zIndex: 9999
+                background: 'rgba(10, 77, 92, 0.85)', zIndex: 9999
               }}>
-                <div style={{ background:'#fff', color:'#111', padding: 20, borderRadius: 10, width: '90%', maxWidth: 420, textAlign: 'center' }}>
-                  <h3 style={{ marginTop: 0 }}>PEDIDO REALIZADO</h3>
-                  <p>Seu pedido foi finalizado com sucesso. Obrigado!</p>
-                  <div style={{ marginTop: 12, display: 'flex', justifyContent: 'center', gap: 8 }}>
-                    <button className="ch-btn" onClick={() => { setShowSuccess(false); onFinish && onFinish(); }}>OK</button>
+                <div style={{
+                  background: 'linear-gradient(135deg, #0a4d5c 0%, #0d6478 100%)',
+                  color: '#fff',
+                  padding: '30px 24px',
+                  borderRadius: 16,
+                  width: '90%',
+                  maxWidth: 380,
+                  textAlign: 'center',
+                  boxShadow: '0 10px 40px rgba(0,0,0,0.4)'
+                }}>
+                  <div style={{
+                    width: 80,
+                    height: 80,
+                    margin: '0 auto 16px',
+                    background: '#fff',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
+                  }}>
+                    <img src="/images/logoImagem.png" alt="CAMFOR" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '50%' }} />
                   </div>
+                  <h3 style={{ margin: '0 0 8px', fontSize: '1.4rem', fontWeight: 800, letterSpacing: '1px' }}>PEDIDO REALIZADO</h3>
+                  <p style={{ margin: '0 0 20px', opacity: 0.95, fontSize: '1rem', lineHeight: 1.5 }}>
+                    Seu pedido foi finalizado com sucesso.<br/>Obrigado pela preferência!
+                  </p>
+                  <button
+                    className="ch-btn"
+                    onClick={() => { setShowSuccess(false); onFinish && onFinish(); }}
+                    style={{ minWidth: 120 }}
+                  >
+                    OK
+                  </button>
                 </div>
               </div>
             )}

@@ -207,7 +207,7 @@ export default function MontarCesta({ onBack }) {
                 <img src="/images/capa.jpg" alt="Capa" className="ch-cover-img" />
               </div>
               <div className="ch-logo">
-                <img src="/images/logo.png" alt="CAMFOR" className="ch-logo-img" />
+                <img src="/images/logoImagem.png" alt="CAMFOR" className="ch-logo-img" />
               </div>
             </div>
 
@@ -223,15 +223,14 @@ export default function MontarCesta({ onBack }) {
                     alt={prod.name}
                     onError={e => {
                       const cur = e.currentTarget;
-                      const src = cur.src || '';
-                      if (src.match(/\.jpg$/i)) {
-                        cur.src = src.replace(/\.jpg$/i, '.png');
-                      } else if (src.match(/\.jpeg$/i)) {
-                        cur.src = src.replace(/\.jpeg$/i, '.png');
-                      } else if (src.match(/\.png$/i)) {
-                        cur.src = '/images/placeholder.png';
+                      const attempt = parseInt(cur.dataset.attempt || '0', 10);
+                      const baseSrc = prod.img.replace(/\.(jpg|jpeg|png)$/i, '');
+                      const extensions = ['.jpeg', '.png'];
+                      if (attempt < extensions.length) {
+                        cur.dataset.attempt = String(attempt + 1);
+                        cur.src = baseSrc + extensions[attempt];
                       } else {
-                        cur.src = '/images/placeholder.png';
+                        cur.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjYwIiBmaWxsPSIjZTBlMGUwIi8+PHRleHQgeD0iNDAiIHk9IjM1IiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTAiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiPlNlbSBpbWFnZW08L3RleHQ+PC9zdmc+';
                       }
                     }}
                   />
@@ -275,15 +274,14 @@ export default function MontarCesta({ onBack }) {
                     alt={item.name}
                     onError={e => {
                       const cur = e.currentTarget;
-                      const src = cur.src || '';
-                      if (src.match(/\.jpg$/i)) {
-                        cur.src = src.replace(/\.jpg$/i, '.png');
-                      } else if (src.match(/\.jpeg$/i)) {
-                        cur.src = src.replace(/\.jpeg$/i, '.png');
-                      } else if (src.match(/\.png$/i)) {
-                        cur.src = '/images/placeholder.png';
+                      const attempt = parseInt(cur.dataset.attempt || '0', 10);
+                      const baseSrc = item.img.replace(/\.(jpg|jpeg|png)$/i, '');
+                      const extensions = ['.jpeg', '.png'];
+                      if (attempt < extensions.length) {
+                        cur.dataset.attempt = String(attempt + 1);
+                        cur.src = baseSrc + extensions[attempt];
                       } else {
-                        cur.src = '/images/placeholder.png';
+                        cur.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjYwIiBmaWxsPSIjZTBlMGUwIi8+PHRleHQgeD0iNDAiIHk9IjM1IiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTAiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiPlNlbSBpbWFnZW08L3RleHQ+PC9zdmc+';
                       }
                     }}
                   />

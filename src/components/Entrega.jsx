@@ -93,48 +93,55 @@ export default function Entrega({ size, onBack, onFinish, totalPrice = 0, cartIt
     }
   }
 
-  function getResumoPedidoMsg({ nome, telefone, rua, numero, bairro, cidade, uf, items, total, pagamento, size, source }) {
+  function getResumoPedidoMsg({ nome, telefone, rua, numero, bairro, cidade, uf, items, total, pagamento, size, source, precisaTroco, valorTroco }) {
     const allowed = [10,15,18];
-    let msg = `-----------------------------\n`;
-    msg += `▶️ RESUMO DO PEDIDO\n\n`;
-    msg += `Pedido CAMFOR\n\n`;
+    let msg = '';
+    msg += '*CAMFOR*\n';
+    msg += 'Conectando Agricultura e Tecnologia\n';
+    msg += '--------------------------------\n\n';
+    msg += '*PEDIDO - ENTREGA*\n\n';
 
-    msg += `Itens:\n`;
+    msg += '*Itens do Pedido:*\n';
     if (Array.isArray(items) && items.length > 0 && items.some(it => it && (it.name || it.id))) {
-      items.forEach((item, idx) => {
+      items.forEach((item) => {
         const name = item.name || item.id || 'Item';
         const qty = Number(item.qty || 0);
         const unit = Number(item.price || 0);
-        // Se for montar cesta, não mostra preço unitário
         if (source === 'montar') {
-          msg += `${qty}x ${name}\n`;
+          msg += `- ${qty}x ${name}\n`;
         } else {
-          msg += `${qty}x ${name}${unit ? ` (R$ ${unit.toLocaleString('pt-BR',{minimumFractionDigits:2})})` : ''}\n`;
+          msg += `- ${qty}x ${name}${unit ? ` (R$ ${unit.toLocaleString('pt-BR',{minimumFractionDigits:2})})` : ''}\n`;
         }
       });
     } else if (allowed.includes(Number(size))) {
-      msg += `1x Cesta de ${size} itens (R$ ${Number(total).toLocaleString('pt-BR',{minimumFractionDigits:2})})\n`;
+      msg += `- 1x Cesta de ${size} itens (R$ ${Number(total).toLocaleString('pt-BR',{minimumFractionDigits:2})})\n`;
     } else if (total && Number(total) > 0) {
-      msg += `Pedido não detalhado — Valor: R$ ${Number(total).toLocaleString('pt-BR',{minimumFractionDigits:2})}\n`;
+      msg += `- Pedido (R$ ${Number(total).toLocaleString('pt-BR',{minimumFractionDigits:2})})\n`;
     } else {
-      msg += `Nenhum item registrado.\n`;
+      msg += '- Nenhum item registrado\n';
     }
 
-    msg += `\n-----------------------------\n`;
-    msg += `SUBTOTAL: R$ ${Number(total).toLocaleString('pt-BR', {minimumFractionDigits:2})}\n`;
-    msg += `-----------------------------\n`;
-    msg += `▶️ Dados para entrega\n\n`;
-    msg += `Nome: ${nome}\n`;
-    msg += `Endereço: ${rua}, nº: ${numero}\n`;
-    msg += `Bairro: ${bairro}\n`;
-    msg += `Cidade/UF: ${cidade} - ${uf}\n`;
-    msg += `Telefone: ${telefone}\n`;
-    msg += `-----------------------------\n`;
-    msg += `▶️ TOTAL = R$ ${Number(total).toLocaleString('pt-BR', {minimumFractionDigits:2})}\n`;
-    msg += `-----------------------------\n`;
-    msg += `▶️ PAGAMENTO\n\n`;
-    msg += `Pagamento: ${pagamento ? pagamento : 'Não informado'}\n`;
-    msg += `-----------------------------\n`;
+    msg += '--------------------------------\n';
+    msg += '*Cliente:*\n';
+    msg += 'Nome: ' + nome + '\n';
+    msg += 'Telefone: ' + telefone + '\n';
+
+    msg += '--------------------------------\n';
+    msg += '*Endereco de Entrega:*\n';
+    msg += `${rua}, ${numero}\n`;
+    msg += `${bairro}\n`;
+    msg += `${cidade} - ${uf}\n`;
+
+    msg += '--------------------------------\n';
+    msg += '*Pagamento:*\n';
+    msg += (pagamento || 'Nao informado') + '\n';
+    if (precisaTroco && valorTroco) {
+      msg += 'Troco para: ' + valorTroco + '\n';
+    }
+
+    msg += '\n--------------------------------\n';
+    msg += '*TOTAL: R$ ' + Number(total).toLocaleString('pt-BR', {minimumFractionDigits:2}) + '*\n';
+    msg += '--------------------------------';
     return msg;
   }
 
@@ -191,7 +198,9 @@ export default function Entrega({ size, onBack, onFinish, totalPrice = 0, cartIt
       total,
       size: itemsForOrder.length || size || 0,
       source: source,
-      pagamento: payment === 'pix' ? 'PIX' : payment === 'card' ? 'Cartão' : payment === 'cash' ? 'Dinheiro' : 'Não informado'
+      pagamento: payment === 'pix' ? 'PIX' : payment === 'card' ? 'Cartão' : payment === 'cash' ? 'Dinheiro' : 'Não informado',
+      precisaTroco: payment === 'cash' && needChange,
+      valorTroco: payment === 'cash' && needChange ? changeForMask : null
     };
 
     console.log('🔍 DEBUG ENTREGA - Pedido sendo salvo:', pedido);
@@ -218,7 +227,7 @@ export default function Entrega({ size, onBack, onFinish, totalPrice = 0, cartIt
                 <img src="/images/capa.jpg" alt="Produtos Agricultura Familiar" className="ch-cover-img" />
               </div>
               <div className="ch-logo">
-                <img src="/images/logo.png" alt="CAMFOR - Agricultura Familiar" className="ch-logo-img" />
+                <img src="/images/logoImagem.png" alt="CAMFOR - Agricultura Familiar" className="ch-logo-img" />
               </div>
             </div>
 
@@ -244,21 +253,20 @@ export default function Entrega({ size, onBack, onFinish, totalPrice = 0, cartIt
               <h3 className="ent-label">Endereço</h3>
 
               <label className="ent-label">CEP (opcional)</label>
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <div className="ent-cep-container">
                 <input
                   className="ent-input"
                   value={cepMask}
                   onChange={handleCepChange}
                   onBlur={() => lookupCep(cepRaw)}
                   placeholder="Ex: 01001-000"
-                  style={{ flex: 1 }}
                 />
                 <button
                   type="button"
-                  className="ch-btn ent-cep-btn"
+                  className="ent-cep-btn"
                   onClick={() => lookupCep(cepRaw)}
                 >
-                  Buscar CEP
+                  BUSCAR CEP
                 </button>
               </div>
 
@@ -309,20 +317,26 @@ export default function Entrega({ size, onBack, onFinish, totalPrice = 0, cartIt
                 </div>
 
                 {payment === 'cash' && (
-                  <div className="ent-cash-row ent-cash-centered">
-                    <label className="ent-cash-checkbox"><input type="checkbox" checked={needChange} onChange={e => setNeedChange(e.target.checked)} /> Precisa de troco?</label>
+                  <div className="ent-cash-row">
+                    <div
+                      className="ent-toggle-container"
+                      onClick={() => setNeedChange(!needChange)}
+                    >
+                      <div className={`ent-toggle ${needChange ? 'active' : ''}`}></div>
+                      <span className="ent-toggle-label">Precisa de troco?</span>
+                    </div>
                     {needChange && (
                       <>
                         <input
-                          className="ent-input ent-change-input"
+                          className="ent-change-input"
                           placeholder="R$ 0,00"
                           value={changeForMask}
                           onChange={handleChangeForInput}
                           inputMode="numeric"
                         />
                         {!isChangeValid && changeForRaw && (
-                          <div style={{ color: '#ffffffff', fontSize: '0.9rem', marginTop: 6 }}>
-                            Obs: O valor informado deve ser maior que o valor do pedido ({Number(totalPrice).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}).
+                          <div style={{ color: '#ffcccc', fontSize: '0.85rem', marginTop: 4, textAlign: 'center' }}>
+                            O valor deve ser maior que {Number(totalPrice).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                           </div>
                         )}
                       </>
@@ -345,14 +359,42 @@ export default function Entrega({ size, onBack, onFinish, totalPrice = 0, cartIt
             {showSuccess && (
               <div style={{
                 position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                background: 'rgba(0,0,0,0.45)', zIndex: 9999
+                background: 'rgba(10, 77, 92, 0.85)', zIndex: 9999
               }}>
-                <div style={{ background:'#fff', color:'#111', padding: 20, borderRadius: 10, width: '90%', maxWidth: 420, textAlign: 'center' }}>
-                  <h3 style={{ marginTop: 0 }}>PEDIDO REALIZADO</h3>
-                  <p>Seu pedido foi finalizado com sucesso. Obrigado!</p>
-                  <div style={{ marginTop: 12, display: 'flex', justifyContent: 'center', gap: 8 }}>
-                    <button className="ch-btn" onClick={() => { setShowSuccess(false); onFinish && onFinish(); }}>OK</button>
+                <div style={{
+                  background: 'linear-gradient(135deg, #0a4d5c 0%, #0d6478 100%)',
+                  color: '#fff',
+                  padding: '30px 24px',
+                  borderRadius: 16,
+                  width: '90%',
+                  maxWidth: 380,
+                  textAlign: 'center',
+                  boxShadow: '0 10px 40px rgba(0,0,0,0.4)'
+                }}>
+                  <div style={{
+                    width: 80,
+                    height: 80,
+                    margin: '0 auto 16px',
+                    background: '#fff',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
+                  }}>
+                    <img src="/images/logoImagem.png" alt="CAMFOR" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '50%' }} />
                   </div>
+                  <h3 style={{ margin: '0 0 8px', fontSize: '1.4rem', fontWeight: 800, letterSpacing: '1px' }}>PEDIDO REALIZADO</h3>
+                  <p style={{ margin: '0 0 20px', opacity: 0.95, fontSize: '1rem', lineHeight: 1.5 }}>
+                    Seu pedido foi finalizado com sucesso.<br/>Obrigado pela preferência!
+                  </p>
+                  <button
+                    className="ch-btn"
+                    onClick={() => { setShowSuccess(false); onFinish && onFinish(); }}
+                    style={{ minWidth: 120 }}
+                  >
+                    OK
+                  </button>
                 </div>
               </div>
             )}

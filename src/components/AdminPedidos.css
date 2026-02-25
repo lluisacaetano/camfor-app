@@ -74,6 +74,41 @@
   background: #1fa5b8;
 }
 
+.ap-btn-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.ap-entregue-btn {
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.ap-entregue-btn:hover {
+  border-color: #4CAF50;
+  color: #4CAF50;
+}
+
+.ap-entregue-btn.ap-entregue-ativo {
+  background: #4CAF50;
+  border-color: #4CAF50;
+  color: #fff;
+}
+
+.ap-order-card.ap-order-entregue {
+  background: rgba(76, 175, 80, 0.15);
+  border-left: 3px solid #4CAF50;
+}
+
 /* ORDER DETAIL */
 .od-section {
   background: rgba(255, 255, 255, 0.04);
@@ -245,8 +280,18 @@
     align-items: flex-start;
   }
 
+  .ap-btn-group {
+    align-self: flex-end;
+    margin-top: 8px;
+  }
+
   .ap-view-btn {
     align-self: flex-end;
+  }
+
+  .ap-entregue-btn {
+    padding: 6px 10px;
+    font-size: 0.8rem;
   }
 
   .od-info-row {

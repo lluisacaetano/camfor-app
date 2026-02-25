@@ -21,7 +21,7 @@ export default function AdminHome({ onBack, onSelectProducts, onViewOrders }) {
               {/* Logo */}
               <div className="ch-logo">
                 <img 
-                  src="/images/logo.png" 
+                  src="/images/logoImagem.png" 
                   alt="CAMFOR - Agricultura Familiar"
                   className="ch-logo-img"
                 />

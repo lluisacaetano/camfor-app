@@ -2,12 +2,20 @@
 .ch-root {
   position: relative;
   min-height: 100vh;
+  min-height: 100dvh;
   background: linear-gradient(135deg, #0a4d5c 0%, #0d6478 100%);
   display: flex;
-  flex-direction: column; 
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   padding: 20px;
+}
+
+/* Container flex para empurrar Sicoob para baixo */
+.ch-root > .container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Capa */
@@ -23,7 +31,7 @@
 }
 .ch-cover-img {
   width: 100%;
-  height: 350px; 
+  height: 350px;
   object-fit: cover;
   display: block;
 }
@@ -42,19 +50,15 @@
   align-items: center;
   justify-content: center;
   box-shadow: 0 4px 16px rgba(0,0,0,0.3);
-  border: 5px solid #0a4d5c; 
-  padding: 10px;
+  border: 5px solid #0a4d5c;
+  padding: 0;
+  overflow: hidden;
   z-index: 10;
 }
 .ch-logo-img {
-  width: 95%;
-  height: 95%;
-  object-fit: cover;
-  border-radius: 25%;
-  border-top-left-radius: 30%;
-  border-top-right-radius: 30%;
-  transform: translateY(-3%); 
-  object-position: center 30%;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 /* Título */
@@ -67,7 +71,7 @@
   letter-spacing: 1px;
 }
 .ch-title + .ch-btn-group {
-  margin-top: 28px; 
+  margin-top: 28px;
 }
 
 /* Botões */
@@ -89,7 +93,7 @@
   box-shadow: 0 6px 20px rgba(38, 198, 218, 0.5);
 }
 .ch-btn-group {
-  gap: 28px !important; 
+  gap: 28px !important;
 }
 
 /* Botões quando a loja está fechada */
@@ -106,23 +110,20 @@
 /* Imagem Sicoob */
 .ch-sicoob-img {
   display: block;
-  margin-left: auto;      
-  margin-top: 12px;      
-  width: 150px;          
+  margin-left: auto;
+  margin-top: 12px;
+  width: 150px;
   height: auto;
   object-fit: contain;
 }
 
 .ch-sicoob-bottom {
   display: block;
-  position: static;         
-  margin: 28px auto 12px;  
-  margin-top: auto;        
-  align-self: center;
   width: 140px;
   height: auto;
   object-fit: contain;
   opacity: 0.96;
+  margin: auto auto 20px auto;
 }
 
 /* Overlay mensagem de loja fechada (central, mas não bloqueia navegação completa se quiser abrir admin) */
@@ -165,10 +166,16 @@
   border: none;
   color: #0a4d5c;
   font-weight: 700;
-  padding: 6px 10px;
-  border-radius: 8px;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 50%;
   box-shadow: 0 2px 8px rgba(0,0,0,0.15);
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
 }
 .cc-back:hover { background: rgba(255,255,255,1); }
 
@@ -227,8 +234,8 @@
   /* Root */
   .ch-root {
     align-items: flex-start;
-    padding-top: 0 !important;        
-    justify-content: flex-start;      
+    padding-top: 0 !important;
+    justify-content: flex-start;
     padding-left: 0;
     padding-right: 0;
   }
@@ -237,10 +244,10 @@
     width: 100vw;
     margin-left: calc(50% - 50vw);
     margin-right: calc(50% - 50vw);
-    margin-top: 0 !important; 
-    margin-bottom: 70px; 
+    margin-top: 0 !important;
+    margin-bottom: 70px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-    border-radius: 0; 
+    border-radius: 0;
   }
 
   .ch-cover-inner {
@@ -255,20 +262,19 @@
     width: 120px;
     height: 120px;
     bottom: -60px;
-    padding: 8px;
+    padding: 0;
   }
 
   .ch-logo-img {
-    width: 92%;
-    height: 92%;
-    transform: translateY(-4%);
+    width: 100%;
+    height: 100%;
   }
 
   .ch-title {
     font-size: 1.4rem;
     margin-top: 70px;
   }
-  
+
   .ch-sicoob-img {
     width: 100px;
     margin-top: 8px;
@@ -282,7 +288,8 @@
   .cc-back {
     top: calc(env(safe-area-inset-top, 0) + 8px);
     left: 8px;
-    padding: 6px 8px;
+    width: 36px;
+    height: 36px;
     font-size: 16px;
   }
 }

@@ -16,7 +16,7 @@ export default function FinalizarPedido({ size, onBack, onConfirm, onRetirada, o
                 <img src="/images/capa.jpg" alt="Produtos Agricultura Familiar" className="ch-cover-img" />
               </div>
               <div className="ch-logo">
-                <img src="/images/logo.png" alt="CAMFOR - Agricultura Familiar" className="ch-logo-img" />
+                <img src="/images/logoImagem.png" alt="CAMFOR - Agricultura Familiar" className="ch-logo-img" />
               </div>
             </div>
 

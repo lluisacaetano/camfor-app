@@ -43,3 +43,19 @@ export function clearOrders() {
     return false;
   }
 }
+
+export function updateOrder(id, updates) {
+  try {
+    const orders = getOrders();
+    const index = orders.findIndex(o => o.id === id);
+    if (index !== -1) {
+      orders[index] = { ...orders[index], ...updates };
+      localStorage.setItem('camfor_orders', JSON.stringify(orders));
+      return orders[index];
+    }
+    return null;
+  } catch (e) {
+    console.warn('Erro ao atualizar pedido', e);
+    return null;
+  }
+}

@@ -1,116 +1,262 @@
 @import './CamforHome.css';
 
+/* ===== PRODUCT LIST ===== */
 .mc-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-top: 12px;
+  gap: 10px;
+  margin-top: 16px;
+  padding: 0 4px;
 }
+
 .mc-item {
   display: flex;
-  gap: 12px;
+  gap: 14px;
   align-items: center;
-  background: rgba(255,255,255,0.03);
-  padding: 10px;
-  border-radius: 10px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  background: rgba(255,255,255,0.06);
+  padding: 12px;
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: background 0.2s ease;
 }
+
+.mc-item:hover {
+  background: rgba(255,255,255,0.08);
+}
+
 .mc-prod-img {
-  width: 88px;
-  height: 64px;
+  width: 80px;
+  height: 60px;
   object-fit: cover;
-  border-radius: 8px;
+  border-radius: 10px;
   flex-shrink: 0;
   background: #fff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
 }
-.mc-prod-info { flex: 1; display: flex; flex-direction: column; gap: 8px; }
-.mc-prod-name { color: #fff; font-weight: 700; }
-.mc-controls { display: flex; gap: 8px; align-items: center; }
 
-.mc-qty-wrap {
-  display: inline-flex;
-  align-items: center;
+.mc-prod-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   gap: 8px;
 }
 
-.mc-qty-display {
-  min-width: 36px;
-  text-align: center;
-  background: rgba(255,255,255,0.06);
+.mc-prod-name {
   color: #fff;
-  padding: 6px 8px;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.mc-controls {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+/* ===== QUANTITY CONTROLS ===== */
+.mc-qty-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(0,0,0,0.15);
+  border-radius: 10px;
+  padding: 4px;
+}
+
+.mc-qty-display {
+  min-width: 40px;
+  text-align: center;
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+  padding: 8px 10px;
   border-radius: 8px;
   font-weight: 700;
+  font-size: 1rem;
 }
 
 .mc-plus-btn {
-  background: rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.1);
   color: #fff;
-  border: 1px solid rgba(255,255,255,0.08);
-  padding: 6px 10px;
+  border: none;
+  padding: 8px 12px;
   border-radius: 8px;
   cursor: pointer;
   font-weight: 700;
+  font-size: 1.1rem;
+  transition: all 0.2s ease;
 }
-.mc-plus-btn:hover { background: rgba(255,255,255,0.1); }
+
+.mc-plus-btn:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+.mc-plus-btn:active {
+  transform: scale(0.95);
+}
 
 .mc-remove-btn {
-  background: transparent;
+  background: rgba(255,100,100,0.1);
   border: none;
-  color: #ffdddd;
+  color: rgba(255,200,200,0.8);
   cursor: pointer;
-  font-size: 16px;
-  padding: 6px;
-  border-radius: 6px;
+  font-size: 18px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
 }
-.mc-remove-btn:hover { background: rgba(255,0,0,0.06); }
 
+.mc-remove-btn:hover {
+  background: rgba(255,0,0,0.15);
+  color: #ff6b6b;
+}
+
+/* ===== ADD BUTTON ===== */
 .mc-add-btn {
   background: linear-gradient(135deg, #26c6da 0%, #00acc1 100%);
   color: #fff;
   border: none;
-  padding: 8px 12px;
+  padding: 10px 16px;
   border-radius: 10px;
   cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(38, 198, 218, 0.3);
 }
 
-/* Carrinho */
+.mc-add-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(38, 198, 218, 0.4);
+}
+
+/* ===== CART SECTION ===== */
 .mc-cart-title {
   color: #fff;
-  margin-top: 18px;
-  font-weight: 700;
+  margin-top: 28px;
+  margin-bottom: 12px;
+  font-weight: 800;
+  font-size: 1.2rem;
+  padding-left: 4px;
 }
-.mc-cart { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
-.mc-empty { color: rgba(255,255,255,0.7); text-align: center; padding: 8px; }
+
+.mc-cart {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mc-empty {
+  color: rgba(255,255,255,0.6);
+  text-align: center;
+  padding: 20px;
+  font-style: italic;
+}
+
 .mc-cart-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  background: rgba(255,255,255,0.03);
-  padding: 10px;
-  border-radius: 10px;
+  gap: 12px;
+  background: rgba(255,255,255,0.06);
+  padding: 12px;
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
-.mc-cart-img { width: 60px; height: 48px; object-fit: cover; border-radius: 6px; }
-.mc-cart-name { color: #fff; font-weight: 600; flex: 1; }
-.mc-cart-qty { width: 72px; padding: 6px; border-radius: 8px; border: none; }
-.mc-trash {
-  color: #ff4444;
-  cursor: pointer;
-  font-size: 18px;
-}
-.mc-trash:hover { color: #ff0000; }
 
+.mc-cart-img {
+  width: 64px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.mc-cart-name {
+  color: #fff;
+  font-weight: 600;
+  flex: 1;
+  font-size: 0.95rem;
+}
+
+.mc-cart-qty {
+  width: 72px;
+  padding: 8px;
+  border-radius: 8px;
+  border: none;
+  text-align: center;
+  font-weight: 600;
+}
+
+.mc-trash {
+  color: rgba(255,100,100,0.7);
+  cursor: pointer;
+  font-size: 20px;
+  padding: 6px;
+  transition: all 0.2s ease;
+}
+
+.mc-trash:hover {
+  color: #ff4444;
+  transform: scale(1.1);
+}
+
+/* ===== DISABLED STATES ===== */
 .mc-finalize-btn:disabled,
 .ch-btn:disabled {
-  opacity: 0.45;
+  opacity: 0.5;
   cursor: not-allowed;
   box-shadow: none;
+  transform: none !important;
 }
 
-/* Observação */
+/* ===== NOTES ===== */
 .cd-note {
-  color: #fff;
+  color: rgba(255,255,255,0.85);
   text-align: center;
-  margin-bottom: 16px;
-  margin-top: 5px;
+  margin: 16px 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  padding: 0 16px;
+}
+
+/* ===== TOTAL SECTION ===== */
+.mc-total {
+  text-align: center;
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 20px 0;
+  padding: 16px;
+  background: rgba(38, 198, 218, 0.1);
+  border-radius: 12px;
+  border: 1px solid rgba(38, 198, 218, 0.2);
+}
+
+.mc-total strong {
+  color: #26c6da;
+  font-size: 1.3rem;
+}
+
+/* ===== MOBILE ADJUSTMENTS ===== */
+@media (max-width: 576px) {
+  .mc-item {
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .mc-prod-img {
+    width: 70px;
+    height: 52px;
+  }
+
+  .mc-prod-name {
+    font-size: 0.95rem;
+  }
+
+  .mc-qty-display {
+    min-width: 36px;
+    padding: 6px 8px;
+  }
+
+  .mc-plus-btn {
+    padding: 6px 10px;
+  }
 }
