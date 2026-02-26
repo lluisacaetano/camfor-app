@@ -40,14 +40,18 @@ export default function CamforHome() {
     }
     function checkBusinessHours() {
       const h = new Date().getHours();
-      return h >= 0 && h < 24; // loja aberta 07:00 - 17:00
+      return h < 17; // pedidos apenas até 17:00
     }
     function refreshMain() {
       performDailyResetIfNeeded();
       setIsOpenTime(checkBusinessHours());
       try {
         const rawItems = localStorage.getItem('camfor_selected_items');
-        setHasProducts(rawItems ? (JSON.parse(rawItems).length > 0) : false);
+        const rawPrices = localStorage.getItem('camfor_prices');
+        const hasItems = rawItems ? (JSON.parse(rawItems).length > 0) : false;
+        const prices = rawPrices ? JSON.parse(rawPrices) : {};
+        const hasPrices = prices[10] > 0 || prices[15] > 0 || prices[18] > 0;
+        setHasProducts(hasItems && hasPrices);
       } catch (e) {
         setHasProducts(false);
       }
@@ -179,15 +183,31 @@ export default function CamforHome() {
         </div>
       </div>
 
-      {/* Overlay LOJA FECHADA */}
-      {!isOpenTime && (
+      {/* Overlay LOJA FECHADA - mostra se passou das 17h OU se admin não configurou produtos */}
+      {(!isOpenTime || !hasProducts) && (
         <div className="ch-closed-backdrop" role="dialog" aria-modal="true">
-          <div className="ch-closed-modal">
-            <div className="ch-closed-title">LOJA FECHADA</div>
-            <div className="ch-closed-hours"><strong>Horário de Funcionamento da Loja:</strong> </div>
-            <div className="ch-closed-hours"> 07:00 às 17:00</div>
-            <div className="ch-closed-hours"><strong>Horário de Entregas:</strong> 07:00 às 16:00</div>
-            <div className="ch-closed-note">Por favor, retorne no horário de funcionamento.</div>
+          <div className={`ch-closed-modal ${isOpenTime && !hasProducts ? 'ch-aguarde-modal' : ''}`}>
+            {isOpenTime && !hasProducts && (
+              <div style={{ fontSize: 40, marginBottom: 12 }}>🕐</div>
+            )}
+            <div className="ch-closed-title">
+              {!isOpenTime ? 'LOJA FECHADA' : 'AGUARDE'}
+            </div>
+            {!isOpenTime ? (
+              <>
+                <div className="ch-closed-hours"><strong>Horário de Funcionamento:</strong></div>
+                <div className="ch-closed-hours">08:00 às 18:00</div>
+                <div className="ch-closed-hours" style={{ marginTop: 8 }}><strong>Pedidos Online:</strong> até 17:00</div>
+                <div className="ch-closed-note">Por favor, retorne no horário de funcionamento.</div>
+              </>
+            ) : (
+              <>
+                <div className="ch-closed-hours">Os produtos do dia ainda não foram configurados.</div>
+                <div className="ch-closed-hours" style={{ marginTop: 12 }}><strong>Horário de Funcionamento:</strong></div>
+                <div className="ch-closed-hours">08:00 às 18:00</div>
+                <div className="ch-closed-note">Por favor, aguarde o administrador liberar os pedidos.</div>
+              </>
+            )}
           </div>
         </div>
       )}

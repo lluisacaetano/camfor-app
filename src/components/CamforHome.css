@@ -203,6 +203,21 @@
   box-shadow: 0 12px 40px rgba(0,0,0,0.6);
 }
 
+/* Modal AGUARDE com fundo igual ao app */
+.ch-aguarde-modal {
+  background: linear-gradient(135deg, #0a4d5c 0%, #0d6478 100%);
+  color: #fff;
+}
+.ch-aguarde-modal .ch-closed-title {
+  color: #fff;
+}
+.ch-aguarde-modal .ch-closed-hours {
+  color: rgba(255,255,255,0.95);
+}
+.ch-aguarde-modal .ch-closed-note {
+  color: rgba(255,255,255,0.85);
+}
+
 /* Texto grande do modal */
 .ch-closed-title {
   font-size: 1.6rem;
