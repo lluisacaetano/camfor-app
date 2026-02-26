@@ -5,6 +5,7 @@ export default function AdminLogin({ onBack, onLoginSuccess }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  // eslint-disable-next-line no-unused-vars
   const [isLogged, setIsLogged] = useState(false);
 
   const validateEmail = (value) => {

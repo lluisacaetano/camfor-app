@@ -5,7 +5,7 @@ import { saveOrder } from '../utils/orderStorage';
 
 export default function Retirada({ size, onBack, onFinish, cartItems = [], isMontarCesta = false }) {
   const [nome, setNome] = useState('');
-  const [telefoneRaw, setTelefoneRaw] = useState('');   
+  const [, setTelefoneRaw] = useState('');   
   const [telefoneMask, setTelefoneMask] = useState('');  
   const [showSuccess, setShowSuccess] = useState(false);
 

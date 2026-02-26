@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './ResumoPedido.css';
+// eslint-disable-next-line no-unused-vars
 import { handleImageError } from '../utils/imageUtils';
 
 function cestaImgForSize(sz) {
@@ -18,8 +19,11 @@ export default function ResumoPedido({
   onConfirm,
   onFinalize
 }) {
+  // eslint-disable-next-line no-unused-vars
   const [payment, setPayment] = useState('pix');
+  // eslint-disable-next-line no-unused-vars
   const [needChange, setNeedChange] = useState(false);
+  // eslint-disable-next-line no-unused-vars
   const [changeFor, setChangeFor] = useState('');
 
   const prices = useMemo(() => {
