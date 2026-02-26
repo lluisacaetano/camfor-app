@@ -5,7 +5,7 @@ import { saveOrder } from '../utils/orderStorage';
 
 export default function Entrega({ size, onBack, onFinish, totalPrice = 0, cartItems = [], isMontarCesta = false }) {
   const [nome, setNome] = useState('');
-  const [telefoneRaw, setTelefoneRaw] = useState(''); 
+  const [, setTelefoneRaw] = useState(''); 
   const [telefoneMask, setTelefoneMask] = useState(''); 
 
   const [cepRaw, setCepRaw] = useState('');   
