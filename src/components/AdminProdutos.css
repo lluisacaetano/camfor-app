@@ -1,0 +1,261 @@
+/* AdminProdutos.css */
+
+.ap-add-btn {
+  background: linear-gradient(135deg, #28a745 0%, #218838 100%);
+  color: #fff;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 50px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.ap-add-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+}
+
+.ap-prod-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 4px;
+}
+
+.ap-prod-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 10px 14px;
+  transition: background 0.2s;
+}
+
+.ap-prod-item:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.ap-prod-img {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 8px;
+  background: #fff;
+  flex-shrink: 0;
+}
+
+.ap-prod-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.ap-prod-name {
+  color: #fff;
+  font-weight: 600;
+  font-size: 1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ap-prod-file {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.8rem;
+}
+
+.ap-prod-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.ap-edit-btn,
+.ap-delete-btn {
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.ap-edit-btn:hover {
+  background: rgba(255, 193, 7, 0.3);
+  transform: scale(1.1);
+}
+
+.ap-delete-btn:hover {
+  background: rgba(220, 53, 69, 0.3);
+  transform: scale(1.1);
+}
+
+/* Modal */
+.ap-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 77, 92, 0.9);
+  z-index: 9999;
+}
+
+.ap-modal {
+  background: linear-gradient(135deg, #0a4d5c 0%, #0d6478 100%);
+  color: #fff;
+  padding: 28px 24px;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+}
+
+.ap-modal-title {
+  text-align: center;
+  font-size: 1.3rem;
+  font-weight: 800;
+  margin: 0 0 20px;
+  letter-spacing: 1px;
+}
+
+.ap-label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 6px;
+  font-size: 0.95rem;
+}
+
+.ap-input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-size: 1rem;
+  margin-bottom: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.ap-input:focus {
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.ap-input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.ap-hint {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: -10px;
+  margin-bottom: 14px;
+}
+
+.ap-preview {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.ap-preview img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.ap-modal-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.ap-cancel-btn {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  padding: 12px 24px;
+  border-radius: 50px;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: background 0.2s;
+}
+
+.ap-cancel-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.ap-save-btn {
+  background: linear-gradient(135deg, #28a745 0%, #218838 100%);
+  color: #fff;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 50px;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 0.95rem;
+  box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+  transition: transform 0.2s;
+}
+
+.ap-save-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.ap-save-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ap-delete-confirm-btn {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  color: #fff;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 50px;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 0.95rem;
+  box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+}
+
+.ap-delete-confirm-btn:hover {
+  transform: translateY(-2px);
+}
+
+/* Responsivo */
+@media (max-width: 480px) {
+  .ap-prod-list {
+    max-height: 350px;
+  }
+
+  .ap-prod-img {
+    width: 40px;
+    height: 40px;
+  }
+
+  .ap-prod-name {
+    font-size: 0.9rem;
+  }
+
+  .ap-edit-btn,
+  .ap-delete-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+}

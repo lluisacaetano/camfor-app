@@ -254,6 +254,20 @@ export async function deleteProduct(docId) {
 }
 
 /**
+ * Atualiza um produto
+ */
+export async function updateProduct(docId, nome, imagem) {
+  try {
+    const productRef = doc(db, 'products', docId);
+    await updateDoc(productRef, { nome, imagem });
+    return true;
+  } catch (error) {
+    console.error('Erro ao atualizar produto:', error);
+    throw error;
+  }
+}
+
+/**
  * Popula os produtos iniciais (usar apenas uma vez)
  */
 export async function seedProducts() {
