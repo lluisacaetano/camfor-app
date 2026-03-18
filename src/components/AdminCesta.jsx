@@ -2,104 +2,54 @@ import React, { useState, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './AdminCesta.css';
 import { handleImageError } from '../utils/imageUtils';
-
-const produtos = [
-  'Abacate', 'Abacaxi', 'Abóbora', 'Abobrinha Italiana', 'Abobrinha Caipira', 'Acelga', 'Acerola',
-  'Agrião', 'Alface', 'Alho', 'Alho Poró', 'Almeirão', 'Banana', 'Batata', 'Batata Doce',
-  'Beterraba', 'Biscoito', 'Rosquinha', 'Brócolis Chinês', 'Brócolis Ramoso', 'Cara', 'Cebola',
-  'Cebolinha', 'Cenoura', 'Chicória', 'Chuchu', 'Couve', 'Couve Flor', 'Espinafre', 'Goiaba',
-  'Inhame', 'Inhame Cabeça', 'Jabuticaba', 'Jilo', 'Laranja', 'Limão', 'Maçã', 'Mamão',
-  'Mandioca Congelada', 'Manga', 'Maracujá', 'Melão', 'Laranjinha', 'Mexerica', 'Milho',
-  'Mostarda', 'Pera', 'Pêssego', 'Pimentão', 'Repolho', 'Rúcula', 'Salsinha', 'Tomate', 'Vagem'
-];
-
-function getImgSrc(nome) {
-  const imgMap = {
-    'Abacate': 'abacate.jpg',
-    'Abacaxi': 'abacaxi.jpg',
-    'Abóbora': 'abobora.jpg',
-    'Abobrinha Italiana': 'abobrinhaitaliana.jpg',
-    'Abobrinha Caipira': 'abobrinhacaipira.jpg',
-    'Acelga': 'acelga.png',
-    'Acerola': 'acerola.jpg',
-    'Agrião': 'agriao.jpg',
-    'Alface': 'alface.jpeg',
-    'Alho': 'alho.jpg',
-    'Alho Poró': 'alhoPoro.jpg',
-    'Almeirão': 'almeirao.jpeg',
-    'Banana': 'banana.jpg',
-    'Batata': 'batata.jpg',
-    'Batata Doce': 'batataDoce.jpg',
-    'Beterraba': 'beterraba.jpg',
-    'Biscoito': 'biscoito.jpg',
-    'Rosquinha': 'rosquinha.png',
-    'Brócolis Chinês': 'brocolisChines.jpg',
-    'Brócolis Ramoso': 'brocolisRamoso.png',
-    'Cara': 'cara.jpg',
-    'Cebola': 'cebola.jpg',
-    'Cebolinha': 'cebolinha.jpg',
-    'Cenoura': 'cenoura.jpg',
-    'Chicória': 'chicoria.jpg',
-    'Chuchu': 'chuchu.jpg',
-    'Couve': 'couve.jpg',
-    'Couve Flor': 'couveFlor.jpg',
-    'Espinafre': 'espinafre.jpg',
-    'Goiaba': 'goiaba.jpg',
-    'Inhame': 'inhame.jpg',
-    'Inhame Cabeça': 'inhameCabeca.jpg',
-    'Jabuticaba': 'jabuticaba.jpg',
-    'Jilo': 'jilo.jpg',
-    'Laranja': 'laranja.jpg',
-    'Limão': 'limao.jpeg',
-    'Maçã': 'maca.jpg',
-    'Mamão': 'mamao.jpg',
-    'Mandioca Congelada': 'mandiocaCongelada.png',
-    'Manga': 'manga.jpg',
-    'Maracujá': 'maracuja.jpg',
-    'Melão': 'melao.jpg',
-    'Laranjinha': 'laranjinha.png',
-    'Mexerica': 'mexerica.jpg',
-    'Milho': 'milho.jpg',
-    'Mostarda': 'mostarda.jpg',
-    'Pera': 'pera.jpg',
-    'Pêssego': 'pessego.jpg',
-    'Pimentão': 'pimentao.jpg',
-    'Repolho': 'repolho.jpg',
-    'Rúcula': 'rucula.jpg',
-    'Salsinha': 'salsinha.png',
-    'Tomate': 'tomate.jpg',
-    'Vagem': 'vagem.png'
-  };
-  
-  return `/images/produtos/${imgMap[nome] || nome.toLowerCase().replace(/\s+/g, '') + '.jpg'}`;
-}
+import { saveAdminConfig, getAdminConfig, getProducts, seedProducts } from '../services/firestoreService';
 
 export default function AdminCesta({ onBack }) {
+  const [produtos, setProdutos] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [selecionados, setSelecionados] = useState([]);
-  const [valor10, setValor10] = useState(''); 
+  const [valor10, setValor10] = useState('');
   const [valor15, setValor15] = useState('');
   const [valor18, setValor18] = useState('');
 
-  // Carrega configuração salva
+  // Carrega produtos do Firebase
   useEffect(() => {
-    try {
-      const rawItems = localStorage.getItem('camfor_selected_items');
-      const rawPrices = localStorage.getItem('camfor_prices');
-      if (rawItems) {
-        const parsed = JSON.parse(rawItems);
-        if (Array.isArray(parsed)) setSelecionados(parsed);
-      }
-      if (rawPrices) {
-        const parsed = JSON.parse(rawPrices);
-        if (parsed && typeof parsed === 'object') {
-          if (parsed[10]) setValor10(formatBRL(String(Math.round(parsed[10] * 100))));
-          if (parsed[15]) setValor15(formatBRL(String(Math.round(parsed[15] * 100))));
-          if (parsed[18]) setValor18(formatBRL(String(Math.round(parsed[18] * 100))));
+    async function loadProducts() {
+      try {
+        let prods = await getProducts();
+        // Se não existem produtos, popula com os iniciais
+        if (prods.length === 0) {
+          await seedProducts();
+          prods = await getProducts();
         }
+        setProdutos(prods);
+      } catch (e) {
+        console.warn('Erro ao carregar produtos', e);
+      } finally {
+        setLoading(false);
       }
-    } catch (e) {
-      console.warn('Erro ao carregar configuração admin', e);
     }
+    loadProducts();
+  }, []);
+
+  // Carrega configuração salva do Firestore
+  useEffect(() => {
+    async function loadConfig() {
+      try {
+        const config = await getAdminConfig();
+        if (config.selectedItems && Array.isArray(config.selectedItems)) {
+          setSelecionados(config.selectedItems);
+        }
+        if (config.prices && typeof config.prices === 'object') {
+          if (config.prices[10]) setValor10(formatBRL(String(Math.round(config.prices[10] * 100))));
+          if (config.prices[15]) setValor15(formatBRL(String(Math.round(config.prices[15] * 100))));
+          if (config.prices[18]) setValor18(formatBRL(String(Math.round(config.prices[18] * 100))));
+        }
+      } catch (e) {
+        console.warn('Erro ao carregar configuração admin', e);
+      }
+    }
+    loadConfig();
   }, []);
 
   function formatBRL(input) {
@@ -136,7 +86,7 @@ export default function AdminCesta({ onBack }) {
     });
   }
 
-  function handleSalvar() {
+  async function handleSalvar() {
     if (selecionados.length < 1) {
       alert('Selecione pelo menos 1 item.');
       return;
@@ -149,16 +99,15 @@ export default function AdminCesta({ onBack }) {
       return;
     }
 
-    // Salva seleção e preços no localStorage
+    // Salva seleção e preços no Firestore
     try {
-      localStorage.setItem('camfor_selected_items', JSON.stringify(selecionados));
-      localStorage.setItem('camfor_prices', JSON.stringify({ 10: v10, 15: v15, 18: v18 }));
+      await saveAdminConfig(selecionados, { 10: v10, 15: v15, 18: v18 });
+      alert('Configuração salva com sucesso!');
+      onBack && onBack();
     } catch (e) {
-      console.warn('Falha ao salvar configuração no localStorage', e);
+      console.error('Falha ao salvar configuração no Firestore', e);
+      alert('Erro ao salvar. Tente novamente.');
     }
-
-    alert('Configuração salva com sucesso!');
-    onBack && onBack();
   }
 
   return (
@@ -187,31 +136,42 @@ export default function AdminCesta({ onBack }) {
             </div>
 
             <div className="admin-prod-list">
-              {produtos.map((nome) => {
-                const imgSrc = getImgSrc(nome);
-                const isDisabled = !selecionados.includes(nome) && selecionados.length >= 18;
-                return (
-                  <label
-                    key={nome}
-                    className={`admin-prod-item ${isDisabled ? 'admin-prod-item--disabled' : ''}`}
-                    aria-disabled={isDisabled ? 'true' : 'false'}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selecionados.includes(nome)}
-                      onChange={() => handleCheck(nome)}
-                      disabled={isDisabled}
-                    />
-                    <img
-                      src={imgSrc}
-                      alt={nome}
-                      className="admin-prod-img"
-                      onError={handleImageError}
-                    />
-                    <span className="admin-prod-name">{nome}</span>
-                  </label>
-                );
-              })}
+              {loading ? (
+                <div style={{ textAlign: 'center', color: '#fff', padding: '20px' }}>
+                  Carregando produtos...
+                </div>
+              ) : produtos.length === 0 ? (
+                <div style={{ textAlign: 'center', color: '#fff', padding: '20px' }}>
+                  Nenhum produto cadastrado.
+                </div>
+              ) : (
+                produtos.map((prod) => {
+                  const nome = prod.nome;
+                  const imgSrc = `/images/produtos/${prod.imagem}`;
+                  const isDisabled = !selecionados.includes(nome) && selecionados.length >= 18;
+                  return (
+                    <label
+                      key={prod.docId || nome}
+                      className={`admin-prod-item ${isDisabled ? 'admin-prod-item--disabled' : ''}`}
+                      aria-disabled={isDisabled ? 'true' : 'false'}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selecionados.includes(nome)}
+                        onChange={() => handleCheck(nome)}
+                        disabled={isDisabled}
+                      />
+                      <img
+                        src={imgSrc}
+                        alt={nome}
+                        className="admin-prod-img"
+                        onError={handleImageError}
+                      />
+                      <span className="admin-prod-name">{nome}</span>
+                    </label>
+                  );
+                })
+              )}
             </div>
             <div className="admin-values">
               <label className="admin-label">Valor da Cesta Pequena (10 itens)</label>

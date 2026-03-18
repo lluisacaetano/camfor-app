@@ -6,6 +6,7 @@ import Retirada from './Retirada';
 import Entrega from './Entrega';
 import ResumoPedido from './ResumoPedido';
 import { handleImageError } from '../utils/imageUtils';
+import { subscribeToAdminConfig } from '../services/firestoreService';
 
 function cestaImgForSize(sz) {
   if (sz === 10) return '/images/cesta10itens.png';
@@ -25,41 +26,20 @@ export default function CestaDetalhes({ onClose, onFinish }) {
   const [prices, setPrices] = useState({10:0,15:0,18:0});
   const [basketCounts, setBasketCounts] = useState({10:0,15:0,18:0});
 
-  // Reset diário às 17:00 (fechamento centralizado na home)
-  function clearAdminConfig() {
-    localStorage.removeItem('camfor_selected_items');
-    localStorage.removeItem('camfor_prices');
-  }
-  function performDailyResetIfNeeded() {
-    try {
-      const now = new Date();
-      const today = now.toISOString().slice(0,10);
-      const lastReset = localStorage.getItem('camfor_last_reset');
-      if (now.getHours() >= 17 && lastReset !== today) {
-        clearAdminConfig();
-        localStorage.setItem('camfor_last_reset', today);
-      }
-    } catch (e) { console.warn(e); }
-  }
-
-  // Carrega config/admin e agenda refresh periódico
+  // Escuta mudanças em tempo real do Firestore
   useEffect(() => {
-    function refresh() {
-      performDailyResetIfNeeded();
+    const unsubscribe = subscribeToAdminConfig((config) => {
       try {
-        const rawItems = localStorage.getItem('camfor_selected_items');
-        const rawPrices = localStorage.getItem('camfor_prices');
-        setProdutos(rawItems ? JSON.parse(rawItems) : []);
-        setPrices(rawPrices ? JSON.parse(rawPrices) : {10:0,15:0,18:0});
+        setProdutos(config.selectedItems || []);
+        setPrices(config.prices || {10:0,15:0,18:0});
       } catch (e) {
         setProdutos([]);
         setPrices({10:0,15:0,18:0});
       }
-    }
-    refresh();
-    const id = setInterval(refresh, 60*1000);
-    return () => clearInterval(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    });
+
+    // Cleanup: cancela a inscrição quando o componente for desmontado
+    return () => unsubscribe();
   }, []);
 
   function updateBasketCount(size, value) {

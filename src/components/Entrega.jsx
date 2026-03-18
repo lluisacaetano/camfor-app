@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './Entrega.css';
-import { saveOrder } from '../utils/orderStorage';
+import { saveOrder } from '../services/firestoreService';
 
 export default function Entrega({ size, onBack, onFinish, totalPrice = 0, cartItems = [], isMontarCesta = false }) {
   const [nome, setNome] = useState('');

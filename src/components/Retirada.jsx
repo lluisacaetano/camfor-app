@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './Retirada.css';
-import { saveOrder } from '../utils/orderStorage';
+import { saveOrder } from '../services/firestoreService';
 
 export default function Retirada({ size, onBack, onFinish, cartItems = [], isMontarCesta = false }) {
   const [nome, setNome] = useState('');
