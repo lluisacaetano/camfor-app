@@ -1,7 +1,7 @@
 import React from 'react';
 import './AdminHome.css';
 
-export default function AdminHome({ onBack, onSelectProducts, onViewOrders }) {
+export default function AdminHome({ onBack, onSelectProducts, onViewOrders, onManageProducts }) {
   return (
     <div className="ch-root">
       <div className="container">
@@ -41,11 +41,17 @@ export default function AdminHome({ onBack, onSelectProducts, onViewOrders }) {
               >
                 SELECIONAR PRODUTOS
               </button>
-              <button 
-                className="ch-btn" 
+              <button
+                className="ch-btn"
                 onClick={onViewOrders}
               >
                 VER PEDIDOS
+              </button>
+              <button
+                className="ch-btn"
+                onClick={onManageProducts}
+              >
+                GERENCIAR PRODUTOS
               </button>
             </div>
           </div>

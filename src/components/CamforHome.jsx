@@ -9,6 +9,7 @@ import AdminLogin from './AdminLogin';
 import AdminHome from './AdminHome';
 import AdminCesta from './AdminCesta';
 import AdminPedidos from './AdminPedidos';
+import AdminProdutos from './AdminProdutos';
 import { subscribeToAdminConfig } from '../services/firestoreService';
 
 export default function CamforHome() {
@@ -18,6 +19,7 @@ export default function CamforHome() {
   const [showAdminHome, setShowAdminHome] = useState(false);
   const [showAdminCesta, setShowAdminCesta] = useState(false);
   const [showAdminPedidos, setShowAdminPedidos] = useState(false);
+  const [showAdminProdutos, setShowAdminProdutos] = useState(false);
 
   const [isOpenTime, setIsOpenTime] = useState(false);
   const [hasProducts, setHasProducts] = useState(false);
@@ -95,6 +97,10 @@ export default function CamforHome() {
         setShowAdminHome(false);
         setShowAdminPedidos(true);
       }}
+      onManageProducts={() => {
+        setShowAdminHome(false);
+        setShowAdminProdutos(true);
+      }}
     />;
   }
   if (showAdminCesta) {
@@ -109,6 +115,14 @@ export default function CamforHome() {
     return <AdminPedidos
       onBack={() => {
         setShowAdminPedidos(false);
+        setShowAdminHome(true);
+      }}
+    />;
+  }
+  if (showAdminProdutos) {
+    return <AdminProdutos
+      onBack={() => {
+        setShowAdminProdutos(false);
         setShowAdminHome(true);
       }}
     />;
