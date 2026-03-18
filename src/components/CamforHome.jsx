@@ -9,6 +9,7 @@ import AdminLogin from './AdminLogin';
 import AdminHome from './AdminHome';
 import AdminCesta from './AdminCesta';
 import AdminPedidos from './AdminPedidos';
+import { subscribeToAdminConfig } from '../services/firestoreService';
 
 export default function CamforHome() {
   const [showCesta, setShowCesta] = useState(false);
@@ -21,44 +22,30 @@ export default function CamforHome() {
   const [isOpenTime, setIsOpenTime] = useState(false);
   const [hasProducts, setHasProducts] = useState(false);
 
+  // Verifica horário de funcionamento
   useEffect(() => {
-    function clearAdminConfig() {
-      localStorage.removeItem('camfor_selected_items');
-      localStorage.removeItem('camfor_prices');
-    }
-    function performDailyResetIfNeeded() {
-      try {
-        const now = new Date();
-        const today = now.toISOString().slice(0, 10);
-        const lastReset = localStorage.getItem('camfor_last_reset');
-        // reset diário às 17:00 (fechamento)
-        if (now.getHours() >= 24 && lastReset !== today) {
-          clearAdminConfig();
-          localStorage.setItem('camfor_last_reset', today);
-        }
-      } catch (e) { console.warn(e); }
-    }
     function checkBusinessHours() {
       const h = new Date().getHours();
-      return h < 24; // pedidos apenas até 17:00
+      return h < 24; // pedidos até 24h (ajuste conforme necessário)
     }
-    function refreshMain() {
-      performDailyResetIfNeeded();
-      setIsOpenTime(checkBusinessHours());
+    setIsOpenTime(checkBusinessHours());
+    const id = setInterval(() => setIsOpenTime(checkBusinessHours()), 60 * 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  // Escuta configuração do admin em tempo real do Firebase
+  useEffect(() => {
+    const unsubscribe = subscribeToAdminConfig((config) => {
       try {
-        const rawItems = localStorage.getItem('camfor_selected_items');
-        const rawPrices = localStorage.getItem('camfor_prices');
-        const hasItems = rawItems ? (JSON.parse(rawItems).length > 0) : false;
-        const prices = rawPrices ? JSON.parse(rawPrices) : {};
+        const hasItems = config.selectedItems && config.selectedItems.length > 0;
+        const prices = config.prices || {};
         const hasPrices = prices[10] > 0 || prices[15] > 0 || prices[18] > 0;
         setHasProducts(hasItems && hasPrices);
       } catch (e) {
         setHasProducts(false);
       }
-    }
-    refreshMain();
-    const id = setInterval(refreshMain, 60 * 1000);
-    return () => clearInterval(id);
+    });
+    return () => unsubscribe();
   }, []);
 
   useEffect(() => {
