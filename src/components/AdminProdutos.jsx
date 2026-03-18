@@ -110,13 +110,7 @@ export default function AdminProdutos({ onBack }) {
       handleCancelForm();
     } catch (e) {
       console.error('Erro ao salvar:', e);
-      if (e.message && e.message.includes('Firebase Storage')) {
-        alert(e.message);
-      } else if (e.message && e.message.includes('Tempo esgotado')) {
-        alert('Upload demorou muito. Verifique sua conexão e se o Firebase Storage está configurado.');
-      } else {
-        alert('Erro ao salvar produto. Tente novamente.');
-      }
+      alert(e.message || 'Erro ao salvar produto. Tente novamente.');
     } finally {
       setSaving(false);
     }

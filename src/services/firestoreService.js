@@ -1,4 +1,4 @@
-import { db, storage } from '../firebase';
+import { db } from '../firebase';
 import {
   doc,
   setDoc,
@@ -13,12 +13,9 @@ import {
   orderBy,
   writeBatch
 } from 'firebase/firestore';
-import {
-  ref,
-  uploadBytes,
-  getDownloadURL,
-  deleteObject
-} from 'firebase/storage';
+
+// Chave API do ImgBB
+const IMGBB_API_KEY = '81c43d5a38ab2752b3e26d8175b2e803';
 
 // Referência do documento de configuração do admin
 const CONFIG_DOC = doc(db, 'config', 'admin');
@@ -357,65 +354,64 @@ export async function seedProducts() {
   }
 }
 
-// ============ STORAGE (Upload de Imagens) ============
+// ============ IMGBB (Upload de Imagens) ============
 
 /**
- * Função auxiliar para timeout
+ * Converte arquivo para base64
  */
-function withTimeout(promise, ms, errorMessage) {
-  return Promise.race([
-    promise,
-    new Promise((_, reject) =>
-      setTimeout(() => reject(new Error(errorMessage)), ms)
-    )
-  ]);
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => {
+      // Remove o prefixo "data:image/...;base64,"
+      const base64 = reader.result.split(',')[1];
+      resolve(base64);
+    };
+    reader.onerror = error => reject(error);
+  });
 }
 
 /**
- * Faz upload de uma imagem para o Firebase Storage
+ * Faz upload de uma imagem para o ImgBB
  * @param {File} file - Arquivo de imagem
- * @param {string} productId - ID do produto (para nomear o arquivo)
  * @returns {string} URL da imagem
  */
-export async function uploadProductImage(file, productId) {
+export async function uploadProductImage(file) {
   try {
-    const extension = file.name.split('.').pop();
-    const fileName = `produtos/${productId}.${extension}`;
-    const storageRef = ref(storage, fileName);
+    const base64 = await fileToBase64(file);
 
-    // Timeout de 30 segundos para upload
-    await withTimeout(
-      uploadBytes(storageRef, file),
-      30000,
-      'Tempo esgotado. Verifique se o Firebase Storage está configurado.'
-    );
+    const formData = new FormData();
+    formData.append('key', IMGBB_API_KEY);
+    formData.append('image', base64);
+    formData.append('name', file.name.split('.')[0]);
 
-    const downloadURL = await getDownloadURL(storageRef);
-    return downloadURL;
+    const response = await fetch('https://api.imgbb.com/1/upload', {
+      method: 'POST',
+      body: formData
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      return data.data.url;
+    } else {
+      throw new Error(data.error?.message || 'Erro ao fazer upload');
+    }
   } catch (error) {
     console.error('Erro ao fazer upload da imagem:', error);
-    if (error.code === 'storage/unauthorized') {
-      throw new Error('Firebase Storage não configurado. Configure as regras no Console do Firebase.');
-    }
-    throw error;
+    throw new Error('Erro ao fazer upload da imagem. Tente novamente.');
   }
 }
 
 /**
- * Remove uma imagem do Firebase Storage
- * @param {string} imageUrl - URL da imagem a ser removida
+ * Remove uma imagem (ImgBB não suporta exclusão via API gratuita)
+ * Apenas retorna sem fazer nada
  */
 export async function deleteProductImage(imageUrl) {
-  try {
-    // Só tenta deletar se for uma URL do Firebase Storage
-    if (imageUrl && imageUrl.includes('firebasestorage.googleapis.com')) {
-      const storageRef = ref(storage, imageUrl);
-      await deleteObject(storageRef);
-    }
-  } catch (error) {
-    // Ignora erro se a imagem não existir
-    console.warn('Imagem não encontrada ou já removida:', error);
-  }
+  // ImgBB não permite exclusão na API gratuita
+  // As imagens ficam hospedadas permanentemente
+  return;
 }
 
 /**
@@ -423,14 +419,11 @@ export async function deleteProductImage(imageUrl) {
  */
 export async function addProductWithImage(nome, imageFile) {
   try {
-    // Primeiro cria o documento para obter o ID
-    const docRef = await addDoc(PRODUCTS_COLLECTION, { nome, imagem: '' });
+    // Faz upload da imagem primeiro
+    const imageUrl = await uploadProductImage(imageFile);
 
-    // Faz upload da imagem usando o ID do documento
-    const imageUrl = await uploadProductImage(imageFile, docRef.id);
-
-    // Atualiza o documento com a URL da imagem
-    await updateDoc(docRef, { imagem: imageUrl });
+    // Cria o documento com a URL da imagem
+    const docRef = await addDoc(PRODUCTS_COLLECTION, { nome, imagem: imageUrl });
 
     return docRef.id;
   } catch (error) {
@@ -447,14 +440,9 @@ export async function updateProductWithImage(docId, nome, imageFile, currentImag
     const productRef = doc(db, 'products', docId);
 
     if (imageFile) {
-      // Se há nova imagem, faz upload
-      const imageUrl = await uploadProductImage(imageFile, docId);
+      // Se há nova imagem, faz upload para ImgBB
+      const imageUrl = await uploadProductImage(imageFile);
       await updateDoc(productRef, { nome, imagem: imageUrl });
-
-      // Remove imagem antiga se existir
-      if (currentImageUrl) {
-        await deleteProductImage(currentImageUrl);
-      }
     } else {
       // Só atualiza o nome
       await updateDoc(productRef, { nome });
