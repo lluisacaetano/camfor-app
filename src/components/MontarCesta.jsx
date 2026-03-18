@@ -5,47 +5,35 @@ import FinalizarPedido from './FinalizarPedido';
 import Retirada from './Retirada';
 import Entrega from './Entrega';
 import ResumoPedido from './ResumoPedido';
+import { subscribeToAdminConfig } from '../services/firestoreService';
 
 export default function MontarCesta({ onBack }) {
   const [produtosDisponiveis, setProdutosDisponiveis] = useState([]);
   const [prices, setPrices] = useState({10:0,15:0,18:0});
 
+  // Escuta mudanças em tempo real do Firestore
   useEffect(() => {
-    function clearAdminConfig() {
-      localStorage.removeItem('camfor_selected_items');
-      localStorage.removeItem('camfor_prices');
-    }
-    function performDailyResetIfNeeded() {
+    const unsubscribe = subscribeToAdminConfig((config) => {
       try {
-        const now = new Date();
-        const today = now.toISOString().slice(0,10);
-        const lastReset = localStorage.getItem('camfor_last_reset');
-        // reset diário às 17:00 (fechamento centralizado na home)
-        if (now.getHours() >= 17 && lastReset !== today) {
-          clearAdminConfig();
-          localStorage.setItem('camfor_last_reset', today);
-        }
-      } catch (e) { console.warn(e); }
-    }
-    function refresh() {
-      performDailyResetIfNeeded();
-      try {
-        const rawItems = localStorage.getItem('camfor_selected_items');
-        const rawPrices = localStorage.getItem('camfor_prices');
-        if (rawItems) {
-          const items = JSON.parse(rawItems);
-          const mapped = items.map(name => {
+        if (config.selectedItems && config.selectedItems.length > 0) {
+          const mapped = config.selectedItems.map(name => {
             const id = name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
             return { id, name, img: `/images/produtos/${id}.jpg` };
           });
-          if (mapped.length) setProdutosDisponiveis(mapped);
+          setProdutosDisponiveis(mapped);
+        } else {
+          setProdutosDisponiveis([]);
         }
-        if (rawPrices) setPrices(JSON.parse(rawPrices));
-      } catch (e) { console.warn(e); }
-    }
-    refresh();
-    const id = setInterval(refresh, 60*1000);
-    return () => clearInterval(id);
+        if (config.prices) {
+          setPrices(config.prices);
+        }
+      } catch (e) {
+        console.warn('Erro ao processar configuração:', e);
+      }
+    });
+
+    // Cleanup: cancela a inscrição quando o componente for desmontado
+    return () => unsubscribe();
   }, []);
 
   // Quantidades começam vazias

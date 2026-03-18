@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './AdminPedidos.css';
-import { getOrders, getOrderById, clearOrders, updateOrder } from '../utils/orderStorage';
+import { subscribeToOrders, clearAllOrders, updateOrder } from '../services/firestoreService';
 import { handleImageError } from '../utils/imageUtils';
 
 function cestaImgForSize(sz) {
@@ -33,14 +33,12 @@ export default function AdminPedidos({ onBack }) {
   const [selectedOrderId, setSelectedOrderId] = useState(null);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
 
+  // Escuta pedidos em tempo real do Firestore
   useEffect(() => {
-    // carregar inicialmente
-    setOrders(getOrders());
-    // poll simples para refletir novos pedidos salvos no mesmo tab
-    const id = setInterval(() => {
-      setOrders(getOrders());
-    }, 2000);
-    return () => clearInterval(id);
+    const unsubscribe = subscribeToOrders((ordersList) => {
+      setOrders(ordersList);
+    });
+    return () => unsubscribe();
   }, []);
 
   useEffect(() => {
@@ -50,18 +48,17 @@ export default function AdminPedidos({ onBack }) {
       const tomorrow = new Date(now);
       tomorrow.setDate(tomorrow.getDate() + 1);
       tomorrow.setHours(0, 0, 0, 0);
-      
+
       const timeUntilMidnight = tomorrow - now;
-      
-      const timeoutId = setTimeout(() => {
-        clearOrders();
-        setOrders([]);
+
+      const timeoutId = setTimeout(async () => {
+        await clearAllOrders();
         scheduleAutoCleanup(); // reschedule for next day
       }, timeUntilMidnight);
-      
+
       return timeoutId;
     }
-    
+
     const timeoutId = scheduleAutoCleanup();
     return () => clearTimeout(timeoutId);
   }, []);
@@ -70,20 +67,22 @@ export default function AdminPedidos({ onBack }) {
     setShowClearConfirm(true);
   }
 
-  function confirmClearAll() {
-    const ok = clearOrders();
-    if (ok) {
-      setOrders([]);
+  async function confirmClearAll() {
+    try {
+      await clearAllOrders();
+    } catch (e) {
+      console.error('Erro ao limpar pedidos:', e);
     }
     setShowClearConfirm(false);
   }
 
-  function handleToggleEntregue(orderId) {
+  async function handleToggleEntregue(orderId, docId) {
     const order = orders.find(o => o.id === orderId);
-    if (order) {
-      const updated = updateOrder(orderId, { entregue: !order.entregue });
-      if (updated) {
-        setOrders(getOrders());
+    if (order && docId) {
+      try {
+        await updateOrder(docId, { entregue: !order.entregue });
+      } catch (e) {
+        console.error('Erro ao atualizar pedido:', e);
       }
     }
   }
@@ -92,7 +91,7 @@ export default function AdminPedidos({ onBack }) {
   const entregaOrders = orders.filter(o => o.tipo === 'entrega');
 
   if (selectedOrderId !== null) {
-    const selectedOrder = getOrderById(selectedOrderId);
+    const selectedOrder = orders.find(o => o.id === selectedOrderId);
     if (selectedOrder) {
       return <OrderDetail order={selectedOrder} onBack={() => setSelectedOrderId(null)} />;
     }
@@ -153,7 +152,7 @@ export default function AdminPedidos({ onBack }) {
                             </button>
                             <button
                               className={`ap-entregue-btn ${order.entregue ? 'ap-entregue-ativo' : ''}`}
-                              onClick={() => handleToggleEntregue(order.id)}
+                              onClick={() => handleToggleEntregue(order.id, order.docId)}
                             >
                               {order.entregue ? '✓ Entregue' : 'Entregue'}
                             </button>
@@ -196,7 +195,7 @@ export default function AdminPedidos({ onBack }) {
                             </button>
                             <button
                               className={`ap-entregue-btn ${order.entregue ? 'ap-entregue-ativo' : ''}`}
-                              onClick={() => handleToggleEntregue(order.id)}
+                              onClick={() => handleToggleEntregue(order.id, order.docId)}
                             >
                               {order.entregue ? '✓ Entregue' : 'Entregue'}
                             </button>

@@ -29,10 +29,10 @@ export default function CamforHome() {
     function performDailyResetIfNeeded() {
       try {
         const now = new Date();
-        const today = now.toISOString().slice(0,10);
+        const today = now.toISOString().slice(0, 10);
         const lastReset = localStorage.getItem('camfor_last_reset');
         // reset diário às 17:00 (fechamento)
-        if (now.getHours() >= 17 && lastReset !== today) {
+        if (now.getHours() >= 24 && lastReset !== today) {
           clearAdminConfig();
           localStorage.setItem('camfor_last_reset', today);
         }
@@ -40,7 +40,7 @@ export default function CamforHome() {
     }
     function checkBusinessHours() {
       const h = new Date().getHours();
-      return h < 17; // pedidos apenas até 17:00
+      return h < 24; // pedidos apenas até 17:00
     }
     function refreshMain() {
       performDailyResetIfNeeded();
@@ -57,7 +57,7 @@ export default function CamforHome() {
       }
     }
     refreshMain();
-    const id = setInterval(refreshMain, 60*1000);
+    const id = setInterval(refreshMain, 60 * 1000);
     return () => clearInterval(id);
   }, []);
 
@@ -86,16 +86,16 @@ export default function CamforHome() {
     return <MontarCesta onBack={() => setShowMontar(false)} />;
   }
   if (showAdmin) {
-    return <AdminLogin 
-      onBack={() => setShowAdmin(false)} 
+    return <AdminLogin
+      onBack={() => setShowAdmin(false)}
       onLoginSuccess={() => {
         setShowAdmin(false);
         setShowAdminHome(true);
-      }} 
+      }}
     />;
   }
   if (showAdminHome) {
-    return <AdminHome 
+    return <AdminHome
       onBack={() => {
         setShowAdminHome(false);
         localStorage.removeItem('adminLogged');
@@ -111,19 +111,19 @@ export default function CamforHome() {
     />;
   }
   if (showAdminCesta) {
-    return <AdminCesta 
+    return <AdminCesta
       onBack={() => {
         setShowAdminCesta(false);
         setShowAdminHome(true);
-      }} 
+      }}
     />;
   }
   if (showAdminPedidos) {
-    return <AdminPedidos 
+    return <AdminPedidos
       onBack={() => {
         setShowAdminPedidos(false);
         setShowAdminHome(true);
-      }} 
+      }}
     />;
   }
 
@@ -142,12 +142,12 @@ export default function CamforHome() {
       <div className="container">
         <div className="row justify-content-center">
           <div className="col-12 col-md-10 col-lg-8">
-            
+
             {/* Capa + Logo */}
             <div className="ch-cover-wrapper">
               <div className="ch-cover-inner">
-                <img 
-                  src="/images/capa.jpg" 
+                <img
+                  src="/images/capa.jpg"
                   alt="Produtos Agricultura Familiar"
                   className="ch-cover-img"
                 />
@@ -155,8 +155,8 @@ export default function CamforHome() {
 
               {/* Logo */}
               <div className="ch-logo">
-                <img 
-                  src="/images/logoImagem.png" 
+                <img
+                  src="/images/logoImagem.png"
                   alt="CAMFOR - Agricultura Familiar"
                   className="ch-logo-img"
                 />
