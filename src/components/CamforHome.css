@@ -117,13 +117,21 @@
   object-fit: contain;
 }
 
-.ch-sicoob-bottom {
+.ch-logos-bottom {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  margin: auto auto 20px auto;
+}
+
+.ch-sicoob-bottom,
+.ch-ifmg-bottom {
   display: block;
   width: 140px;
   height: auto;
   object-fit: contain;
   opacity: 0.96;
-  margin: auto auto 20px auto;
 }
 
 /* Overlay mensagem de loja fechada (central, mas não bloqueia navegação completa se quiser abrir admin) */
@@ -295,9 +303,14 @@
     margin-top: 8px;
   }
 
-  .ch-sicoob-bottom {
-    width: 100px;
+  .ch-logos-bottom {
+    gap: 15px;
     margin: 20px auto 16px;
+  }
+
+  .ch-sicoob-bottom,
+  .ch-ifmg-bottom {
+    width: 100px;
   }
 
   .cc-back {
