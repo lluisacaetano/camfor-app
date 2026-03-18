@@ -147,7 +147,10 @@ export default function AdminCesta({ onBack }) {
               ) : (
                 produtos.map((prod) => {
                   const nome = prod.nome;
-                  const imgSrc = `/images/produtos/${prod.imagem}`;
+                  // Suporta tanto URLs do Firebase quanto caminhos locais
+                  const imgSrc = prod.imagem.startsWith('http')
+                    ? prod.imagem
+                    : `/images/produtos/${prod.imagem}`;
                   const isDisabled = !selecionados.includes(nome) && selecionados.length >= 18;
                   return (
                     <label

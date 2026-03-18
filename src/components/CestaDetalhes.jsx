@@ -6,7 +6,7 @@ import Retirada from './Retirada';
 import Entrega from './Entrega';
 import ResumoPedido from './ResumoPedido';
 import { handleImageError } from '../utils/imageUtils';
-import { subscribeToAdminConfig } from '../services/firestoreService';
+import { subscribeToAdminConfig, subscribeToProducts } from '../services/firestoreService';
 
 function cestaImgForSize(sz) {
   if (sz === 10) return '/images/cesta10itens.png';
@@ -22,25 +22,52 @@ export default function CestaDetalhes({ onClose, onFinish }) {
   const [showResumo, setShowResumo] = useState(false);
   const [prevView, setPrevView] = useState(null);
 
+  const [selectedNames, setSelectedNames] = useState([]);
+  const [allProducts, setAllProducts] = useState([]);
   const [produtos, setProdutos] = useState([]);
   const [prices, setPrices] = useState({10:0,15:0,18:0});
   const [basketCounts, setBasketCounts] = useState({10:0,15:0,18:0});
 
-  // Escuta mudanças em tempo real do Firestore
+  // Escuta produtos cadastrados
+  useEffect(() => {
+    const unsubscribe = subscribeToProducts((prods) => {
+      setAllProducts(prods);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // Escuta configuração do admin
   useEffect(() => {
     const unsubscribe = subscribeToAdminConfig((config) => {
       try {
-        setProdutos(config.selectedItems || []);
+        setSelectedNames(config.selectedItems || []);
         setPrices(config.prices || {10:0,15:0,18:0});
       } catch (e) {
-        setProdutos([]);
+        setSelectedNames([]);
         setPrices({10:0,15:0,18:0});
       }
     });
-
-    // Cleanup: cancela a inscrição quando o componente for desmontado
     return () => unsubscribe();
   }, []);
+
+  // Combina produtos selecionados com suas imagens reais
+  useEffect(() => {
+    if (selectedNames.length > 0 && allProducts.length > 0) {
+      const mapped = selectedNames.map(name => {
+        const product = allProducts.find(p => p.nome === name);
+        let img = null;
+        if (product && product.imagem) {
+          img = product.imagem.startsWith('http')
+            ? product.imagem
+            : `/images/produtos/${product.imagem}`;
+        }
+        return { name, img };
+      });
+      setProdutos(mapped);
+    } else if (selectedNames.length === 0) {
+      setProdutos([]);
+    }
+  }, [selectedNames, allProducts]);
 
   function updateBasketCount(size, value) {
     const v = Math.max(0, Math.floor(Number(value) || 0));
@@ -194,12 +221,13 @@ export default function CestaDetalhes({ onClose, onFinish }) {
             ) : (
               <ul className="cd-list">
                 {produtos.map((p, idx) => {
-                  const imgId = p.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
-                  const imgSrc = `/images/produtos/${imgId}.jpg`;
+                  // Fallback para imagem baseada no nome se não houver img
+                  const imgId = p.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
+                  const imgSrc = p.img || `/images/produtos/${imgId}.jpg`;
                   return (
                     <li key={idx} className="cd-item">
-                      <img src={imgSrc} alt={p} className="cd-prod-img" onError={handleImageError} />
-                      <span className="cd-prod-name">{p}</span>
+                      <img src={imgSrc} alt={p.name} className="cd-prod-img" onError={handleImageError} />
+                      <span className="cd-prod-name">{p.name}</span>
                     </li>
                   );
                 })}
