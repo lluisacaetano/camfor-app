@@ -95,6 +95,22 @@ export default function AdminProdutos({ onBack }) {
       return;
     }
 
+    // Verifica se já existe produto com o mesmo nome
+    const nomeNormalizado = nome.trim().toLowerCase();
+    const produtoExistente = produtos.find(p => {
+      const nomeExistente = p.nome.toLowerCase();
+      // Se estiver editando, ignora o próprio produto
+      if (editingProduct && p.docId === editingProduct.docId) {
+        return false;
+      }
+      return nomeExistente === nomeNormalizado;
+    });
+
+    if (produtoExistente) {
+      alert(`Já existe um produto cadastrado com o nome "${produtoExistente.nome}".`);
+      return;
+    }
+
     setSaving(true);
     try {
       if (editingProduct) {
