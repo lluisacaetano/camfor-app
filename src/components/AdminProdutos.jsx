@@ -42,7 +42,11 @@ export default function AdminProdutos({ onBack }) {
     setEditingProduct(produto);
     setNome(produto.nome);
     setImageFile(null);
-    setImagePreview(produto.imagem);
+    // Usa URL completa ou adiciona prefixo para imagens locais
+    const imgSrc = produto.imagem && produto.imagem.startsWith('http')
+      ? produto.imagem
+      : `/images/produtos/${produto.imagem}`;
+    setImagePreview(imgSrc);
     setShowForm(true);
   }
 
@@ -105,7 +109,14 @@ export default function AdminProdutos({ onBack }) {
       }
       handleCancelForm();
     } catch (e) {
-      alert('Erro ao salvar produto. Tente novamente.');
+      console.error('Erro ao salvar:', e);
+      if (e.message && e.message.includes('Firebase Storage')) {
+        alert(e.message);
+      } else if (e.message && e.message.includes('Tempo esgotado')) {
+        alert('Upload demorou muito. Verifique sua conexão e se o Firebase Storage está configurado.');
+      } else {
+        alert('Erro ao salvar produto. Tente novamente.');
+      }
     } finally {
       setSaving(false);
     }
@@ -156,10 +167,15 @@ export default function AdminProdutos({ onBack }) {
                   Nenhum produto cadastrado.
                 </div>
               ) : (
-                produtos.map((prod) => (
+                produtos.map((prod) => {
+                  // Suporta tanto URLs do Firebase quanto caminhos locais
+                  const imgSrc = prod.imagem && prod.imagem.startsWith('http')
+                    ? prod.imagem
+                    : `/images/produtos/${prod.imagem}`;
+                  return (
                   <div key={prod.docId} className="ap-prod-item">
                     <img
-                      src={prod.imagem}
+                      src={imgSrc}
                       alt={prod.nome}
                       className="ap-prod-img"
                       onError={handleImageError}
@@ -184,7 +200,7 @@ export default function AdminProdutos({ onBack }) {
                       </button>
                     </div>
                   </div>
-                ))
+                );})
               )}
             </div>
 
