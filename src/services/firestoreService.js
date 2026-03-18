@@ -360,6 +360,18 @@ export async function seedProducts() {
 // ============ STORAGE (Upload de Imagens) ============
 
 /**
+ * Função auxiliar para timeout
+ */
+function withTimeout(promise, ms, errorMessage) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error(errorMessage)), ms)
+    )
+  ]);
+}
+
+/**
  * Faz upload de uma imagem para o Firebase Storage
  * @param {File} file - Arquivo de imagem
  * @param {string} productId - ID do produto (para nomear o arquivo)
@@ -371,12 +383,20 @@ export async function uploadProductImage(file, productId) {
     const fileName = `produtos/${productId}.${extension}`;
     const storageRef = ref(storage, fileName);
 
-    await uploadBytes(storageRef, file);
-    const downloadURL = await getDownloadURL(storageRef);
+    // Timeout de 30 segundos para upload
+    await withTimeout(
+      uploadBytes(storageRef, file),
+      30000,
+      'Tempo esgotado. Verifique se o Firebase Storage está configurado.'
+    );
 
+    const downloadURL = await getDownloadURL(storageRef);
     return downloadURL;
   } catch (error) {
     console.error('Erro ao fazer upload da imagem:', error);
+    if (error.code === 'storage/unauthorized') {
+      throw new Error('Firebase Storage não configurado. Configure as regras no Console do Firebase.');
+    }
     throw error;
   }
 }
