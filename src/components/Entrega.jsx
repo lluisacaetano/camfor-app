@@ -148,38 +148,11 @@ export default function Entrega({ size, onBack, onFinish, totalPrice = 0, cartIt
   function handleSubmit(e) {
     e.preventDefault();
 
-    // Tenta recuperar itens do cartItems ou do localStorage
+    // Usa os itens do cartItems
     let itemsForOrder = Array.isArray(cartItems) && cartItems.length > 0 ? cartItems : [];
-    if (itemsForOrder.length === 0) {
-      try {
-        const raw = localStorage.getItem('camfor_last_cart');
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          if (Array.isArray(parsed) && parsed.length > 0) itemsForOrder = parsed;
-        }
-      } catch (e) { /* ignore */ }
-    }
 
-    // Recupera preços das cestas
-    let prices = {10:0,15:0,18:0};
-    try {
-      const rawPrices = localStorage.getItem('camfor_prices');
-      if (rawPrices) prices = JSON.parse(rawPrices);
-    } catch (e) {}
-
-    // Calcula o total: se todos os itens têm price zerado, usa o preço da cesta pelo tamanho
-    let total = 0;
-    if (itemsForOrder.length > 0) {
-      const allZero = itemsForOrder.every(item => !item.price || Number(item.price) === 0);
-      if (allZero) {
-        const count = itemsForOrder.reduce((sum, item) => sum + (Number(item.qty) || 0), 0);
-        total = prices[count] || 0;
-      } else {
-        total = itemsForOrder.reduce((sum, item) => sum + ((Number(item.qty) || 0) * (Number(item.price) || 0)), 0);
-      }
-    } else {
-      total = Number(totalPrice);
-    }
+    // Usa o totalPrice que vem como prop (já calculado corretamente do Firebase)
+    let total = Number(totalPrice) || 0;
 
     // Define source baseado em isMontarCesta ou se tem items válidos
     const source = isMontarCesta || (itemsForOrder.length > 0 && [10,15,18].includes(itemsForOrder.length)) ? 'montar' : 'cesta';

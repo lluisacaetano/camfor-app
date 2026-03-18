@@ -122,6 +122,9 @@ export default function MontarCesta({ onBack }) {
     return (
       <Retirada
         size={totalCount}
+        totalPrice={finalPrice || 0}
+        cartItems={cart}
+        isMontarCesta={true}
         onBack={() => {
           setShowRetirada(false);
           // restaura para a view anterior (resumo ou finalize)
@@ -142,6 +145,8 @@ export default function MontarCesta({ onBack }) {
       <Entrega
         size={totalCount}
         totalPrice={finalPrice || 0}
+        cartItems={cart}
+        isMontarCesta={true}
         onBack={() => {
           setShowEntrega(false);
           if (prevView === 'finalize') setShowFinalize(true);
