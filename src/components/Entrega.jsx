@@ -376,7 +376,7 @@ export default function Entrega({ size, onBack, onFinish, totalPrice = 0, cartIt
         </div>
       </div>
 
-      <img src="/images/logo-sicoob.png" alt="SICOOB" className="ch-sicoob-bottom" />
+      <div className="ch-logos-bottom"><img src="/images/logo-sicoob.png" alt="SICOOB" className="ch-sicoob-bottom" /><img src="/images/logo-ifmg.png" alt="IFMG" className="ch-ifmg-bottom" /></div>
     </div>
   );
 }
