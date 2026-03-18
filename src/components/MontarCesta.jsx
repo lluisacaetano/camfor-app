@@ -5,24 +5,30 @@ import FinalizarPedido from './FinalizarPedido';
 import Retirada from './Retirada';
 import Entrega from './Entrega';
 import ResumoPedido from './ResumoPedido';
-import { subscribeToAdminConfig } from '../services/firestoreService';
+import { subscribeToAdminConfig, subscribeToProducts } from '../services/firestoreService';
 
 export default function MontarCesta({ onBack }) {
   const [produtosDisponiveis, setProdutosDisponiveis] = useState([]);
   const [prices, setPrices] = useState({10:0,15:0,18:0});
+  const [allProducts, setAllProducts] = useState([]);
+  const [selectedNames, setSelectedNames] = useState([]);
 
-  // Escuta mudanças em tempo real do Firestore
+  // Escuta produtos cadastrados
+  useEffect(() => {
+    const unsubscribe = subscribeToProducts((prods) => {
+      setAllProducts(prods);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // Escuta configuração do admin (itens selecionados e preços)
   useEffect(() => {
     const unsubscribe = subscribeToAdminConfig((config) => {
       try {
         if (config.selectedItems && config.selectedItems.length > 0) {
-          const mapped = config.selectedItems.map(name => {
-            const id = name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
-            return { id, name, img: `/images/produtos/${id}.jpg` };
-          });
-          setProdutosDisponiveis(mapped);
+          setSelectedNames(config.selectedItems);
         } else {
-          setProdutosDisponiveis([]);
+          setSelectedNames([]);
         }
         if (config.prices) {
           setPrices(config.prices);
@@ -31,10 +37,31 @@ export default function MontarCesta({ onBack }) {
         console.warn('Erro ao processar configuração:', e);
       }
     });
-
-    // Cleanup: cancela a inscrição quando o componente for desmontado
     return () => unsubscribe();
   }, []);
+
+  // Combina produtos selecionados com suas imagens reais
+  useEffect(() => {
+    if (selectedNames.length > 0 && allProducts.length > 0) {
+      const mapped = selectedNames.map(name => {
+        const product = allProducts.find(p => p.nome === name);
+        const id = name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
+
+        // Usa a imagem do Firebase ou fallback para caminho local
+        let img = `/images/produtos/${id}.jpg`;
+        if (product && product.imagem) {
+          img = product.imagem.startsWith('http')
+            ? product.imagem
+            : `/images/produtos/${product.imagem}`;
+        }
+
+        return { id, name, img };
+      });
+      setProdutosDisponiveis(mapped);
+    } else if (selectedNames.length === 0) {
+      setProdutosDisponiveis([]);
+    }
+  }, [selectedNames, allProducts]);
 
   // Quantidades começam vazias
   const [quantidades, setQuantidades] = useState({});

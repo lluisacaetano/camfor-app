@@ -1,7 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './AdminProdutos.css';
-import { subscribeToProducts, addProduct, updateProduct, deleteProduct } from '../services/firestoreService';
+import {
+  subscribeToProducts,
+  addProductWithImage,
+  updateProductWithImage,
+  deleteProductWithImage
+} from '../services/firestoreService';
 import { handleImageError } from '../utils/imageUtils';
 
 export default function AdminProdutos({ onBack }) {
@@ -10,9 +15,11 @@ export default function AdminProdutos({ onBack }) {
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [nome, setNome] = useState('');
-  const [imagem, setImagem] = useState('');
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
   const [saving, setSaving] = useState(false);
+  const fileInputRef = useRef(null);
 
   // Escuta produtos em tempo real
   useEffect(() => {
@@ -26,14 +33,16 @@ export default function AdminProdutos({ onBack }) {
   function handleAdd() {
     setEditingProduct(null);
     setNome('');
-    setImagem('');
+    setImageFile(null);
+    setImagePreview('');
     setShowForm(true);
   }
 
   function handleEdit(produto) {
     setEditingProduct(produto);
     setNome(produto.nome);
-    setImagem(produto.imagem);
+    setImageFile(null);
+    setImagePreview(produto.imagem);
     setShowForm(true);
   }
 
@@ -41,7 +50,35 @@ export default function AdminProdutos({ onBack }) {
     setShowForm(false);
     setEditingProduct(null);
     setNome('');
-    setImagem('');
+    setImageFile(null);
+    setImagePreview('');
+  }
+
+  function handleFileChange(e) {
+    const file = e.target.files[0];
+    if (file) {
+      // Verifica se é uma imagem
+      if (!file.type.startsWith('image/')) {
+        alert('Por favor, selecione um arquivo de imagem.');
+        return;
+      }
+      // Verifica tamanho (máx 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('A imagem deve ter no máximo 5MB.');
+        return;
+      }
+      setImageFile(file);
+      // Cria preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  function triggerFileInput() {
+    fileInputRef.current?.click();
   }
 
   async function handleSave() {
@@ -49,17 +86,22 @@ export default function AdminProdutos({ onBack }) {
       alert('Digite o nome do produto');
       return;
     }
-    if (!imagem.trim()) {
-      alert('Digite o nome do arquivo de imagem');
+    if (!editingProduct && !imageFile) {
+      alert('Selecione uma imagem para o produto');
       return;
     }
 
     setSaving(true);
     try {
       if (editingProduct) {
-        await updateProduct(editingProduct.docId, nome.trim(), imagem.trim());
+        await updateProductWithImage(
+          editingProduct.docId,
+          nome.trim(),
+          imageFile,
+          editingProduct.imagem
+        );
       } else {
-        await addProduct(nome.trim(), imagem.trim());
+        await addProductWithImage(nome.trim(), imageFile);
       }
       handleCancelForm();
     } catch (e) {
@@ -69,9 +111,9 @@ export default function AdminProdutos({ onBack }) {
     }
   }
 
-  async function handleDelete(docId) {
+  async function handleDelete(produto) {
     try {
-      await deleteProduct(docId);
+      await deleteProductWithImage(produto.docId, produto.imagem);
       setShowDeleteConfirm(null);
     } catch (e) {
       alert('Erro ao excluir produto. Tente novamente.');
@@ -117,14 +159,13 @@ export default function AdminProdutos({ onBack }) {
                 produtos.map((prod) => (
                   <div key={prod.docId} className="ap-prod-item">
                     <img
-                      src={`/images/produtos/${prod.imagem}`}
+                      src={prod.imagem}
                       alt={prod.nome}
                       className="ap-prod-img"
                       onError={handleImageError}
                     />
                     <div className="ap-prod-info">
                       <div className="ap-prod-name">{prod.nome}</div>
-                      <div className="ap-prod-file">{prod.imagem}</div>
                     </div>
                     <div className="ap-prod-actions">
                       <button
@@ -171,25 +212,37 @@ export default function AdminProdutos({ onBack }) {
               placeholder="Ex: Banana"
             />
 
-            <label className="ap-label">Arquivo de Imagem</label>
+            <label className="ap-label">Foto do Produto</label>
+
+            {/* Input de arquivo oculto */}
             <input
-              className="ap-input"
-              value={imagem}
-              onChange={(e) => setImagem(e.target.value)}
-              placeholder="Ex: banana.jpg"
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              accept="image/*"
+              style={{ display: 'none' }}
             />
-            <div className="ap-hint">
-              A imagem deve estar em /images/produtos/
-            </div>
+
+            {/* Botão para selecionar foto */}
+            <button
+              type="button"
+              className="ap-upload-btn"
+              onClick={triggerFileInput}
+            >
+              📷 {imageFile ? 'TROCAR FOTO' : 'SELECIONAR FOTO'}
+            </button>
 
             {/* Preview */}
-            {imagem && (
+            {imagePreview && (
               <div className="ap-preview">
                 <img
-                  src={`/images/produtos/${imagem}`}
+                  src={imagePreview}
                   alt="Preview"
                   onError={handleImageError}
                 />
+                {imageFile && (
+                  <div className="ap-file-name">{imageFile.name}</div>
+                )}
               </div>
             )}
 
@@ -204,7 +257,7 @@ export default function AdminProdutos({ onBack }) {
               <button
                 className="ap-save-btn"
                 onClick={handleSave}
-                disabled={saving || !nome.trim() || !imagem.trim()}
+                disabled={saving || !nome.trim() || (!editingProduct && !imageFile)}
               >
                 {saving ? 'SALVANDO...' : 'SALVAR'}
               </button>
@@ -232,7 +285,7 @@ export default function AdminProdutos({ onBack }) {
               </button>
               <button
                 className="ap-delete-confirm-btn"
-                onClick={() => handleDelete(showDeleteConfirm.docId)}
+                onClick={() => handleDelete(showDeleteConfirm)}
               >
                 EXCLUIR
               </button>

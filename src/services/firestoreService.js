@@ -1,4 +1,4 @@
-import { db } from '../firebase';
+import { db, storage } from '../firebase';
 import {
   doc,
   setDoc,
@@ -13,6 +13,12 @@ import {
   orderBy,
   writeBatch
 } from 'firebase/firestore';
+import {
+  ref,
+  uploadBytes,
+  getDownloadURL,
+  deleteObject
+} from 'firebase/storage';
 
 // Referência do documento de configuração do admin
 const CONFIG_DOC = doc(db, 'config', 'admin');
@@ -347,6 +353,117 @@ export async function seedProducts() {
     return true;
   } catch (error) {
     console.error('Erro ao popular produtos:', error);
+    throw error;
+  }
+}
+
+// ============ STORAGE (Upload de Imagens) ============
+
+/**
+ * Faz upload de uma imagem para o Firebase Storage
+ * @param {File} file - Arquivo de imagem
+ * @param {string} productId - ID do produto (para nomear o arquivo)
+ * @returns {string} URL da imagem
+ */
+export async function uploadProductImage(file, productId) {
+  try {
+    const extension = file.name.split('.').pop();
+    const fileName = `produtos/${productId}.${extension}`;
+    const storageRef = ref(storage, fileName);
+
+    await uploadBytes(storageRef, file);
+    const downloadURL = await getDownloadURL(storageRef);
+
+    return downloadURL;
+  } catch (error) {
+    console.error('Erro ao fazer upload da imagem:', error);
+    throw error;
+  }
+}
+
+/**
+ * Remove uma imagem do Firebase Storage
+ * @param {string} imageUrl - URL da imagem a ser removida
+ */
+export async function deleteProductImage(imageUrl) {
+  try {
+    // Só tenta deletar se for uma URL do Firebase Storage
+    if (imageUrl && imageUrl.includes('firebasestorage.googleapis.com')) {
+      const storageRef = ref(storage, imageUrl);
+      await deleteObject(storageRef);
+    }
+  } catch (error) {
+    // Ignora erro se a imagem não existir
+    console.warn('Imagem não encontrada ou já removida:', error);
+  }
+}
+
+/**
+ * Adiciona um produto com upload de imagem
+ */
+export async function addProductWithImage(nome, imageFile) {
+  try {
+    // Primeiro cria o documento para obter o ID
+    const docRef = await addDoc(PRODUCTS_COLLECTION, { nome, imagem: '' });
+
+    // Faz upload da imagem usando o ID do documento
+    const imageUrl = await uploadProductImage(imageFile, docRef.id);
+
+    // Atualiza o documento com a URL da imagem
+    await updateDoc(docRef, { imagem: imageUrl });
+
+    return docRef.id;
+  } catch (error) {
+    console.error('Erro ao adicionar produto com imagem:', error);
+    throw error;
+  }
+}
+
+/**
+ * Atualiza um produto (com ou sem nova imagem)
+ */
+export async function updateProductWithImage(docId, nome, imageFile, currentImageUrl) {
+  try {
+    const productRef = doc(db, 'products', docId);
+
+    if (imageFile) {
+      // Se há nova imagem, faz upload
+      const imageUrl = await uploadProductImage(imageFile, docId);
+      await updateDoc(productRef, { nome, imagem: imageUrl });
+
+      // Remove imagem antiga se existir
+      if (currentImageUrl) {
+        await deleteProductImage(currentImageUrl);
+      }
+    } else {
+      // Só atualiza o nome
+      await updateDoc(productRef, { nome });
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Erro ao atualizar produto:', error);
+    throw error;
+  }
+}
+
+/**
+ * Remove um produto e sua imagem
+ */
+export async function deleteProductWithImage(docId, imageUrl) {
+  try {
+    // Remove a imagem do Storage
+    if (imageUrl) {
+      await deleteProductImage(imageUrl);
+    }
+
+    // Remove o documento do Firestore
+    const productRef = doc(db, 'products', docId);
+    await deleteDoc(productRef);
+
+    return true;
+  } catch (error) {
+    console.error('Erro ao deletar produto:', error);
     throw error;
   }
 }
