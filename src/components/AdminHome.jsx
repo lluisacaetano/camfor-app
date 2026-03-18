@@ -53,7 +53,7 @@ export default function AdminHome({ onBack, onSelectProducts, onViewOrders }) {
       </div>
 
       {/* Logo SICOOB */}
-      <div className="ch-logos-bottom"><img src="/images/logo-sicoob.png" alt="SICOOB" className="ch-sicoob-bottom" /><img src="/images/logo-ifmg.png" alt="IFMG" className="ch-ifmg-bottom" /></div>
+      <div className="ch-logos-bottom"><img src="/images/logo-ifmg.png" alt="IFMG" className="ch-ifmg-bottom" /><img src="/images/logo-sicoob.png" alt="SICOOB" className="ch-sicoob-bottom" /></div>
     </div>
   );
 }
