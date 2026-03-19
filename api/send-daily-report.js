@@ -38,6 +38,16 @@ function formatBRL(value) {
   return 'R$ ' + Number(value || 0).toFixed(2).replace('.', ',');
 }
 
+// Retorna data atual no fuso horário de Brasília
+function getBrasiliaDate() {
+  const now = new Date();
+  // Converte para horário de Brasília (UTC-3)
+  const brasiliaOffset = -3 * 60; // -3 horas em minutos
+  const utcOffset = now.getTimezoneOffset(); // offset local em minutos
+  const brasiliaTime = new Date(now.getTime() + (utcOffset + brasiliaOffset) * 60000);
+  return brasiliaTime;
+}
+
 // Formata data completa
 function formatDate(date) {
   return date.toLocaleDateString('pt-BR', {
@@ -415,7 +425,8 @@ module.exports = async function handler(req, res) {
     const db = getFirestore();
 
     // Busca todos os pedidos (campo timestamp é string ISO)
-    const today = new Date();
+    // Usa horário de Brasília para definir "hoje"
+    const today = getBrasiliaDate();
     today.setHours(0, 0, 0, 0);
 
     const tomorrow = new Date(today);
@@ -428,10 +439,14 @@ module.exports = async function handler(req, res) {
     snapshot.forEach(doc => {
       const data = doc.data();
 
-      // Filtra por data (timestamp é string ISO)
+      // Filtra por data (timestamp é string ISO em UTC)
       if (data.timestamp) {
-        const orderDate = new Date(data.timestamp);
-        if (orderDate >= today && orderDate < tomorrow) {
+        const orderDateUTC = new Date(data.timestamp);
+        // Converte para horário de Brasília para comparar
+        const brasiliaOffset = -3 * 60;
+        const orderDateBrasilia = new Date(orderDateUTC.getTime() + (orderDateUTC.getTimezoneOffset() + brasiliaOffset) * 60000);
+
+        if (orderDateBrasilia >= today && orderDateBrasilia < tomorrow) {
           orders.push({
             id: doc.id,
             ...data
