@@ -105,9 +105,17 @@
   }
 }
 
-/* Desktop - espaçamento entre login e logos */
+/* Desktop - logos fixas no bottom */
 @media (min-width: 768px) {
-  .admin-login-container-inner {
-    margin-bottom: 280px;
+  .admin-login-page .ch-logos-bottom {
+    position: fixed;
+    bottom: 30px;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+  }
+
+  .admin-login-page .admin-login-container-inner {
+    padding-bottom: 120px;
   }
 }
