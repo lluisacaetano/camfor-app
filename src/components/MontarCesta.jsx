@@ -244,32 +244,6 @@ export default function MontarCesta({ onBack }) {
 
             <h2 className="ch-title">MONTAR MINHA CESTA</h2>
 
-            {/* Horário de funcionamento */}
-            <div className="mc-hours-box" style={{
-              background: storeOpen ? 'rgba(46, 125, 50, 0.15)' : 'rgba(200, 50, 50, 0.15)',
-              border: `1px solid ${storeOpen ? 'rgba(46, 125, 50, 0.4)' : 'rgba(200, 50, 50, 0.4)'}`,
-              borderRadius: 8,
-              padding: '10px 14px',
-              marginBottom: 12,
-              textAlign: 'center'
-            }}>
-              <div style={{
-                fontSize: '0.9rem',
-                fontWeight: 600,
-                color: storeOpen ? '#2e7d32' : '#c83232'
-              }}>
-                {storeOpen ? '🟢 Loja aberta' : '🔴 Loja fechada'}
-              </div>
-              <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.8)', marginTop: 4 }}>
-                Horário de atendimento: {getBusinessHoursText()}
-              </div>
-              {!storeOpen && closedReason && (
-                <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)', marginTop: 4 }}>
-                  {closedReason}
-                </div>
-              )}
-            </div>
-
             {/* Observação sobre quantidade */}
             <div className="mc-obs-box">
               <div className="mc-obs-title">Como funciona:</div>
