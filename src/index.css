@@ -1,45 +1,38 @@
-/* Fundo estendido para toda a tela (incluindo safe areas do iOS) */
-html, body {
-  margin: 0;
-  padding: 0;
-  /* Fundo que preenche a tela inteira */
-  background: #0a4d5c;
-  min-height: 100%;
-  /* Impede scroll horizontal e bounce */
-  overflow-x: hidden;
-  overscroll-behavior-x: none;
-}
-
+/* Fundo estendido para toda a tela (incluindo safe areas e bounce do iOS) */
 html {
-  /* Cor sólida para quando o bounce acontecer */
-  background: #0a4d5c;
+  /* Cor sólida que aparece durante o bounce */
+  background-color: #0a4d5c;
+  /* Altura mínima para cobrir tudo */
+  min-height: 100%;
+  min-height: -webkit-fill-available;
 }
 
 body {
+  margin: 0;
+  padding: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: linear-gradient(135deg, #0a4d5c 0%, #0d6478 100%);
+  /* Fundo sólido - o gradiente fica no .ch-root */
+  background-color: #0a4d5c;
   min-height: 100vh;
   min-height: 100dvh;
-  /* Padding para respeitar safe areas do iOS */
-  padding-top: env(safe-area-inset-top);
-  padding-bottom: env(safe-area-inset-bottom);
-  padding-left: env(safe-area-inset-left);
-  padding-right: env(safe-area-inset-right);
-  /* Impede scroll horizontal */
+  min-height: -webkit-fill-available;
+  /* Impede scroll horizontal e bounce */
   overflow-x: hidden;
   overscroll-behavior: none;
   -webkit-overflow-scrolling: touch;
 }
 
-/* Container principal também sem overflow */
+/* Container principal */
 #root {
-  overflow-x: hidden;
+  background-color: #0a4d5c;
   min-height: 100vh;
   min-height: 100dvh;
+  min-height: -webkit-fill-available;
+  overflow-x: hidden;
 }
 
 code {
