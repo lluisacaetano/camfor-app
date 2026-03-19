@@ -39,10 +39,33 @@ function getOrderItemCount(order) {
   return 0;
 }
 
+// Calcula tempo decorrido desde o pedido
+function getElapsedTime(timestamp) {
+  if (!timestamp) return '';
+
+  const orderTime = new Date(timestamp);
+  const now = new Date();
+  const diffMs = now - orderTime;
+  const diffMins = Math.floor(diffMs / 60000);
+
+  if (diffMins < 1) return 'agora';
+  if (diffMins === 1) return 'há 1 min';
+  if (diffMins < 60) return `há ${diffMins} min`;
+
+  const diffHours = Math.floor(diffMins / 60);
+  if (diffHours === 1) return 'há 1 hora';
+  if (diffHours < 24) return `há ${diffHours} horas`;
+
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays === 1) return 'há 1 dia';
+  return `há ${diffDays} dias`;
+}
+
 export default function AdminPedidos({ onBack, onMount }) {
   const [orders, setOrders] = useState([]);
   const [selectedOrderId, setSelectedOrderId] = useState(null);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [, setTick] = useState(0); // Para forçar re-render a cada minuto
 
   // Executa onMount quando o componente é montado (marca notificações como lidas)
   useEffect(() => {
@@ -57,6 +80,14 @@ export default function AdminPedidos({ onBack, onMount }) {
       setOrders(ordersList);
     });
     return () => unsubscribe();
+  }, []);
+
+  // Atualiza o contador de tempo a cada minuto
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTick(t => t + 1);
+    }, 60000); // 1 minuto
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -156,6 +187,7 @@ export default function AdminPedidos({ onBack, onMount }) {
                               <div className="ap-order-name">{order.nome}</div>
                               <div className="ap-order-meta">
                                 {getOrderItemCount(order)} {getOrderItemCount(order) === 1 ? 'item' : 'itens'}
+                                <span className="ap-order-time">{getElapsedTime(order.timestamp)}</span>
                               </div>
                             </div>
                           </div>
@@ -197,6 +229,7 @@ export default function AdminPedidos({ onBack, onMount }) {
                               <div className="ap-order-name">{order.nome}</div>
                               <div className="ap-order-meta">
                                 {getOrderItemCount(order)} {getOrderItemCount(order) === 1 ? 'item' : 'itens'}
+                                <span className="ap-order-time">{getElapsedTime(order.timestamp)}</span>
                               </div>
                             </div>
                           </div>

@@ -55,6 +55,19 @@
 .ap-order-meta {
   color: rgba(255, 255, 255, 0.7);
   font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ap-order-time {
+  background: rgba(38, 198, 218, 0.2);
+  color: #26c6da;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
 }
 
 .ap-view-btn {
