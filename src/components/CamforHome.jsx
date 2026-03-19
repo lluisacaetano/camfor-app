@@ -160,8 +160,6 @@ export default function CamforHome() {
     );
   }
   if (showAdminPedidos) {
-    // Marca como lido quando entra na tela de pedidos
-    markAsRead();
     return (
       <>
         <OrderNotificationToast
@@ -174,6 +172,7 @@ export default function CamforHome() {
             setShowAdminPedidos(false);
             setShowAdminHome(true);
           }}
+          onMount={markAsRead}
         />
       </>
     );

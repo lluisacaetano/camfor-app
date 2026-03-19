@@ -39,10 +39,17 @@ function getOrderItemCount(order) {
   return 0;
 }
 
-export default function AdminPedidos({ onBack }) {
+export default function AdminPedidos({ onBack, onMount }) {
   const [orders, setOrders] = useState([]);
   const [selectedOrderId, setSelectedOrderId] = useState(null);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+
+  // Executa onMount quando o componente é montado (marca notificações como lidas)
+  useEffect(() => {
+    if (onMount) {
+      onMount();
+    }
+  }, [onMount]);
 
   // Escuta pedidos em tempo real do Firestore
   useEffect(() => {
