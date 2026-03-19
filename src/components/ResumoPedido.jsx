@@ -13,8 +13,9 @@ function cestaImgForSize(sz) {
 
 export default function ResumoPedido({
   order = {},
-  cart = [],             
-  totalPrice = null,     
+  cart = [],
+  totalPrice = null,
+  prices: propPrices = null,
   onBack,
   onConfirm,
   onFinalize
@@ -27,10 +28,15 @@ export default function ResumoPedido({
   const [changeFor, setChangeFor] = useState('');
 
   const prices = useMemo(() => {
+    // Usa os preços passados via prop primeiro
+    if (propPrices && typeof propPrices === 'object') {
+      return propPrices;
+    }
+    // Fallback para localStorage
     try {
       return JSON.parse(localStorage.getItem('camfor_prices')) || {10:0,15:0,18:0};
     } catch { return {10:0,15:0,18:0}; }
-  }, []);
+  }, [propPrices]);
 
   const formatBRL = v => {
     try { return Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }

@@ -153,6 +153,7 @@ export default function CestaDetalhes({ onClose, onFinish }) {
       <ResumoPedido
         order={{ basketCounts }}
         totalPrice={totalValue}
+        prices={prices}
         onBack={() => setShowResumo(false)}
         onFinalize={() => { setShowResumo(false); setShowFinalize(true); }}
         onRetirada={() => { setPrevView('resumo'); setShowResumo(false); setShowRetirada(true); }}
