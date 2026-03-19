@@ -1,38 +1,40 @@
-/* Fundo estendido para toda a tela (incluindo safe areas e bounce do iOS) */
-html {
-  /* Cor sólida que aparece durante o bounce */
-  background-color: #0a4d5c;
-  /* Altura mínima para cobrir tudo */
+/* Fundo que cobre TODA a tela, incluindo bounce do iOS */
+html, body {
+  margin: 0;
+  padding: 0;
+  background: #0a4d5c !important;
   min-height: 100%;
-  min-height: -webkit-fill-available;
+  overflow-x: hidden;
 }
 
 body {
-  margin: 0;
-  padding: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  /* Fundo sólido - o gradiente fica no .ch-root */
-  background-color: #0a4d5c;
-  min-height: 100vh;
-  min-height: 100dvh;
-  min-height: -webkit-fill-available;
-  /* Impede scroll horizontal e bounce */
-  overflow-x: hidden;
-  overscroll-behavior: none;
-  -webkit-overflow-scrolling: touch;
 }
 
 /* Container principal */
 #root {
-  background-color: #0a4d5c;
   min-height: 100vh;
   min-height: 100dvh;
-  min-height: -webkit-fill-available;
   overflow-x: hidden;
+}
+
+/* Camada de fundo FIXA que cobre tudo, inclusive durante bounce */
+#root::before {
+  content: '';
+  position: fixed;
+  top: -200%;
+  left: -50%;
+  right: -50%;
+  bottom: -200%;
+  width: 200%;
+  height: 500%;
+  background: linear-gradient(180deg, #0a4d5c 0%, #0a4d5c 40%, #0d6478 60%, #0d6478 100%);
+  z-index: -9999;
+  pointer-events: none;
 }
 
 code {
