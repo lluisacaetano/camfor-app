@@ -12,8 +12,8 @@ const COLORS = {
   white: rgb(1, 1, 1),
   black: rgb(0, 0, 0),
   gray: rgb(100/255, 100/255, 100/255),
-  lightGray: rgb(240/255, 240/255, 240/255),
-  border: rgb(180/255, 180/255, 180/255)
+  lightGray: rgb(245/255, 245/255, 245/255),
+  border: rgb(200/255, 200/255, 200/255)
 };
 
 // Inicializa Firebase Admin
@@ -77,9 +77,9 @@ async function generatePDF(orders, date) {
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
   const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
-  // A4 Paisagem
-  const pageWidth = 841.89;
-  const pageHeight = 595.28;
+  // A4 Vertical
+  const pageWidth = 595.28;
+  const pageHeight = 841.89;
 
   // Carrega logo
   let logoImage = null;
@@ -98,111 +98,258 @@ async function generatePDF(orders, date) {
   const retiradas = orders.filter(o => o.tipo === 'retirada').length;
   const entregas = orders.filter(o => o.tipo === 'entrega').length;
 
-  // Cria linhas da tabela (cada item = uma linha)
-  const tableRows = [];
-  orders.forEach(order => {
-    const items = order.items || [];
-    if (items.length === 0) {
-      // Pedido sem itens
-      tableRows.push({
-        tipo: order.tipo === 'retirada' ? 'Retirada' : 'Entrega',
-        cliente: order.nome || '-',
-        telefone: order.telefone || '-',
-        endereco: order.tipo === 'entrega'
-          ? `${order.rua || ''}, ${order.numero || ''} - ${order.bairro || ''}`
-          : '-',
-        item: 'Sem itens',
-        qtd: 1,
-        valorUnit: order.total || 0,
-        subtotal: order.total || 0,
-        isFirstItem: true
-      });
-    } else {
-      items.forEach((item, idx) => {
-        tableRows.push({
-          tipo: order.tipo === 'retirada' ? 'Retirada' : 'Entrega',
-          cliente: order.nome || '-',
-          telefone: order.telefone || '-',
-          endereco: order.tipo === 'entrega'
-            ? `${order.rua || ''}, ${order.numero || ''} - ${order.bairro || ''}`
-            : '-',
-          item: item.name || item.id || '-',
-          qtd: item.qty || 1,
-          valorUnit: item.price || 0,
-          subtotal: (item.qty || 1) * (item.price || 0),
-          isFirstItem: idx === 0
-        });
-      });
-    }
-  });
-
-  // Configurações da tabela
-  const marginLeft = 30;
-  const marginRight = 30;
+  // Configurações
+  const marginLeft = 35;
+  const marginRight = 35;
   const marginTop = 40;
-  const tableWidth = pageWidth - marginLeft - marginRight;
-
-  // Colunas
-  const cols = [
-    { label: 'Tipo', width: 55 },
-    { label: 'Cliente', width: 130 },
-    { label: 'Telefone', width: 90 },
-    { label: 'Endereço', width: 160 },
-    { label: 'Produto', width: 150 },
-    { label: 'Qtd', width: 35 },
-    { label: 'V. Unit', width: 65 },
-    { label: 'Subtotal', width: 70 }
-  ];
-
-  const rowHeight = 18;
-  const headerHeight = 22;
-  const fontSize = 8;
-  const headerFontSize = 9;
+  const contentWidth = pageWidth - marginLeft - marginRight;
 
   let page = pdfDoc.addPage([pageWidth, pageHeight]);
   let y = pageHeight - marginTop;
 
   // ========== CABEÇALHO ==========
   if (logoImage) {
-    page.drawImage(logoImage, { x: marginLeft, y: y - 35, width: 40, height: 40 });
+    page.drawImage(logoImage, { x: marginLeft, y: y - 40, width: 45, height: 45 });
   }
 
   page.drawText('CAMFOR', {
-    x: marginLeft + (logoImage ? 48 : 0),
-    y: y - 10,
-    size: 20,
+    x: marginLeft + (logoImage ? 55 : 0),
+    y: y - 12,
+    size: 22,
     font: fontBold,
     color: COLORS.primary
   });
 
   page.drawText('Relatório Diário de Pedidos', {
-    x: marginLeft + (logoImage ? 48 : 0),
-    y: y - 26,
+    x: marginLeft + (logoImage ? 55 : 0),
+    y: y - 28,
     size: 10,
     font: font,
     color: COLORS.gray
   });
 
-  // Data e resumo no canto direito
-  page.drawText(formatDate(date), {
-    x: pageWidth - marginRight - 200,
-    y: y - 10,
+  // Data (canto direito)
+  const dateText = formatDate(date);
+  const dateWidth = font.widthOfTextAtSize(dateText, 9);
+  page.drawText(dateText, {
+    x: pageWidth - marginRight - dateWidth,
+    y: y - 12,
     size: 9,
     font: font,
     color: COLORS.black
   });
 
-  page.drawText(`${totalOrders} pedidos | ${retiradas} retiradas | ${entregas} entregas | Total: ${formatBRL(totalValue)}`, {
-    x: pageWidth - marginRight - 290,
-    y: y - 26,
-    size: 9,
+  y -= 55;
+
+  // Resumo
+  page.drawRectangle({
+    x: marginLeft,
+    y: y - 30,
+    width: contentWidth,
+    height: 30,
+    color: COLORS.lightGray
+  });
+
+  const resumoText = `${totalOrders} pedidos  •  ${retiradas} retiradas  •  ${entregas} entregas  •  Total: ${formatBRL(totalValue)}`;
+  page.drawText(resumoText, {
+    x: marginLeft + 15,
+    y: y - 20,
+    size: 10,
     font: fontBold,
     color: COLORS.primary
   });
 
-  y -= 55;
+  y -= 45;
 
   // Linha divisória
+  page.drawLine({
+    start: { x: marginLeft, y: y },
+    end: { x: pageWidth - marginRight, y: y },
+    thickness: 1.5,
+    color: COLORS.primary
+  });
+
+  y -= 20;
+
+  // ========== FUNÇÃO PARA QUEBRAR TEXTO EM LINHAS ==========
+  function wrapText(text, maxWidth, fontSize) {
+    const words = text.split(' ');
+    const lines = [];
+    let currentLine = '';
+
+    for (const word of words) {
+      const testLine = currentLine ? `${currentLine} ${word}` : word;
+      const testWidth = font.widthOfTextAtSize(testLine, fontSize);
+
+      if (testWidth > maxWidth && currentLine) {
+        lines.push(currentLine);
+        currentLine = word;
+      } else {
+        currentLine = testLine;
+      }
+    }
+
+    if (currentLine) {
+      lines.push(currentLine);
+    }
+
+    return lines;
+  }
+
+  // ========== FUNÇÃO PARA DESENHAR PEDIDO ==========
+  function drawOrder(order, index) {
+    const isEntrega = order.tipo === 'entrega';
+    const items = order.items || [];
+
+    // Formata itens como lista compacta
+    const itemsFormatted = items.map(item => {
+      const qty = item.qty || 1;
+      return qty > 1 ? `${item.nome || item.name} (${qty}x)` : (item.nome || item.name);
+    }).join(', ');
+
+    // Calcula altura necessária
+    const itemsLines = wrapText(itemsFormatted, contentWidth - 20, 8);
+    let blockHeight = 50 + (itemsLines.length * 10);
+    if (isEntrega) blockHeight += 12;
+
+    // Verifica se precisa de nova página
+    if (y - blockHeight < 50) {
+      page = pdfDoc.addPage([pageWidth, pageHeight]);
+      y = pageHeight - marginTop;
+    }
+
+    // Fundo alternado
+    if (index % 2 === 0) {
+      page.drawRectangle({
+        x: marginLeft,
+        y: y - blockHeight,
+        width: contentWidth,
+        height: blockHeight,
+        color: COLORS.lightGray
+      });
+    }
+
+    // Borda inferior
+    page.drawLine({
+      start: { x: marginLeft, y: y - blockHeight },
+      end: { x: pageWidth - marginRight, y: y - blockHeight },
+      thickness: 0.5,
+      color: COLORS.border
+    });
+
+    let currentY = y - 15;
+
+    // === LINHA 1: Badge + Cliente + Telefone + Valor ===
+    // Badge tipo
+    const tipoText = isEntrega ? 'ENTREGA' : 'RETIRADA';
+    const tipoColor = isEntrega ? rgb(13/255, 100/255, 120/255) : rgb(46/255, 125/255, 50/255);
+    const badgeWidth = fontBold.widthOfTextAtSize(tipoText, 7) + 10;
+
+    page.drawRectangle({
+      x: marginLeft + 8,
+      y: currentY - 4,
+      width: badgeWidth,
+      height: 12,
+      color: tipoColor
+    });
+
+    page.drawText(tipoText, {
+      x: marginLeft + 13,
+      y: currentY - 1,
+      size: 7,
+      font: fontBold,
+      color: COLORS.white
+    });
+
+    // Cliente
+    const clienteText = order.nome || '-';
+    page.drawText(clienteText, {
+      x: marginLeft + badgeWidth + 15,
+      y: currentY,
+      size: 11,
+      font: fontBold,
+      color: COLORS.black
+    });
+
+    // Telefone (logo após o nome)
+    const clienteWidth = fontBold.widthOfTextAtSize(clienteText, 11);
+    page.drawText(order.telefone || '-', {
+      x: marginLeft + badgeWidth + 15 + clienteWidth + 12,
+      y: currentY,
+      size: 9,
+      font: font,
+      color: COLORS.gray
+    });
+
+    // Valor (direita)
+    const valorText = formatBRL(order.total);
+    const valorWidth = fontBold.widthOfTextAtSize(valorText, 12);
+    page.drawText(valorText, {
+      x: pageWidth - marginRight - valorWidth - 8,
+      y: currentY,
+      size: 12,
+      font: fontBold,
+      color: COLORS.primary
+    });
+
+    currentY -= 16;
+
+    // === LINHA 2: Endereço completo (se entrega) ===
+    if (isEntrega) {
+      const enderecoParts = [
+        order.rua,
+        order.numero ? `nº ${order.numero}` : null,
+        order.complemento,
+        order.bairro,
+        order.cidade
+      ].filter(Boolean);
+      const enderecoText = enderecoParts.join(', ');
+
+      page.drawText(enderecoText, {
+        x: marginLeft + 8,
+        y: currentY,
+        size: 8,
+        font: font,
+        color: COLORS.gray
+      });
+
+      currentY -= 14;
+    }
+
+    // === ITENS ===
+    page.drawText(`Itens (${items.length}):`, {
+      x: marginLeft + 8,
+      y: currentY,
+      size: 8,
+      font: fontBold,
+      color: COLORS.black
+    });
+
+    currentY -= 11;
+
+    // Desenha itens em linhas
+    itemsLines.forEach(line => {
+      page.drawText(line, {
+        x: marginLeft + 8,
+        y: currentY,
+        size: 8,
+        font: font,
+        color: COLORS.black
+      });
+      currentY -= 10;
+    });
+
+    y -= blockHeight + 5;
+  }
+
+  // ========== DESENHA PEDIDOS ==========
+  orders.forEach((order, index) => {
+    drawOrder(order, index);
+  });
+
+  // ========== RODAPÉ FINAL ==========
+  y -= 5;
+
   page.drawLine({
     start: { x: marginLeft, y: y },
     end: { x: pageWidth - marginRight, y: y },
@@ -210,138 +357,7 @@ async function generatePDF(orders, date) {
     color: COLORS.primary
   });
 
-  y -= 15;
-
-  // Função para desenhar cabeçalho da tabela
-  function drawTableHeader() {
-    page.drawRectangle({
-      x: marginLeft,
-      y: y - headerHeight,
-      width: tableWidth,
-      height: headerHeight,
-      color: COLORS.primary
-    });
-
-    let x = marginLeft + 5;
-    cols.forEach(col => {
-      page.drawText(col.label, {
-        x: x,
-        y: y - 15,
-        size: headerFontSize,
-        font: fontBold,
-        color: COLORS.white
-      });
-      x += col.width;
-    });
-
-    y -= headerHeight;
-  }
-
-  // Função para desenhar uma linha da tabela
-  function drawTableRow(row, isAlternate) {
-    if (isAlternate) {
-      page.drawRectangle({
-        x: marginLeft,
-        y: y - rowHeight,
-        width: tableWidth,
-        height: rowHeight,
-        color: COLORS.lightGray
-      });
-    }
-
-    page.drawLine({
-      start: { x: marginLeft, y: y - rowHeight },
-      end: { x: pageWidth - marginRight, y: y - rowHeight },
-      thickness: 0.3,
-      color: COLORS.border
-    });
-
-    let x = marginLeft + 5;
-    const textY = y - 13;
-
-    if (row.isFirstItem) {
-      page.drawText(row.tipo, { x: x, y: textY, size: fontSize, font: fontBold, color: COLORS.black });
-    }
-    x += cols[0].width;
-
-    if (row.isFirstItem) {
-      const clienteText = row.cliente.length > 20 ? row.cliente.substring(0, 18) + '...' : row.cliente;
-      page.drawText(clienteText, { x: x, y: textY, size: fontSize, font: font, color: COLORS.black });
-    }
-    x += cols[1].width;
-
-    if (row.isFirstItem) {
-      page.drawText(row.telefone, { x: x, y: textY, size: fontSize, font: font, color: COLORS.gray });
-    }
-    x += cols[2].width;
-
-    if (row.isFirstItem) {
-      const endText = row.endereco.length > 28 ? row.endereco.substring(0, 26) + '...' : row.endereco;
-      page.drawText(endText, { x: x, y: textY, size: fontSize, font: font, color: COLORS.gray });
-    }
-    x += cols[3].width;
-
-    const prodText = row.item.length > 24 ? row.item.substring(0, 22) + '...' : row.item;
-    page.drawText(prodText, { x: x, y: textY, size: fontSize, font: font, color: COLORS.black });
-    x += cols[4].width;
-
-    page.drawText(row.qtd.toString(), { x: x + 10, y: textY, size: fontSize, font: font, color: COLORS.black });
-    x += cols[5].width;
-
-    page.drawText(formatBRL(row.valorUnit), { x: x, y: textY, size: fontSize, font: font, color: COLORS.black });
-    x += cols[6].width;
-
-    page.drawText(formatBRL(row.subtotal), { x: x, y: textY, size: fontSize, font: fontBold, color: COLORS.primary });
-
-    y -= rowHeight;
-  }
-
-  // Desenha cabeçalho inicial
-  drawTableHeader();
-
-  // Desenha linhas
-  let currentOrderIdx = -1;
-  let isAlternate = false;
-
-  tableRows.forEach((row) => {
-    if (y - rowHeight < 50) {
-      page.drawText('CAMFOR - Agricultura Familiar', {
-        x: marginLeft,
-        y: 25,
-        size: 7,
-        font: font,
-        color: COLORS.gray
-      });
-      page.drawText(`Página ${pdfDoc.getPageCount()}`, {
-        x: pageWidth - marginRight - 50,
-        y: 25,
-        size: 7,
-        font: font,
-        color: COLORS.gray
-      });
-
-      page = pdfDoc.addPage([pageWidth, pageHeight]);
-      y = pageHeight - marginTop;
-      drawTableHeader();
-    }
-
-    if (row.isFirstItem) {
-      currentOrderIdx++;
-      isAlternate = currentOrderIdx % 2 === 1;
-    }
-
-    drawTableRow(row, isAlternate);
-  });
-
-  // Rodapé final
-  page.drawLine({
-    start: { x: marginLeft, y: y - 5 },
-    end: { x: pageWidth - marginRight, y: y - 5 },
-    thickness: 1,
-    color: COLORS.primary
-  });
-
-  y -= 20;
+  y -= 18;
 
   page.drawText(`Total Geral: ${formatBRL(totalValue)}`, {
     x: pageWidth - marginRight - 120,
@@ -364,14 +380,14 @@ async function generatePDF(orders, date) {
   pages.forEach((p, i) => {
     p.drawText('CAMFOR - Agricultura Familiar', {
       x: marginLeft,
-      y: 20,
+      y: 25,
       size: 7,
       font: font,
       color: COLORS.gray
     });
     p.drawText(`Página ${i + 1} de ${pages.length}`, {
-      x: pageWidth - marginRight - 60,
-      y: 20,
+      x: pageWidth - marginRight - 55,
+      y: 25,
       size: 7,
       font: font,
       color: COLORS.gray
