@@ -19,6 +19,7 @@ export default function AdminProdutos({ onBack }) {
   const [imagePreview, setImagePreview] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
   const fileInputRef = useRef(null);
 
   // Escuta produtos em tempo real
@@ -166,6 +167,18 @@ export default function AdminProdutos({ onBack }) {
               </button>
             </div>
 
+            {/* Campo de Pesquisa */}
+            <div className="ap-search-wrap">
+              <span className="ap-search-icon">🔍</span>
+              <input
+                type="text"
+                className="ap-search-input"
+                placeholder="Pesquisar produto..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+
             {/* Lista de Produtos */}
             <div className="ap-prod-list">
               {loading ? (
@@ -176,8 +189,18 @@ export default function AdminProdutos({ onBack }) {
                 <div style={{ textAlign: 'center', color: '#fff', padding: 20 }}>
                   Nenhum produto cadastrado.
                 </div>
+              ) : produtos.filter(p => !searchTerm.trim() || p.nome.toLowerCase().includes(searchTerm.toLowerCase().trim())).length === 0 ? (
+                <div style={{ textAlign: 'center', color: '#fff', padding: 20 }}>
+                  Nenhum produto encontrado para "{searchTerm}".
+                </div>
               ) : (
-                produtos.map((prod) => {
+                produtos
+                .filter((prod) => {
+                  if (!searchTerm.trim()) return true;
+                  const term = searchTerm.toLowerCase().trim();
+                  return prod.nome.toLowerCase().includes(term);
+                })
+                .map((prod) => {
                   // Suporta tanto URLs do Firebase quanto caminhos locais
                   const imgSrc = prod.imagem && prod.imagem.startsWith('http')
                     ? prod.imagem
@@ -216,7 +239,10 @@ export default function AdminProdutos({ onBack }) {
 
             {/* Contador */}
             <div style={{ textAlign: 'center', color: '#fff', marginTop: 12, opacity: 0.8 }}>
-              {produtos.length} produto(s) cadastrado(s)
+              {searchTerm.trim()
+                ? `${produtos.filter(p => p.nome.toLowerCase().includes(searchTerm.toLowerCase().trim())).length} de ${produtos.length} produto(s)`
+                : `${produtos.length} produto(s) cadastrado(s)`
+              }
             </div>
           </div>
         </div>
