@@ -5,9 +5,10 @@ import { saveOrder } from '../services/firestoreService';
 
 export default function Retirada({ size, onBack, onFinish, cartItems = [], isMontarCesta = false, totalPrice = 0 }) {
   const [nome, setNome] = useState('');
-  const [, setTelefoneRaw] = useState('');   
-  const [telefoneMask, setTelefoneMask] = useState('');  
+  const [, setTelefoneRaw] = useState('');
+  const [telefoneMask, setTelefoneMask] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
+  const [errors, setErrors] = useState({});
 
   function formatPhone(value) {
     const d = String(value || '').replace(/\D/g, '');
@@ -58,8 +59,18 @@ export default function Retirada({ size, onBack, onFinish, cartItems = [], isMon
     return msg;
   }
 
+  function validateFields() {
+    const newErrors = {};
+    if (!nome.trim()) newErrors.nome = 'Nome é obrigatório';
+    if (!telefoneMask.trim()) newErrors.telefone = 'Telefone é obrigatório';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  }
+
   function handleSubmit(e) {
     e.preventDefault();
+
+    if (!validateFields()) return;
 
     // Usa os itens do cartItems
     let itemsForOrder = Array.isArray(cartItems) && cartItems.length > 0 ? cartItems : [];
@@ -115,19 +126,61 @@ export default function Retirada({ size, onBack, onFinish, cartItems = [], isMon
             <h2 className="ch-title">RETIRADA</h2>
 
             <form className="ret-form" onSubmit={handleSubmit}>
-              <label className="ret-label">Nome</label>
-              <input className="ret-input" value={nome} onChange={(e) => setNome(e.target.value)} required />
-              
-              <label className="ret-label">Telefone</label>
+              <label className="ret-label">Nome *</label>
               <input
-                className="ret-input"
+                className={`ret-input ${errors.nome ? 'ret-input-error' : ''}`}
+                value={nome}
+                onChange={(e) => { setNome(e.target.value); setErrors(prev => ({ ...prev, nome: '' })); }}
+              />
+              {errors.nome && <span className="ret-error-msg">{errors.nome}</span>}
+
+              <label className="ret-label">Telefone *</label>
+              <input
+                className={`ret-input ${errors.telefone ? 'ret-input-error' : ''}`}
                 type="tel"
                 inputMode="tel"
                 placeholder="(99) 99999-9999"
                 value={telefoneMask}
-                onChange={handlePhoneChange}
-                required
+                onChange={(e) => { handlePhoneChange(e); setErrors(prev => ({ ...prev, telefone: '' })); }}
               />
+              {errors.telefone && <span className="ret-error-msg">{errors.telefone}</span>}
+
+              {/* Info de Retirada */}
+              <div className="ret-info-box">
+                <h3 className="ret-info-title">Local de Retirada</h3>
+                <p className="ret-info-text">
+                  <strong>Endereço:</strong><br />
+                  Avenida Ébano, 340<br />
+                  Jardim Califórnia - Formiga/MG<br />
+                  CEP: 35572-126
+                </p>
+                <p className="ret-info-text">
+                  <strong>Horário:</strong> até às 18h
+                </p>
+
+                {/* Mapa Google Maps */}
+                <div className="ret-map-container">
+                  <iframe
+                    title="Mapa de localização CAMFOR"
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3774.5!2d-45.4356!3d-20.4589!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjDCsDI3JzMyLjAiUyA0NcKwMjYnMDguMiJX!5e0!3m2!1spt-BR!2sbr!4v1234567890"
+                    width="100%"
+                    height="200"
+                    style={{ border: 0, borderRadius: 8 }}
+                    allowFullScreen=""
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                  ></iframe>
+                </div>
+
+                <a
+                  href="https://www.google.com/maps/search/?api=1&query=Avenida+Ebano+340+Jardim+California+Formiga+MG"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="ret-map-link"
+                >
+                  Abrir no Google Maps
+                </a>
+              </div>
 
               <div className="d-grid gap-3 mb-4 ch-btn-group" style={{ marginTop: '18px' }}>
                 <button type="submit" className="ch-btn">Finalizar Retirada</button>

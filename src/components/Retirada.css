@@ -15,10 +15,76 @@
   width: 100%;
   padding: 10px 12px;
   border-radius: 8px;
-  border: none;
+  border: 2px solid transparent;
   outline: none;
   box-shadow: inset 0 1px 4px rgba(0,0,0,0.2);
-  margin-bottom: 8px;
+  margin-bottom: 4px;
   font-size: 1rem;
+  transition: border-color 0.2s ease;
 }
 
+/* Erro nos inputs */
+.ret-input-error {
+  border-color: #ff6b6b !important;
+  background: rgba(255, 107, 107, 0.1);
+}
+
+.ret-error-msg {
+  display: block;
+  color: #ff6b6b;
+  font-size: 0.85rem;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+/* Info de Retirada */
+.ret-info-box {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.ret-info-title {
+  color: #26c6da;
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0 0 16px;
+  text-align: center;
+}
+
+.ret-info-text {
+  color: #fff;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin: 0 0 12px;
+}
+
+.ret-info-text strong {
+  color: #26c6da;
+}
+
+.ret-map-container {
+  margin: 16px 0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.ret-map-link {
+  display: block;
+  text-align: center;
+  color: #26c6da;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-decoration: none;
+  padding: 10px;
+  background: rgba(38, 198, 218, 0.15);
+  border-radius: 8px;
+  transition: background 0.2s ease;
+}
+
+.ret-map-link:hover {
+  background: rgba(38, 198, 218, 0.25);
+  color: #26c6da;
+}

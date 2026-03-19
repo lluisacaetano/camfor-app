@@ -23,6 +23,7 @@ const BAIRROS_FORMIGA = [
   'Itatiaia',
   'Jardim América',
   'Jardim Bela Vista',
+  'Jardim Califórnia',
   'Lagoa',
   'Lourdes',
   'Mangabeiras',
@@ -76,6 +77,7 @@ export default function Entrega({ size, onBack, onFinish, totalPrice = 0, cartIt
   const cidade = 'Formiga'; // Fixo
   const uf = 'MG'; // Fixo
   const [loadingCep, setLoadingCep] = useState(false);
+  const [errors, setErrors] = useState({});
 
   // formata CEP 00000-000
   function formatCep(value) {
@@ -210,8 +212,29 @@ export default function Entrega({ size, onBack, onFinish, totalPrice = 0, cartIt
     return msg;
   }
 
+  function validateFields() {
+    const newErrors = {};
+    if (!nome.trim()) newErrors.nome = 'Nome é obrigatório';
+    if (!telefoneMask.trim()) newErrors.telefone = 'Telefone é obrigatório';
+    if (!rua.trim()) newErrors.rua = 'Rua é obrigatória';
+    if (!numero.trim()) newErrors.numero = 'Número é obrigatório';
+    if (!bairro) newErrors.bairro = 'Bairro é obrigatório';
+    if (bairro === 'Outro' && !bairroOutro.trim()) newErrors.bairroOutro = 'Digite o nome do bairro';
+    if (payment === 'cash' && needChange && (!changeForRaw || !isChangeValid)) {
+      newErrors.troco = 'Valor do troco inválido';
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  }
+
+  function clearError(field) {
+    setErrors(prev => ({ ...prev, [field]: '' }));
+  }
+
   function handleSubmit(e) {
     e.preventDefault();
+
+    if (!validateFields()) return;
 
     // Usa os itens do cartItems
     let itemsForOrder = Array.isArray(cartItems) && cartItems.length > 0 ? cartItems : [];
@@ -277,19 +300,24 @@ export default function Entrega({ size, onBack, onFinish, totalPrice = 0, cartIt
             <p className="fp-note">Preencha seus dados para entrega.</p>
 
             <form className="ent-form" onSubmit={handleSubmit}>
-              <label className="ent-label">Nome</label>
-              <input className="ent-input" value={nome} onChange={(e) => setNome(e.target.value)} required />
-
-              <label className="ent-label">Telefone</label>
+              <label className="ent-label">Nome *</label>
               <input
-                className="ent-input"
+                className={`ent-input ${errors.nome ? 'ent-input-error' : ''}`}
+                value={nome}
+                onChange={(e) => { setNome(e.target.value); clearError('nome'); }}
+              />
+              {errors.nome && <span className="ent-error-msg">{errors.nome}</span>}
+
+              <label className="ent-label">Telefone *</label>
+              <input
+                className={`ent-input ${errors.telefone ? 'ent-input-error' : ''}`}
                 type="tel"
                 inputMode="tel"
                 placeholder="(99) 99999-9999"
                 value={telefoneMask}
-                onChange={handlePhoneChange}
-                required
+                onChange={(e) => { handlePhoneChange(e); clearError('telefone'); }}
               />
+              {errors.telefone && <span className="ent-error-msg">{errors.telefone}</span>}
 
               {/* Título Endereço*/}
               <h3 className="ent-label">Endereço</h3>
@@ -313,38 +341,52 @@ export default function Entrega({ size, onBack, onFinish, totalPrice = 0, cartIt
               </div>
 
               <label className="ent-label">Rua *</label>
-              <input className="ent-input" value={rua} onChange={(e) => setRua(e.target.value)} required />
+              <input
+                className={`ent-input ${errors.rua ? 'ent-input-error' : ''}`}
+                value={rua}
+                onChange={(e) => { setRua(e.target.value); clearError('rua'); }}
+              />
+              {errors.rua && <span className="ent-error-msg">{errors.rua}</span>}
 
               <label className="ent-label">Número *</label>
-              <input className="ent-input" value={numero} onChange={(e) => setNumero(e.target.value)} required />
+              <input
+                className={`ent-input ${errors.numero ? 'ent-input-error' : ''}`}
+                value={numero}
+                onChange={(e) => { setNumero(e.target.value); clearError('numero'); }}
+              />
+              {errors.numero && <span className="ent-error-msg">{errors.numero}</span>}
 
               <label className="ent-label">Complemento</label>
               <input className="ent-input" value={complemento} onChange={(e) => setComplemento(e.target.value)} placeholder="Apto, bloco, referência..." />
+              <span className="ent-optional-note">Este campo não é obrigatório</span>
 
               <label className="ent-label">Bairro *</label>
               <select
-                className="ent-input ent-select"
+                className={`ent-input ent-select ${errors.bairro ? 'ent-input-error' : ''}`}
                 value={bairro}
                 onChange={(e) => {
                   setBairro(e.target.value);
+                  clearError('bairro');
                   if (e.target.value !== 'Outro') setBairroOutro('');
                 }}
-                required
               >
                 <option value="">Selecione o bairro</option>
                 {BAIRROS_FORMIGA.map(b => (
                   <option key={b} value={b}>{b}</option>
                 ))}
               </select>
+              {errors.bairro && <span className="ent-error-msg">{errors.bairro}</span>}
               {bairro === 'Outro' && (
-                <input
-                  className="ent-input"
-                  value={bairroOutro}
-                  onChange={(e) => setBairroOutro(e.target.value)}
-                  placeholder="Digite o nome do bairro"
-                  required
-                  style={{ marginTop: 8 }}
-                />
+                <>
+                  <input
+                    className={`ent-input ${errors.bairroOutro ? 'ent-input-error' : ''}`}
+                    value={bairroOutro}
+                    onChange={(e) => { setBairroOutro(e.target.value); clearError('bairroOutro'); }}
+                    placeholder="Digite o nome do bairro"
+                    style={{ marginTop: 8 }}
+                  />
+                  {errors.bairroOutro && <span className="ent-error-msg">{errors.bairroOutro}</span>}
+                </>
               )}
 
               <label className="ent-label">Cidade / UF</label>
@@ -414,19 +456,7 @@ export default function Entrega({ size, onBack, onFinish, totalPrice = 0, cartIt
               </div>
 
               <div className="d-grid gap-3 ch-btn-group" style={{ marginTop: '18px' }}>
-                <button
-                  type="submit"
-                  className="ch-btn"
-                  disabled={
-                    !nome ||
-                    !telefoneMask ||
-                    !rua ||
-                    !numero ||
-                    !bairro ||
-                    (bairro === 'Outro' && !bairroOutro) ||
-                    (payment==='cash' && needChange && (!changeForRaw || !isChangeValid))
-                  }
-                >
+                <button type="submit" className="ch-btn">
                   {loadingCep ? 'Carregando...' : 'Finalizar Pedido'}
                 </button>
               </div>
