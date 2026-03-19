@@ -104,3 +104,10 @@
     padding: 10px 12px;
   }
 }
+
+/* Desktop - espaçamento entre login e logos */
+@media (min-width: 768px) {
+  .admin-login-container-inner {
+    margin-bottom: 80px;
+  }
+}
