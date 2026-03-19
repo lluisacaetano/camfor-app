@@ -105,8 +105,8 @@
   }
 }
 
-/* Desktop - logos fixas no bottom */
-@media (min-width: 768px) {
+/* Desktop - logos fixas no bottom (apenas em telas altas) */
+@media (min-width: 768px) and (min-height: 800px) {
   .admin-login-page .ch-logos-bottom {
     position: fixed;
     bottom: 30px;
