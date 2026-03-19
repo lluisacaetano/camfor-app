@@ -1,6 +1,6 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "CAMFOR",
+  "name": "CAMFOR - Cestas de Agricultura Familiar",
   "icons": [
     {
       "src": "favicon.ico",
@@ -20,6 +20,7 @@
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "theme_color": "#0a4d5c",
+  "background_color": "#0a4d5c",
+  "orientation": "portrait"
 }
