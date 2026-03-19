@@ -17,15 +17,26 @@ function previewImgForOrder(order) {
   return '/images/cestaCompleta.jpg';
 }
 
-function getMontarCestaCount(order) {
-  // Retorna a quantidade de itens selecionados na montagem da cesta
-  if (order && order.source === 'montar') {
-    if (Array.isArray(order.items) && order.items.length > 0) {
-      const len = order.items.length;
-      if ([10, 15, 18].includes(len)) return len;
-    }
+function getOrderItemCount(order) {
+  // Retorna a quantidade total de itens do pedido
+  if (!order) return 0;
+
+  // Se tiver items, soma as quantidades
+  if (Array.isArray(order.items) && order.items.length > 0) {
+    return order.items.reduce((sum, item) => sum + (item.qty || 1), 0);
   }
-  return null;
+
+  // Se for cesta fechada com basketCounts
+  if (order.basketCounts) {
+    return (order.basketCounts[10] || 0) + (order.basketCounts[15] || 0) + (order.basketCounts[18] || 0);
+  }
+
+  // Se tiver size, é o tamanho da cesta
+  if (order.size) {
+    return order.size;
+  }
+
+  return 0;
 }
 
 export default function AdminPedidos({ onBack }) {
@@ -137,9 +148,7 @@ export default function AdminPedidos({ onBack }) {
                             <div className="ap-card-content" style={{ minWidth: 0 }}>
                               <div className="ap-order-name">{order.nome}</div>
                               <div className="ap-order-meta">
-                                {order.source === 'montar'
-                                  ? `${getMontarCestaCount(order) || 0} itens`
-                                  : (order.items ? `${order.items.length} item(ns)` : '1 pedido')}
+                                {getOrderItemCount(order)} {getOrderItemCount(order) === 1 ? 'item' : 'itens'}
                               </div>
                             </div>
                           </div>
@@ -180,9 +189,7 @@ export default function AdminPedidos({ onBack }) {
                             <div className="ap-card-content" style={{ minWidth: 0 }}>
                               <div className="ap-order-name">{order.nome}</div>
                               <div className="ap-order-meta">
-                                {order.source === 'montar'
-                                  ? `${getMontarCestaCount(order) || 0} itens`
-                                  : (order.items ? `${order.items.length} item(ns)` : '1 pedido')}
+                                {getOrderItemCount(order)} {getOrderItemCount(order) === 1 ? 'item' : 'itens'}
                               </div>
                             </div>
                           </div>

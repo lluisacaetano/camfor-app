@@ -141,3 +141,64 @@
 .admin-prod-item[aria-disabled="true"] input[type="checkbox"] {
   pointer-events: auto;
 }
+
+/* ===== FLOATING COUNTER (ADMIN) ===== */
+.ac-float-counter {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+  color: #fff;
+  padding: 12px 16px;
+  border-radius: 50px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 100;
+  transition: all 0.3s ease;
+  min-width: 80px;
+  justify-content: center;
+}
+
+.ac-float-counter.ac-float-has-items {
+  background: linear-gradient(135deg, #26c6da 0%, #00acc1 100%);
+  box-shadow: 0 4px 20px rgba(38, 198, 218, 0.4);
+}
+
+.ac-float-counter.ac-float-max {
+  background: linear-gradient(135deg, #28a745 0%, #218838 100%);
+  box-shadow: 0 4px 20px rgba(40, 167, 69, 0.4);
+}
+
+.ac-float-number {
+  font-size: 1.4rem;
+  font-weight: 800;
+}
+
+.ac-float-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  opacity: 0.9;
+}
+
+.ac-float-check {
+  font-size: 1rem;
+  margin-left: 2px;
+}
+
+@media (max-width: 576px) {
+  .ac-float-counter {
+    bottom: 16px;
+    right: 16px;
+    padding: 8px 12px;
+  }
+
+  .ac-float-number {
+    font-size: 1.1rem;
+  }
+
+  .ac-float-label {
+    font-size: 0.7rem;
+  }
+}
