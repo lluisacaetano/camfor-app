@@ -15,11 +15,34 @@
   width: 100%;
   padding: 10px 12px;
   border-radius: 8px;
-  border: none;
+  border: 2px solid transparent;
   outline: none;
   box-shadow: inset 0 1px 4px rgba(0,0,0,0.2);
-  margin-bottom: 8px;
+  margin-bottom: 4px;
   font-size: 1rem;
+  transition: border-color 0.2s ease;
+}
+
+/* Erro nos inputs */
+.ent-input-error {
+  border-color: #ff6b6b !important;
+  background: rgba(255, 107, 107, 0.1);
+}
+
+.ent-error-msg {
+  display: block;
+  color: #ff6b6b;
+  font-size: 0.85rem;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.ent-optional-note {
+  display: block;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.8rem;
+  margin-bottom: 8px;
+  font-style: italic;
 }
 
 .fp-note{
