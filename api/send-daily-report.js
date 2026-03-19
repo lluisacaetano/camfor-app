@@ -398,7 +398,7 @@ module.exports = async function handler(req, res) {
     getFirebaseApp();
     const db = getFirestore();
 
-    // Busca pedidos de hoje
+    // Busca todos os pedidos (campo timestamp é string ISO)
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -406,19 +406,22 @@ module.exports = async function handler(req, res) {
     tomorrow.setDate(tomorrow.getDate() + 1);
 
     const ordersRef = db.collection('orders');
-    const snapshot = await ordersRef
-      .where('createdAt', '>=', today)
-      .where('createdAt', '<', tomorrow)
-      .get();
+    const snapshot = await ordersRef.get();
 
     const orders = [];
     snapshot.forEach(doc => {
       const data = doc.data();
-      orders.push({
-        id: doc.id,
-        ...data,
-        createdAt: data.createdAt?.toDate?.() || new Date()
-      });
+
+      // Filtra por data (timestamp é string ISO)
+      if (data.timestamp) {
+        const orderDate = new Date(data.timestamp);
+        if (orderDate >= today && orderDate < tomorrow) {
+          orders.push({
+            id: doc.id,
+            ...data
+          });
+        }
+      }
     });
 
     // Gera PDF
