@@ -21,6 +21,7 @@ const BAIRROS_FORMIGA = [
   'Imperatriz',
   'Industrial',
   'Itatiaia',
+  'Jardim Alvorada',
   'Jardim América',
   'Jardim Bela Vista',
   'Jardim Califórnia',
