@@ -320,4 +320,15 @@
     height: 36px;
     font-size: 16px;
   }
+
+  /* Botões principais com mais espaçamento */
+  .ch-btn-group {
+    padding: 0 20px;
+    gap: 20px !important;
+  }
+
+  .ch-btn {
+    padding: 14px 30px;
+    font-size: 0.95rem;
+  }
 }
