@@ -3,7 +3,7 @@
 
 const { initializeApp, cert, getApps } = require('firebase-admin/app');
 const { getFirestore } = require('firebase-admin/firestore');
-const PdfPrinter = require('pdfmake');
+const PdfPrinter = require('pdfmake/src/printer');
 
 // Cores da CAMFOR
 const COLORS = {
