@@ -64,6 +64,8 @@ export default function CestaDetalhes({ onClose, onFinish }) {
         }
         return { name, img };
       });
+      // Ordena alfabeticamente
+      mapped.sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
       setProdutos(mapped);
     } else if (selectedNames.length === 0) {
       setProdutos([]);
