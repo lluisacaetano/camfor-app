@@ -3,6 +3,7 @@
   position: relative;
   min-height: 100vh;
   min-height: 100dvh;
+  min-height: -webkit-fill-available;
   width: 100%;
   max-width: 100vw;
   background: linear-gradient(135deg, #0a4d5c 0%, #0d6478 100%);
@@ -11,8 +12,33 @@
   align-items: center;
   justify-content: flex-start;
   padding: 20px;
+  padding-top: calc(20px + env(safe-area-inset-top, 0px));
+  padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
   box-sizing: border-box;
   overflow-x: hidden;
+}
+
+/* Pseudo-elemento para estender o fundo durante o bounce */
+.ch-root::before {
+  content: '';
+  position: fixed;
+  top: -100vh;
+  left: 0;
+  right: 0;
+  height: 100vh;
+  background: #0a4d5c;
+  z-index: -1;
+}
+
+.ch-root::after {
+  content: '';
+  position: fixed;
+  bottom: -100vh;
+  left: 0;
+  right: 0;
+  height: 100vh;
+  background: #0d6478;
+  z-index: -1;
 }
 
 /* Container flex para empurrar Sicoob para baixo */
