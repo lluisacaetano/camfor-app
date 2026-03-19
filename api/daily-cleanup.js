@@ -59,9 +59,11 @@ async function clearAdminConfig(db) {
 }
 
 module.exports = async function handler(req, res) {
-  // Verifica autorização do cron
+  // Verifica autorização do cron (header ou query string)
   const authHeader = req.headers.authorization;
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  const cronSecret = process.env.CRON_SECRET;
+
+  if (authHeader !== `Bearer ${cronSecret}` && req.query.secret !== cronSecret) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
