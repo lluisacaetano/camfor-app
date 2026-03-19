@@ -198,15 +198,6 @@ export default function CestaDetalhes({ onClose, onFinish }) {
 
             <h2 className="ch-title">ITENS DISPONÍVEIS</h2>
 
-            {/* Observação sobre como funciona */}
-            <div className="mc-obs-box">
-              <div className="mc-obs-title">Como funciona:</div>
-              <div className="mc-obs-text">
-                Escolha a quantidade de cestas desejada (10, 15 ou 18 itens).
-                <br />Os itens serão selecionados <strong>aleatoriamente</strong> da lista abaixo.
-              </div>
-            </div>
-
             {/* Valores das cestas */}
             <div className="cd-prices" aria-hidden={storeClosed}>
               <div className="cd-price-item">
@@ -220,6 +211,15 @@ export default function CestaDetalhes({ onClose, onFinish }) {
               <div className="cd-price-item">
                 <div className="cd-price-size">18 itens</div>
                 <div className="cd-price-value">{prices[18] ? formatBRL(prices[18]) : '—'}</div>
+              </div>
+            </div>
+
+            {/* Observação sobre como funciona */}
+            <div className="mc-obs-box">
+              <div className="mc-obs-title">Como funciona:</div>
+              <div className="mc-obs-text">
+                Escolha a quantidade de cestas desejada (10, 15 ou 18 itens).
+                <br />Os itens serão selecionados <strong>aleatoriamente</strong> da lista abaixo.
               </div>
             </div>
 
