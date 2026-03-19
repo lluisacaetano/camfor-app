@@ -46,7 +46,7 @@ export default function AdminLogin({ onBack, onLoginSuccess }) {
   };
 
   return (
-    <div className="ch-root">
+    <div className="ch-root admin-login-page">
       <div className="container">
         <div className="row justify-content-center">
           <div className="col-12 col-md-10 col-lg-8">
