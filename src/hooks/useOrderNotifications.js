@@ -27,7 +27,8 @@ export default function useOrderNotifications(isAdminLoggedIn) {
     }
   }, []);
 
-  // Atualiza o título da aba
+  // Atualiza o título da aba (usado internamente)
+  // eslint-disable-next-line no-unused-vars
   const updateTitle = useCallback((count) => {
     if (count > 0) {
       document.title = `(${count}) Novo Pedido! - CAMFOR`;
@@ -38,8 +39,10 @@ export default function useOrderNotifications(isAdminLoggedIn) {
 
   // Pisca o título quando há notificações
   useEffect(() => {
+    const originalTitle = originalTitleRef.current;
+
     if (unreadCount === 0) {
-      document.title = originalTitleRef.current;
+      document.title = originalTitle;
       return;
     }
 
@@ -47,13 +50,13 @@ export default function useOrderNotifications(isAdminLoggedIn) {
     const interval = setInterval(() => {
       document.title = visible
         ? `(${unreadCount}) Novo Pedido! - CAMFOR`
-        : originalTitleRef.current;
+        : originalTitle;
       visible = !visible;
     }, 1000);
 
     return () => {
       clearInterval(interval);
-      document.title = originalTitleRef.current;
+      document.title = originalTitle;
     };
   }, [unreadCount]);
 
