@@ -233,6 +233,15 @@ export default function MontarCesta({ onBack }) {
 
             <h2 className="ch-title">MONTAR MINHA CESTA</h2>
 
+            {/* Observação sobre quantidade */}
+            <div className="mc-obs-box">
+              <div className="mc-obs-title">Como funciona:</div>
+              <div className="mc-obs-text">
+                Escolha <strong>exatamente 10, 15 ou 18 itens</strong> para montar sua cesta.
+                <br />Você pode adicionar até 3 unidades de cada produto.
+              </div>
+            </div>
+
             {/* Lista de Produtos */}
             <div className="mc-list">
               {produtosDisponiveis.map(prod => (
@@ -355,6 +364,15 @@ export default function MontarCesta({ onBack }) {
 
       {/* Logo Sicoob */}
       <div className="ch-logos-bottom"><img src="/images/logo-ifmg.png" alt="IFMG" className="ch-ifmg-bottom" /><img src="/images/logo-sicoob.png" alt="SICOOB" className="ch-sicoob-bottom" /></div>
+
+      {/* Contador Flutuante */}
+      <div className={`mc-float-counter ${allowedTotals.includes(totalCount) ? 'mc-float-valid' : ''} ${totalCount > 18 ? 'mc-float-over' : ''}`}>
+        <div className="mc-float-number">{totalCount}</div>
+        <div className="mc-float-label">
+          {totalCount === 0 ? 'itens' : totalCount === 1 ? 'item' : 'itens'}
+        </div>
+        {allowedTotals.includes(totalCount) && <div className="mc-float-check">✓</div>}
+      </div>
     </div>
   );
 }
