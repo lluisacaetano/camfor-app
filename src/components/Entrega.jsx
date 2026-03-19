@@ -3,19 +3,78 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import './Entrega.css';
 import { saveOrder } from '../services/firestoreService';
 
+// Bairros de Formiga-MG
+const BAIRROS_FORMIGA = [
+  'Água Vermelha',
+  'Alvorada',
+  'Bela Vista',
+  'Bom Jesus',
+  'Bosque',
+  'Centenário',
+  'Centro',
+  'Cinco Estrelas',
+  'Cidade Nova',
+  'Concreto',
+  'Engenho de Serra',
+  'Fonte Nova',
+  'Grã Duquesa',
+  'Imperatriz',
+  'Industrial',
+  'Itatiaia',
+  'Jardim América',
+  'Jardim Bela Vista',
+  'Lagoa',
+  'Lourdes',
+  'Mangabeiras',
+  'Nossa Senhora de Lourdes',
+  'Nova Esperança',
+  'Novo Horizonte',
+  'Paiol',
+  'Parque das Palmeiras',
+  'Pinheiros',
+  'Porto das Vinhas',
+  'Porto Real',
+  'Primavera',
+  'Quinzinho',
+  'Rosário',
+  'Santa Luzia',
+  'Santa Rita',
+  'Santa Teresa',
+  'Santo Antônio',
+  'São Cristóvão',
+  'São Geraldo',
+  'São José',
+  'São Judas Tadeu',
+  'São Luiz',
+  'São Paulo',
+  'São Pedro',
+  'São Vicente',
+  'Sion',
+  'Solar dos Lagos',
+  'Souza e Silva',
+  'Triângulo',
+  'Vale do Sol',
+  'Vila Didi',
+  'Vila Formosa',
+  'Vila Rica',
+  'Outro'
+];
+
 export default function Entrega({ size, onBack, onFinish, totalPrice = 0, cartItems = [], isMontarCesta = false }) {
   const [nome, setNome] = useState('');
-  const [, setTelefoneRaw] = useState(''); 
-  const [telefoneMask, setTelefoneMask] = useState(''); 
+  const [, setTelefoneRaw] = useState('');
+  const [telefoneMask, setTelefoneMask] = useState('');
 
-  const [cepRaw, setCepRaw] = useState('');   
-  const [cepMask, setCepMask] = useState(''); 
-  const [cep, setCep] = useState('');        
+  const [cepRaw, setCepRaw] = useState('');
+  const [cepMask, setCepMask] = useState('');
+  const [cep, setCep] = useState('');
   const [rua, setRua] = useState('');
   const [numero, setNumero] = useState('');
+  const [complemento, setComplemento] = useState('');
   const [bairro, setBairro] = useState('');
-  const [cidade, setCidade] = useState('');
-  const [uf, setUf] = useState('');
+  const [bairroOutro, setBairroOutro] = useState('');
+  const cidade = 'Formiga'; // Fixo
+  const uf = 'MG'; // Fixo
   const [loadingCep, setLoadingCep] = useState(false);
 
   // formata CEP 00000-000
@@ -82,9 +141,15 @@ export default function Entrega({ size, onBack, onFinish, totalPrice = 0, cartIt
       const data = await res.json();
       if (!data.erro) {
         setRua(data.logradouro || '');
-        setBairro(data.bairro || '');
-        setCidade(data.localidade || '');
-        setUf(data.uf || '');
+        // Verifica se o bairro retornado existe na lista
+        const bairroRetornado = data.bairro || '';
+        if (BAIRROS_FORMIGA.includes(bairroRetornado)) {
+          setBairro(bairroRetornado);
+          setBairroOutro('');
+        } else if (bairroRetornado) {
+          setBairro('Outro');
+          setBairroOutro(bairroRetornado);
+        }
       }
     } catch (e) {
       console.warn('CEP lookup failed', e);
@@ -93,7 +158,7 @@ export default function Entrega({ size, onBack, onFinish, totalPrice = 0, cartIt
     }
   }
 
-  function getResumoPedidoMsg({ nome, telefone, rua, numero, bairro, cidade, uf, items, total, pagamento, size, source, precisaTroco, valorTroco }) {
+  function getResumoPedidoMsg({ nome, telefone, rua, numero, complemento, bairro, cidade, uf, items, total, pagamento, size, source, precisaTroco, valorTroco }) {
     const allowed = [10,15,18];
     let msg = '';
     msg += '*CAMFOR*\n';
@@ -128,7 +193,7 @@ export default function Entrega({ size, onBack, onFinish, totalPrice = 0, cartIt
 
     msg += '--------------------------------\n';
     msg += '*Endereco de Entrega:*\n';
-    msg += `${rua}, ${numero}\n`;
+    msg += `${rua}, ${numero}${complemento ? ` - ${complemento}` : ''}\n`;
     msg += `${bairro}\n`;
     msg += `${cidade} - ${uf}\n`;
 
@@ -157,6 +222,9 @@ export default function Entrega({ size, onBack, onFinish, totalPrice = 0, cartIt
     // Define source baseado em isMontarCesta ou se tem items válidos
     const source = isMontarCesta || (itemsForOrder.length > 0 && [10,15,18].includes(itemsForOrder.length)) ? 'montar' : 'cesta';
 
+    // Usa bairroOutro se selecionou "Outro"
+    const bairroFinal = bairro === 'Outro' ? bairroOutro : bairro;
+
     const pedido = {
       tipo: 'entrega',
       nome,
@@ -164,7 +232,8 @@ export default function Entrega({ size, onBack, onFinish, totalPrice = 0, cartIt
       cep,
       rua,
       numero,
-      bairro,
+      complemento,
+      bairro: bairroFinal,
       cidade,
       uf,
       items: itemsForOrder,
@@ -243,19 +312,45 @@ export default function Entrega({ size, onBack, onFinish, totalPrice = 0, cartIt
                 </button>
               </div>
 
-              <label className="ent-label">Rua</label>
-              <input className="ent-input" value={rua} onChange={(e) => setRua(e.target.value)} />
+              <label className="ent-label">Rua *</label>
+              <input className="ent-input" value={rua} onChange={(e) => setRua(e.target.value)} required />
 
-              <label className="ent-label">Número</label>
+              <label className="ent-label">Número *</label>
               <input className="ent-input" value={numero} onChange={(e) => setNumero(e.target.value)} required />
 
-              <label className="ent-label">Bairro</label>
-              <input className="ent-input" value={bairro} onChange={(e) => setBairro(e.target.value)} />
+              <label className="ent-label">Complemento</label>
+              <input className="ent-input" value={complemento} onChange={(e) => setComplemento(e.target.value)} placeholder="Apto, bloco, referência..." />
+
+              <label className="ent-label">Bairro *</label>
+              <select
+                className="ent-input ent-select"
+                value={bairro}
+                onChange={(e) => {
+                  setBairro(e.target.value);
+                  if (e.target.value !== 'Outro') setBairroOutro('');
+                }}
+                required
+              >
+                <option value="">Selecione o bairro</option>
+                {BAIRROS_FORMIGA.map(b => (
+                  <option key={b} value={b}>{b}</option>
+                ))}
+              </select>
+              {bairro === 'Outro' && (
+                <input
+                  className="ent-input"
+                  value={bairroOutro}
+                  onChange={(e) => setBairroOutro(e.target.value)}
+                  placeholder="Digite o nome do bairro"
+                  required
+                  style={{ marginTop: 8 }}
+                />
+              )}
 
               <label className="ent-label">Cidade / UF</label>
               <div style={{ display: 'flex', gap: '8px' }}>
-                <input className="ent-input" value={cidade} onChange={(e) => setCidade(e.target.value)} style={{ flex: 1 }} />
-                <input className="ent-input" value={uf} onChange={(e) => setUf(e.target.value)} style={{ width: '80px' }} />
+                <input className="ent-input ent-input-readonly" value={cidade} readOnly style={{ flex: 1 }} />
+                <input className="ent-input ent-input-readonly" value={uf} readOnly style={{ width: '80px' }} />
               </div>
 
               {/* Forma de pagamento */}
@@ -322,7 +417,15 @@ export default function Entrega({ size, onBack, onFinish, totalPrice = 0, cartIt
                 <button
                   type="submit"
                   className="ch-btn"
-                  disabled={!nome || !numero || (payment==='cash' && needChange && (!changeForRaw || !isChangeValid))}
+                  disabled={
+                    !nome ||
+                    !telefoneMask ||
+                    !rua ||
+                    !numero ||
+                    !bairro ||
+                    (bairro === 'Outro' && !bairroOutro) ||
+                    (payment==='cash' && needChange && (!changeForRaw || !isChangeValid))
+                  }
                 >
                   {loadingCep ? 'Carregando...' : 'Finalizar Pedido'}
                 </button>
