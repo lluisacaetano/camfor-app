@@ -10,8 +10,10 @@ import AdminHome from './AdminHome';
 import AdminCesta from './AdminCesta';
 import AdminPedidos from './AdminPedidos';
 import AdminProdutos from './AdminProdutos';
+import OrderNotificationToast from './OrderNotificationToast';
 import { subscribeToAdminConfig } from '../services/firestoreService';
 import { isStoreOpen, isWithinBusinessHours, wasConfigUpdatedToday } from '../utils/storeHours';
+import useOrderNotifications from '../hooks/useOrderNotifications';
 
 export default function CamforHome() {
   const [showCesta, setShowCesta] = useState(false);
@@ -26,6 +28,16 @@ export default function CamforHome() {
   const [storeOpen, setStoreOpen] = useState(false);
   const [isOpenTime, setIsOpenTime] = useState(false);
   const [hasProducts, setHasProducts] = useState(false);
+
+  // Verifica se admin está logado (em qualquer tela do admin)
+  const isAdminLoggedIn = showAdminHome || showAdminCesta || showAdminPedidos || showAdminProdutos;
+
+  // Hook de notificações de pedidos
+  const {
+    notifications,
+    dismissNotification,
+    markAsRead
+  } = useOrderNotifications(isAdminLoggedIn);
 
   // Escuta configuração do admin em tempo real do Firebase
   useEffect(() => {
@@ -93,48 +105,99 @@ export default function CamforHome() {
     />;
   }
   if (showAdminHome) {
-    return <AdminHome
-      onBack={() => {
-        setShowAdminHome(false);
-        localStorage.removeItem('adminLogged');
-      }}
-      onSelectProducts={() => {
-        setShowAdminHome(false);
-        setShowAdminCesta(true);
-      }}
-      onViewOrders={() => {
-        setShowAdminHome(false);
-        setShowAdminPedidos(true);
-      }}
-      onManageProducts={() => {
-        setShowAdminHome(false);
-        setShowAdminProdutos(true);
-      }}
-    />;
+    return (
+      <>
+        <OrderNotificationToast
+          notifications={notifications}
+          onDismiss={dismissNotification}
+          onViewOrders={() => {
+            markAsRead();
+            setShowAdminHome(false);
+            setShowAdminPedidos(true);
+          }}
+        />
+        <AdminHome
+          onBack={() => {
+            setShowAdminHome(false);
+            localStorage.removeItem('adminLogged');
+          }}
+          onSelectProducts={() => {
+            setShowAdminHome(false);
+            setShowAdminCesta(true);
+          }}
+          onViewOrders={() => {
+            markAsRead();
+            setShowAdminHome(false);
+            setShowAdminPedidos(true);
+          }}
+          onManageProducts={() => {
+            setShowAdminHome(false);
+            setShowAdminProdutos(true);
+          }}
+        />
+      </>
+    );
   }
   if (showAdminCesta) {
-    return <AdminCesta
-      onBack={() => {
-        setShowAdminCesta(false);
-        setShowAdminHome(true);
-      }}
-    />;
+    return (
+      <>
+        <OrderNotificationToast
+          notifications={notifications}
+          onDismiss={dismissNotification}
+          onViewOrders={() => {
+            markAsRead();
+            setShowAdminCesta(false);
+            setShowAdminPedidos(true);
+          }}
+        />
+        <AdminCesta
+          onBack={() => {
+            setShowAdminCesta(false);
+            setShowAdminHome(true);
+          }}
+        />
+      </>
+    );
   }
   if (showAdminPedidos) {
-    return <AdminPedidos
-      onBack={() => {
-        setShowAdminPedidos(false);
-        setShowAdminHome(true);
-      }}
-    />;
+    // Marca como lido quando entra na tela de pedidos
+    markAsRead();
+    return (
+      <>
+        <OrderNotificationToast
+          notifications={notifications}
+          onDismiss={dismissNotification}
+          onViewOrders={() => markAsRead()}
+        />
+        <AdminPedidos
+          onBack={() => {
+            setShowAdminPedidos(false);
+            setShowAdminHome(true);
+          }}
+        />
+      </>
+    );
   }
   if (showAdminProdutos) {
-    return <AdminProdutos
-      onBack={() => {
-        setShowAdminProdutos(false);
-        setShowAdminHome(true);
-      }}
-    />;
+    return (
+      <>
+        <OrderNotificationToast
+          notifications={notifications}
+          onDismiss={dismissNotification}
+          onViewOrders={() => {
+            markAsRead();
+            setShowAdminProdutos(false);
+            setShowAdminPedidos(true);
+          }}
+        />
+        <AdminProdutos
+          onBack={() => {
+            setShowAdminProdutos(false);
+            setShowAdminHome(true);
+          }}
+        />
+      </>
+    );
   }
 
   return (
