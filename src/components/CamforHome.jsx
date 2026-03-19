@@ -11,6 +11,7 @@ import AdminCesta from './AdminCesta';
 import AdminPedidos from './AdminPedidos';
 import AdminProdutos from './AdminProdutos';
 import { subscribeToAdminConfig } from '../services/firestoreService';
+import { isStoreOpen, isWithinBusinessHours, wasConfigUpdatedToday } from '../utils/storeHours';
 
 export default function CamforHome() {
   const [showCesta, setShowCesta] = useState(false);
@@ -21,34 +22,42 @@ export default function CamforHome() {
   const [showAdminPedidos, setShowAdminPedidos] = useState(false);
   const [showAdminProdutos, setShowAdminProdutos] = useState(false);
 
+  const [adminConfig, setAdminConfig] = useState(null);
+  const [storeOpen, setStoreOpen] = useState(false);
   const [isOpenTime, setIsOpenTime] = useState(false);
   const [hasProducts, setHasProducts] = useState(false);
-
-  // Verifica horário de funcionamento
-  useEffect(() => {
-    function checkBusinessHours() {
-      const h = new Date().getHours();
-      return h < 24; // pedidos até 24h (ajuste conforme necessário)
-    }
-    setIsOpenTime(checkBusinessHours());
-    const id = setInterval(() => setIsOpenTime(checkBusinessHours()), 60 * 1000);
-    return () => clearInterval(id);
-  }, []);
 
   // Escuta configuração do admin em tempo real do Firebase
   useEffect(() => {
     const unsubscribe = subscribeToAdminConfig((config) => {
       try {
-        const hasItems = config.selectedItems && config.selectedItems.length > 0;
-        const prices = config.prices || {};
-        const hasPrices = prices[10] > 0 || prices[15] > 0 || prices[18] > 0;
-        setHasProducts(hasItems && hasPrices);
+        setAdminConfig(config);
       } catch (e) {
-        setHasProducts(false);
+        setAdminConfig(null);
       }
     });
     return () => unsubscribe();
   }, []);
+
+  // Verifica se a loja está aberta (atualiza a cada minuto)
+  useEffect(() => {
+    function checkStoreStatus() {
+      const open = isStoreOpen(adminConfig);
+      setStoreOpen(open);
+      setIsOpenTime(isWithinBusinessHours());
+
+      // Verifica se tem produtos configurados hoje
+      const configOk = adminConfig &&
+        adminConfig.selectedItems &&
+        adminConfig.selectedItems.length > 0 &&
+        wasConfigUpdatedToday(adminConfig.updatedAt);
+      setHasProducts(configOk);
+    }
+
+    checkStoreStatus();
+    const id = setInterval(checkStoreStatus, 60 * 1000);
+    return () => clearInterval(id);
+  }, [adminConfig]);
 
   useEffect(() => {
     const setFavicon = (url) => {
@@ -174,18 +183,18 @@ export default function CamforHome() {
               <button
                 className="ch-btn"
                 onClick={() => setShowCesta(true)}
-                disabled={!isOpenTime || !hasProducts}
+                disabled={!storeOpen}
               >
                 PEDIR CESTA COMPLETA
               </button>
-              <button className="ch-btn" onClick={() => setShowMontar(true)} disabled={!isOpenTime || !hasProducts}>MONTAR MINHA CESTA</button>
+              <button className="ch-btn" onClick={() => setShowMontar(true)} disabled={!storeOpen}>MONTAR MINHA CESTA</button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Overlay LOJA FECHADA - mostra se passou das 17h OU se admin não configurou produtos */}
-      {(!isOpenTime || !hasProducts) && (
+      {/* Overlay LOJA FECHADA - mostra se fora do horário OU se admin não configurou produtos */}
+      {!storeOpen && (
         <div className="ch-closed-backdrop" role="dialog" aria-modal="true">
           <div className={`ch-closed-modal ${isOpenTime && !hasProducts ? 'ch-aguarde-modal' : ''}`}>
             {isOpenTime && !hasProducts && (

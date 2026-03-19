@@ -6,12 +6,14 @@ import Retirada from './Retirada';
 import Entrega from './Entrega';
 import ResumoPedido from './ResumoPedido';
 import { subscribeToAdminConfig, subscribeToProducts } from '../services/firestoreService';
+import { isStoreOpen, getClosedReason, getBusinessHoursText } from '../utils/storeHours';
 
 export default function MontarCesta({ onBack }) {
   const [produtosDisponiveis, setProdutosDisponiveis] = useState([]);
   const [prices, setPrices] = useState({10:0,15:0,18:0});
   const [allProducts, setAllProducts] = useState([]);
   const [selectedNames, setSelectedNames] = useState([]);
+  const [adminConfig, setAdminConfig] = useState(null);
 
   // Escuta produtos cadastrados
   useEffect(() => {
@@ -25,6 +27,9 @@ export default function MontarCesta({ onBack }) {
   useEffect(() => {
     const unsubscribe = subscribeToAdminConfig((config) => {
       try {
+        // Salva config completa para verificar horário de funcionamento
+        setAdminConfig(config);
+
         if (config.selectedItems && config.selectedItems.length > 0) {
           setSelectedNames(config.selectedItems);
         } else {
@@ -57,6 +62,8 @@ export default function MontarCesta({ onBack }) {
 
         return { id, name, img };
       });
+      // Ordena em ordem alfabética
+      mapped.sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
       setProdutosDisponiveis(mapped);
     } else if (selectedNames.length === 0) {
       setProdutosDisponiveis([]);
@@ -90,7 +97,10 @@ export default function MontarCesta({ onBack }) {
   const allowedTotals = [10, 15, 18];
   const finalPrice = allowedTotals.includes(totalCount) ? (prices[totalCount] || 0) : null;
 
-  const storeClosed = produtosDisponiveis.length === 0;
+  // Verifica se a loja está aberta (7h-17h + config do mesmo dia)
+  const storeOpen = isStoreOpen(adminConfig);
+  const storeClosed = !storeOpen;
+  const closedReason = storeClosed ? getClosedReason(adminConfig) : '';
 
   // Incrementa quantidade e atualiza carrinho automaticamente
   function handleIncrement(prod) {
@@ -234,6 +244,32 @@ export default function MontarCesta({ onBack }) {
 
             <h2 className="ch-title">MONTAR MINHA CESTA</h2>
 
+            {/* Horário de funcionamento */}
+            <div className="mc-hours-box" style={{
+              background: storeOpen ? 'rgba(46, 125, 50, 0.15)' : 'rgba(200, 50, 50, 0.15)',
+              border: `1px solid ${storeOpen ? 'rgba(46, 125, 50, 0.4)' : 'rgba(200, 50, 50, 0.4)'}`,
+              borderRadius: 8,
+              padding: '10px 14px',
+              marginBottom: 12,
+              textAlign: 'center'
+            }}>
+              <div style={{
+                fontSize: '0.9rem',
+                fontWeight: 600,
+                color: storeOpen ? '#2e7d32' : '#c83232'
+              }}>
+                {storeOpen ? '🟢 Loja aberta' : '🔴 Loja fechada'}
+              </div>
+              <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.8)', marginTop: 4 }}>
+                Horário de atendimento: {getBusinessHoursText()}
+              </div>
+              {!storeOpen && closedReason && (
+                <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)', marginTop: 4 }}>
+                  {closedReason}
+                </div>
+              )}
+            </div>
+
             {/* Observação sobre quantidade */}
             <div className="mc-obs-box">
               <div className="mc-obs-title">Como funciona:</div>
@@ -333,7 +369,11 @@ export default function MontarCesta({ onBack }) {
             <div className="mc-cart-summary" style={{ marginTop: '14px', textAlign: 'center', color: 'rgba(255,255,255,0.95)' }}>
               <div style={{ fontWeight: 700, marginBottom: 6 }}>Total: {totalCount} itens</div>
               {storeClosed ? (
-                <div style={{ fontSize: '0.95rem', opacity: 0.9 }}>Loja fechada</div>
+                <div style={{ fontSize: '0.95rem', opacity: 0.9 }}>
+                  <div>Loja fechada</div>
+                  {closedReason && <div style={{ fontSize: '0.85rem', marginTop: 4 }}>{closedReason}</div>}
+                  <div style={{ fontSize: '0.8rem', marginTop: 6, opacity: 0.8 }}>Horário: {getBusinessHoursText()}</div>
+                </div>
               ) : finalPrice !== null ? (
                 <div style={{ fontSize: '1.05rem', fontWeight: 700 }}>
                   Valor final: {Number(finalPrice).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
