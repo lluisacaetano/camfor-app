@@ -1,16 +1,38 @@
-// API Route para gerar e enviar relatório diário
+// API Route para gerar e enviar relatório diário em PDF
 // Executada automaticamente às 17h pelo Vercel Cron
 
 const { initializeApp, cert, getApps } = require('firebase-admin/app');
 const { getFirestore } = require('firebase-admin/firestore');
+const PdfPrinter = require('pdfmake');
 
-// Inicializa Firebase Admin (usa variáveis de ambiente)
+// Cores da CAMFOR
+const COLORS = {
+  primary: '#0a4d5c',      // Verde escuro principal
+  secondary: '#0d6478',    // Verde médio
+  accent: '#26c6da',       // Ciano/Turquesa
+  light: '#e8f5f7',        // Verde claro para backgrounds
+  white: '#ffffff',
+  text: '#333333',
+  textLight: '#666666',
+  border: '#dddddd'
+};
+
+// Fontes para o PDF
+const fonts = {
+  Helvetica: {
+    normal: 'Helvetica',
+    bold: 'Helvetica-Bold',
+    italics: 'Helvetica-Oblique',
+    bolditalics: 'Helvetica-BoldOblique'
+  }
+};
+
+// Inicializa Firebase Admin
 function getFirebaseApp() {
   if (getApps().length > 0) {
     return getApps()[0];
   }
 
-  // Credenciais do Firebase Admin via variáveis de ambiente
   const serviceAccount = {
     projectId: process.env.FIREBASE_PROJECT_ID,
     clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
@@ -27,7 +49,7 @@ function formatBRL(value) {
   return Number(value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
-// Formata data
+// Formata data completa
 function formatDate(date) {
   return date.toLocaleDateString('pt-BR', {
     weekday: 'long',
@@ -37,141 +59,384 @@ function formatDate(date) {
   });
 }
 
-// Gera o conteúdo HTML do relatório (será convertido em PDF ou enviado como HTML)
-function generateReportHTML(orders, date) {
+// Formata data curta
+function formatShortDate(date) {
+  return date.toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  });
+}
+
+// Busca logo como base64
+async function fetchLogoBase64() {
+  try {
+    const logoUrl = 'https://camfor.vercel.app/images/logoCamfor.png';
+    const response = await fetch(logoUrl);
+    if (!response.ok) throw new Error('Logo not found');
+    const arrayBuffer = await response.arrayBuffer();
+    const base64 = Buffer.from(arrayBuffer).toString('base64');
+    return `data:image/png;base64,${base64}`;
+  } catch (error) {
+    console.log('Não foi possível carregar logo:', error.message);
+    return null;
+  }
+}
+
+// Gera o documento PDF
+function generatePdfDocument(orders, date, logoBase64) {
   const totalOrders = orders.length;
   const totalValue = orders.reduce((sum, o) => sum + (o.total || 0), 0);
   const retiradaOrders = orders.filter(o => o.tipo === 'retirada');
   const entregaOrders = orders.filter(o => o.tipo === 'entrega');
 
-  let html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="utf-8">
-      <style>
-        body { font-family: Arial, sans-serif; padding: 20px; color: #333; }
-        .header { background: linear-gradient(135deg, #0a4d5c, #0d6478); color: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
-        .header h1 { margin: 0; font-size: 24px; }
-        .header p { margin: 5px 0 0; opacity: 0.9; }
-        .summary { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
-        .summary-card { background: #f5f5f5; padding: 15px 20px; border-radius: 8px; flex: 1; min-width: 150px; }
-        .summary-card .label { font-size: 12px; color: #666; text-transform: uppercase; }
-        .summary-card .value { font-size: 24px; font-weight: bold; color: #0a4d5c; }
-        .section { margin-top: 25px; }
-        .section h2 { font-size: 18px; color: #0a4d5c; border-bottom: 2px solid #0a4d5c; padding-bottom: 5px; }
-        .order { background: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid #26c6da; }
-        .order-header { display: flex; justify-content: space-between; margin-bottom: 10px; }
-        .order-name { font-weight: bold; font-size: 16px; }
-        .order-value { color: #0a4d5c; font-weight: bold; }
-        .order-details { font-size: 14px; color: #666; }
-        .order-items { margin-top: 8px; padding-top: 8px; border-top: 1px dashed #ddd; font-size: 13px; }
-        .no-orders { text-align: center; color: #999; padding: 30px; }
-        .footer { margin-top: 30px; text-align: center; font-size: 12px; color: #999; }
-      </style>
-    </head>
-    <body>
-      <div class="header">
-        <h1>CAMFOR - Relatório Diário</h1>
-        <p>${formatDate(date)}</p>
-      </div>
+  // Cabeçalho com logo e título
+  const headerContent = [];
 
-      <div class="summary">
-        <div class="summary-card">
-          <div class="label">Total de Pedidos</div>
-          <div class="value">${totalOrders}</div>
-        </div>
-        <div class="summary-card">
-          <div class="label">Valor Total</div>
-          <div class="value">${formatBRL(totalValue)}</div>
-        </div>
-        <div class="summary-card">
-          <div class="label">Retiradas</div>
-          <div class="value">${retiradaOrders.length}</div>
-        </div>
-        <div class="summary-card">
-          <div class="label">Entregas</div>
-          <div class="value">${entregaOrders.length}</div>
-        </div>
-      </div>
-  `;
+  if (logoBase64) {
+    headerContent.push({
+      columns: [
+        {
+          image: logoBase64,
+          width: 70,
+          margin: [0, 0, 15, 0]
+        },
+        {
+          stack: [
+            { text: 'CAMFOR', style: 'headerTitle' },
+            { text: 'Agricultura Familiar', style: 'headerSubtitle' },
+            { text: 'Relatório Diário de Pedidos', style: 'headerReport' }
+          ],
+          margin: [0, 5, 0, 0]
+        }
+      ],
+      margin: [0, 0, 0, 20]
+    });
+  } else {
+    headerContent.push({
+      stack: [
+        { text: 'CAMFOR', style: 'headerTitle' },
+        { text: 'Agricultura Familiar', style: 'headerSubtitle' },
+        { text: 'Relatório Diário de Pedidos', style: 'headerReport' }
+      ],
+      margin: [0, 0, 0, 20]
+    });
+  }
 
-  // Seção Retiradas
-  html += `<div class="section"><h2>Retiradas (${retiradaOrders.length})</h2>`;
+  // Data do relatório
+  headerContent.push({
+    columns: [
+      { text: formatDate(date), style: 'dateText' },
+      { text: `Gerado em: ${new Date().toLocaleString('pt-BR')}`, style: 'generatedText', alignment: 'right' }
+    ],
+    margin: [0, 0, 0, 20]
+  });
+
+  // Linha separadora
+  headerContent.push({
+    canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 2, lineColor: COLORS.primary }],
+    margin: [0, 0, 0, 20]
+  });
+
+  // Cards de resumo
+  const summaryTable = {
+    table: {
+      widths: ['*', '*', '*', '*'],
+      body: [
+        [
+          { text: 'TOTAL DE PEDIDOS', style: 'summaryLabel', border: [false, false, false, false] },
+          { text: 'VALOR TOTAL', style: 'summaryLabel', border: [false, false, false, false] },
+          { text: 'RETIRADAS', style: 'summaryLabel', border: [false, false, false, false] },
+          { text: 'ENTREGAS', style: 'summaryLabel', border: [false, false, false, false] }
+        ],
+        [
+          { text: totalOrders.toString(), style: 'summaryValue', border: [false, false, false, false] },
+          { text: formatBRL(totalValue), style: 'summaryValueMoney', border: [false, false, false, false] },
+          { text: retiradaOrders.length.toString(), style: 'summaryValue', border: [false, false, false, false] },
+          { text: entregaOrders.length.toString(), style: 'summaryValue', border: [false, false, false, false] }
+        ]
+      ]
+    },
+    layout: {
+      fillColor: function(rowIndex) {
+        return COLORS.light;
+      },
+      paddingLeft: () => 15,
+      paddingRight: () => 15,
+      paddingTop: () => 10,
+      paddingBottom: () => 10
+    },
+    margin: [0, 0, 0, 30]
+  };
+
+  // Seção de Retiradas
+  const retiradaSection = [];
+  retiradaSection.push({
+    text: `RETIRADAS (${retiradaOrders.length})`,
+    style: 'sectionTitle',
+    margin: [0, 0, 0, 10]
+  });
+
   if (retiradaOrders.length === 0) {
-    html += `<div class="no-orders">Nenhum pedido de retirada hoje</div>`;
+    retiradaSection.push({
+      text: 'Nenhum pedido de retirada neste dia.',
+      style: 'noOrders',
+      margin: [0, 0, 0, 20]
+    });
   } else {
-    for (const order of retiradaOrders) {
-      html += `
-        <div class="order">
-          <div class="order-header">
-            <span class="order-name">${order.nome || 'Sem nome'}</span>
-            <span class="order-value">${formatBRL(order.total)}</span>
-          </div>
-          <div class="order-details">
-            <strong>Telefone:</strong> ${order.telefone || '-'}
-          </div>
-          ${order.items && order.items.length > 0 ? `
-            <div class="order-items">
-              <strong>Itens:</strong> ${order.items.map(i => `${i.name || i.id} (${i.qty || 1}x)`).join(', ')}
-            </div>
-          ` : ''}
-        </div>
-      `;
-    }
-  }
-  html += `</div>`;
+    // Tabela de retiradas
+    const retiradaTableBody = [
+      [
+        { text: 'Cliente', style: 'tableHeader' },
+        { text: 'Telefone', style: 'tableHeader' },
+        { text: 'Itens', style: 'tableHeader' },
+        { text: 'Valor', style: 'tableHeader', alignment: 'right' }
+      ]
+    ];
 
-  // Seção Entregas
-  html += `<div class="section"><h2>Entregas (${entregaOrders.length})</h2>`;
+    retiradaOrders.forEach(order => {
+      const itensText = order.items && order.items.length > 0
+        ? order.items.map(i => `${i.name || i.id} (${i.qty || 1}x)`).join(', ')
+        : '-';
+
+      retiradaTableBody.push([
+        { text: order.nome || 'Sem nome', style: 'tableCell' },
+        { text: order.telefone || '-', style: 'tableCell' },
+        { text: itensText, style: 'tableCellSmall' },
+        { text: formatBRL(order.total), style: 'tableCell', alignment: 'right' }
+      ]);
+    });
+
+    retiradaSection.push({
+      table: {
+        headerRows: 1,
+        widths: ['20%', '18%', '*', '18%'],
+        body: retiradaTableBody
+      },
+      layout: {
+        hLineWidth: () => 1,
+        vLineWidth: () => 0,
+        hLineColor: () => COLORS.border,
+        paddingLeft: () => 8,
+        paddingRight: () => 8,
+        paddingTop: () => 8,
+        paddingBottom: () => 8,
+        fillColor: function(rowIndex) {
+          if (rowIndex === 0) return COLORS.primary;
+          return rowIndex % 2 === 0 ? COLORS.light : null;
+        }
+      },
+      margin: [0, 0, 0, 25]
+    });
+  }
+
+  // Seção de Entregas
+  const entregaSection = [];
+  entregaSection.push({
+    text: `ENTREGAS (${entregaOrders.length})`,
+    style: 'sectionTitle',
+    margin: [0, 0, 0, 10]
+  });
+
   if (entregaOrders.length === 0) {
-    html += `<div class="no-orders">Nenhum pedido de entrega hoje</div>`;
+    entregaSection.push({
+      text: 'Nenhum pedido de entrega neste dia.',
+      style: 'noOrders',
+      margin: [0, 0, 0, 20]
+    });
   } else {
-    for (const order of entregaOrders) {
-      const endereco = [order.rua, order.numero, order.bairro, order.cidade, order.uf]
-        .filter(Boolean).join(', ');
-      html += `
-        <div class="order">
-          <div class="order-header">
-            <span class="order-name">${order.nome || 'Sem nome'}</span>
-            <span class="order-value">${formatBRL(order.total)}</span>
-          </div>
-          <div class="order-details">
-            <strong>Telefone:</strong> ${order.telefone || '-'}<br>
-            <strong>Endereço:</strong> ${endereco || '-'}
-          </div>
-          ${order.items && order.items.length > 0 ? `
-            <div class="order-items">
-              <strong>Itens:</strong> ${order.items.map(i => `${i.name || i.id} (${i.qty || 1}x)`).join(', ')}
-            </div>
-          ` : ''}
-        </div>
-      `;
-    }
+    // Tabela de entregas
+    const entregaTableBody = [
+      [
+        { text: 'Cliente', style: 'tableHeader' },
+        { text: 'Endereço', style: 'tableHeader' },
+        { text: 'Itens', style: 'tableHeader' },
+        { text: 'Valor', style: 'tableHeader', alignment: 'right' }
+      ]
+    ];
+
+    entregaOrders.forEach(order => {
+      const endereco = [order.rua, order.numero, order.bairro, order.cidade]
+        .filter(Boolean).join(', ') || '-';
+
+      const itensText = order.items && order.items.length > 0
+        ? order.items.map(i => `${i.name || i.id} (${i.qty || 1}x)`).join(', ')
+        : '-';
+
+      entregaTableBody.push([
+        {
+          stack: [
+            { text: order.nome || 'Sem nome', style: 'tableCell' },
+            { text: order.telefone || '', style: 'tableCellPhone' }
+          ]
+        },
+        { text: endereco, style: 'tableCellSmall' },
+        { text: itensText, style: 'tableCellSmall' },
+        { text: formatBRL(order.total), style: 'tableCell', alignment: 'right' }
+      ]);
+    });
+
+    entregaSection.push({
+      table: {
+        headerRows: 1,
+        widths: ['22%', '30%', '*', '15%'],
+        body: entregaTableBody
+      },
+      layout: {
+        hLineWidth: () => 1,
+        vLineWidth: () => 0,
+        hLineColor: () => COLORS.border,
+        paddingLeft: () => 8,
+        paddingRight: () => 8,
+        paddingTop: () => 8,
+        paddingBottom: () => 8,
+        fillColor: function(rowIndex) {
+          if (rowIndex === 0) return COLORS.primary;
+          return rowIndex % 2 === 0 ? COLORS.light : null;
+        }
+      },
+      margin: [0, 0, 0, 25]
+    });
   }
-  html += `</div>`;
 
-  html += `
-      <div class="footer">
-        <p>Relatório gerado automaticamente pelo sistema CAMFOR</p>
-        <p>© ${new Date().getFullYear()} CAMFOR - Agricultura Familiar</p>
-      </div>
-    </body>
-    </html>
-  `;
+  // Documento completo
+  const docDefinition = {
+    pageSize: 'A4',
+    pageMargins: [40, 40, 40, 60],
 
-  return html;
+    content: [
+      ...headerContent,
+      summaryTable,
+      ...retiradaSection,
+      ...entregaSection
+    ],
+
+    footer: function(currentPage, pageCount) {
+      return {
+        columns: [
+          {
+            text: 'CAMFOR - Agricultura Familiar | Relatório gerado automaticamente',
+            style: 'footer',
+            alignment: 'left'
+          },
+          {
+            text: `Página ${currentPage} de ${pageCount}`,
+            style: 'footer',
+            alignment: 'right'
+          }
+        ],
+        margin: [40, 20, 40, 0]
+      };
+    },
+
+    styles: {
+      headerTitle: {
+        fontSize: 28,
+        bold: true,
+        color: COLORS.primary
+      },
+      headerSubtitle: {
+        fontSize: 12,
+        color: COLORS.secondary,
+        margin: [0, 2, 0, 0]
+      },
+      headerReport: {
+        fontSize: 14,
+        bold: true,
+        color: COLORS.text,
+        margin: [0, 8, 0, 0]
+      },
+      dateText: {
+        fontSize: 12,
+        color: COLORS.text
+      },
+      generatedText: {
+        fontSize: 9,
+        color: COLORS.textLight
+      },
+      summaryLabel: {
+        fontSize: 9,
+        color: COLORS.textLight,
+        alignment: 'center'
+      },
+      summaryValue: {
+        fontSize: 22,
+        bold: true,
+        color: COLORS.primary,
+        alignment: 'center'
+      },
+      summaryValueMoney: {
+        fontSize: 18,
+        bold: true,
+        color: COLORS.primary,
+        alignment: 'center'
+      },
+      sectionTitle: {
+        fontSize: 14,
+        bold: true,
+        color: COLORS.primary
+      },
+      noOrders: {
+        fontSize: 11,
+        color: COLORS.textLight,
+        italics: true,
+        alignment: 'center'
+      },
+      tableHeader: {
+        fontSize: 10,
+        bold: true,
+        color: COLORS.white
+      },
+      tableCell: {
+        fontSize: 10,
+        color: COLORS.text
+      },
+      tableCellSmall: {
+        fontSize: 9,
+        color: COLORS.text
+      },
+      tableCellPhone: {
+        fontSize: 8,
+        color: COLORS.textLight
+      },
+      footer: {
+        fontSize: 8,
+        color: COLORS.textLight
+      }
+    },
+
+    defaultStyle: {
+      font: 'Helvetica'
+    }
+  };
+
+  return docDefinition;
+}
+
+// Gera PDF como buffer
+async function generatePdfBuffer(orders, date) {
+  const logoBase64 = await fetchLogoBase64();
+  const docDefinition = generatePdfDocument(orders, date, logoBase64);
+
+  const printer = new PdfPrinter(fonts);
+  const pdfDoc = printer.createPdfKitDocument(docDefinition);
+
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    pdfDoc.on('data', chunk => chunks.push(chunk));
+    pdfDoc.on('end', () => resolve(Buffer.concat(chunks)));
+    pdfDoc.on('error', reject);
+    pdfDoc.end();
+  });
 }
 
 // Handler principal
 module.exports = async function handler(req, res) {
-  // Verifica autorização (Vercel Cron envia um header especial)
+  // Verifica autorização
   const authHeader = req.headers.authorization;
   const cronSecret = process.env.CRON_SECRET;
 
-  // Permite execução via cron ou com secret manual
   if (authHeader !== `Bearer ${cronSecret}` && req.query.secret !== cronSecret) {
-    // Em desenvolvimento, permite sem autenticação
     if (process.env.NODE_ENV === 'production') {
       return res.status(401).json({ error: 'Não autorizado' });
     }
@@ -205,22 +470,52 @@ module.exports = async function handler(req, res) {
       });
     });
 
-    // Se não tiver pedidos, ainda envia relatório informando
-    const reportHTML = generateReportHTML(orders, today);
+    // Gera PDF
+    const pdfBuffer = await generatePdfBuffer(orders, today);
+    const pdfBase64 = pdfBuffer.toString('base64');
+    const fileName = `relatorio-camfor-${formatShortDate(today).replace(/\//g, '-')}.pdf`;
 
     // Envia email via Resend
     const RESEND_API_KEY = process.env.RESEND_API_KEY;
     const TO_EMAIL = process.env.REPORT_EMAIL || 'lluisacaetanoaraujo@gmail.com';
 
     if (!RESEND_API_KEY) {
-      console.log('RESEND_API_KEY não configurada. Relatório gerado mas não enviado.');
+      console.log('RESEND_API_KEY não configurada.');
       return res.status(200).json({
         success: true,
-        message: 'Relatório gerado (email não configurado)',
-        ordersCount: orders.length,
-        html: reportHTML
+        message: 'PDF gerado (email não configurado)',
+        ordersCount: orders.length
       });
     }
+
+    // Email com PDF anexado
+    const totalValue = orders.reduce((sum, o) => sum + (o.total || 0), 0);
+    const emailBody = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background: linear-gradient(135deg, #0a4d5c 0%, #0d6478 100%); padding: 25px; border-radius: 10px 10px 0 0;">
+          <h1 style="color: white; margin: 0; font-size: 24px;">CAMFOR - Relatório Diário</h1>
+          <p style="color: rgba(255,255,255,0.9); margin: 5px 0 0;">${formatDate(today)}</p>
+        </div>
+        <div style="background: #f5f5f5; padding: 25px; border-radius: 0 0 10px 10px;">
+          <p style="margin: 0 0 15px; color: #333;">Olá!</p>
+          <p style="margin: 0 0 15px; color: #333;">
+            Segue em anexo o relatório diário de pedidos da CAMFOR.
+          </p>
+          <div style="background: white; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+            <p style="margin: 0; color: #666;">
+              <strong style="color: #0a4d5c;">Total de pedidos:</strong> ${orders.length}<br>
+              <strong style="color: #0a4d5c;">Valor total:</strong> ${formatBRL(totalValue)}
+            </p>
+          </div>
+          <p style="margin: 0; color: #666; font-size: 14px;">
+            📎 <strong>${fileName}</strong> anexado a este email.
+          </p>
+        </div>
+        <p style="text-align: center; color: #999; font-size: 12px; margin-top: 20px;">
+          Relatório gerado automaticamente pelo sistema CAMFOR
+        </p>
+      </div>
+    `;
 
     const emailResponse = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -231,8 +526,14 @@ module.exports = async function handler(req, res) {
       body: JSON.stringify({
         from: 'CAMFOR <onboarding@resend.dev>',
         to: [TO_EMAIL],
-        subject: `Relatório CAMFOR - ${formatDate(today)}`,
-        html: reportHTML,
+        subject: `📊 Relatório CAMFOR - ${formatDate(today)}`,
+        html: emailBody,
+        attachments: [
+          {
+            filename: fileName,
+            content: pdfBase64
+          }
+        ]
       }),
     });
 
@@ -244,7 +545,7 @@ module.exports = async function handler(req, res) {
 
     return res.status(200).json({
       success: true,
-      message: 'Relatório enviado com sucesso',
+      message: 'Relatório PDF enviado com sucesso',
       ordersCount: orders.length,
       emailId: emailResult.id
     });
