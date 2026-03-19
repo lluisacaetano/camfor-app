@@ -1,40 +1,57 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { subscribeToOrders } from '../services/firestoreService';
 
-// Som de notificação em base64 (beep curto)
-const NOTIFICATION_SOUND = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdH2JkYuEgHZ1eX+Fh4uHgoB7eX1+goSGh4eGhYOBgH9+foCBgoKDg4ODg4KBgYCAf39/f4CAgIGBgYGBgYGBgIGAgYCAgIGAgICAgYGBgYGBgYCAgICAgIGBgYGBgYGBgYGBgYGBgYGAgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgIGBgYGBgYCBgYGBgYGBgYGAgIGBgYGBgYCAgYGBgYGBgICAgICBgYGBgICAgYGBgYCAgICAgYGBgICAgICBgYGAgICAgIGBgICAgICBgYCAgICAgYGAgICAgICBgICAgICAgYCAgICAgIGAgICAgICBgICAgICAgYCAgICAgIGAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA';
+// Cria AudioContext para gerar som de notificação
+let audioContext = null;
+
+function playNotificationBeep() {
+  try {
+    // Cria AudioContext apenas quando necessário
+    if (!audioContext) {
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+
+    // Retoma o contexto se estiver suspenso (política de autoplay)
+    if (audioContext.state === 'suspended') {
+      audioContext.resume();
+    }
+
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    // Som de notificação - duas notas (ding-dong)
+    const now = audioContext.currentTime;
+
+    // Primeira nota (ding)
+    oscillator.frequency.setValueAtTime(830, now); // G#5
+    oscillator.frequency.setValueAtTime(1046, now + 0.15); // C6 (segunda nota - dong)
+
+    oscillator.type = 'sine';
+
+    // Volume com fade out suave
+    gainNode.gain.setValueAtTime(0.4, now);
+    gainNode.gain.setValueAtTime(0.4, now + 0.15);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
+
+    oscillator.start(now);
+    oscillator.stop(now + 0.6);
+  } catch (e) {
+    console.warn('Não foi possível tocar som de notificação:', e);
+  }
+}
 
 export default function useOrderNotifications(isAdminLoggedIn) {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const previousOrdersRef = useRef(null);
-  const audioRef = useRef(null);
   const originalTitleRef = useRef(document.title);
-
-  // Inicializa o audio
-  useEffect(() => {
-    audioRef.current = new Audio(NOTIFICATION_SOUND);
-    audioRef.current.volume = 0.5;
-  }, []);
 
   // Toca o som de notificação
   const playSound = useCallback(() => {
-    if (audioRef.current) {
-      audioRef.current.currentTime = 0;
-      audioRef.current.play().catch(() => {
-        // Navegador bloqueou autoplay - ignora silenciosamente
-      });
-    }
-  }, []);
-
-  // Atualiza o título da aba (usado internamente)
-  // eslint-disable-next-line no-unused-vars
-  const updateTitle = useCallback((count) => {
-    if (count > 0) {
-      document.title = `(${count}) Novo Pedido! - CAMFOR`;
-    } else {
-      document.title = originalTitleRef.current;
-    }
+    playNotificationBeep();
   }, []);
 
   // Pisca o título quando há notificações
