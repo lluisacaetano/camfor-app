@@ -455,6 +455,16 @@ module.exports = async function handler(req, res) {
       }
     });
 
+    // Se não há pedidos, não envia email
+    if (orders.length === 0) {
+      console.log('Nenhum pedido hoje. Email não enviado.');
+      return res.status(200).json({
+        success: true,
+        message: 'Nenhum pedido hoje - email não enviado',
+        ordersCount: 0
+      });
+    }
+
     // Gera PDF
     const pdfDoc = await generatePDF(orders, today);
     const pdfBytes = await pdfDoc.save();
