@@ -473,7 +473,7 @@ module.exports = async function handler(req, res) {
 
     // Envia email via Resend
     const RESEND_API_KEY = process.env.RESEND_API_KEY;
-    const TO_EMAIL = process.env.REPORT_EMAIL || 'lluisacaetanoaraujo@gmail.com';
+    const TO_EMAIL = process.env.REPORT_EMAIL || 'financeiro@camffor.com.br';
 
     if (!RESEND_API_KEY) {
       console.log('RESEND_API_KEY não configurada.');

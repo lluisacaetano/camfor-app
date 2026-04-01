@@ -155,7 +155,7 @@ export default function Retirada({ size, onBack, onFinish, cartItems = [], isMon
                   CEP: 35572-126
                 </p>
                 <p className="ret-info-text">
-                  <strong>Horário:</strong> até às 18h
+                  <strong>Horário:</strong> até às 17h
                 </p>
 
                 {/* Mapa Google Maps */}

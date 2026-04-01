@@ -106,7 +106,7 @@ export default function MontarCesta({ onBack }) {
   function handleIncrement(prod) {
     setQuantidades(q => {
       const current = q[prod.id] || 0;
-      if (current >= 3) return q; // Limita a 3 
+      if (current >= 2) return q; // Limita a 2 
       const nextQty = current + 1;
       // Atualiza o carrinho
       setCart(prev => {
