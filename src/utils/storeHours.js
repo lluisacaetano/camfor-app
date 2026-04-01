@@ -1,7 +1,7 @@
 // Utilitário para controle de horário de funcionamento da loja
 
 // Horário de funcionamento
-export const OPENING_HOUR = 8;  // 8h
+export const OPENING_HOUR = 7;  // 7h
 export const CLOSING_HOUR = 17; // 17h
 
 /**
@@ -108,7 +108,7 @@ export function getClosedReason(config) {
     if (hour < OPENING_HOUR) {
       return `Abre às ${OPENING_HOUR}h`;
     } else {
-      return 'Fechado - Volte amanhã a partir das 8h';
+      return 'Fechado - Volte amanhã a partir das 7h';
     }
   }
 
@@ -119,5 +119,5 @@ export function getClosedReason(config) {
  * Formata o horário de funcionamento para exibição
  */
 export function getBusinessHoursText() {
-  return '08:00 às 17:00';
+  return '07:00 às 17:00';
 }

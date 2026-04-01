@@ -33,7 +33,7 @@ export default function AdminLogin({ onBack, onLoginSuccess }) {
     }
 
     // Verificar credenciais
-    if (email === 'admin@admin' && password === 'admin') {
+    if (email === 'licitacao@camffor.com.br' && password === '4613') {
       // Login bem-sucedido
       setIsLogged(true);
       localStorage.setItem('adminLogged', 'true');
