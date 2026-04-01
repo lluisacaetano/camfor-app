@@ -101,7 +101,7 @@ export default function Retirada({ size, onBack, onFinish, cartItems = [], isMon
 
     // Gera mensagem e link WhatsApp
     const msg = encodeURIComponent(getResumoPedidoMsg({ ...pedido }));
-    const wppLink = `https://wa.me/5537991927076?text=${msg}`;
+    const wppLink = `https://wa.me/553733220800?text=${msg}`;
     window.open(wppLink, '_blank');
 
     setShowSuccess(true);
