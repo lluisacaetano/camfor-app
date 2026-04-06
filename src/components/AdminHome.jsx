@@ -118,7 +118,7 @@ export default function AdminHome({ onBack, onSelectProducts, onViewOrders, onMa
                   {lojaRealmenteAberta
                     ? 'Os clientes podem fazer pedidos'
                     : (!adminConfig?.selectedItems || adminConfig.selectedItems.length === 0)
-                      ? 'Sem produtos configurados - Clientes veem "AGUARDE"'
+                      ? 'Sem produtos configurados'
                       : lojaFechada
                         ? 'Fechada manualmente - Clientes não podem fazer pedidos'
                         : 'Fora do horário ou sem produtos configurados'
