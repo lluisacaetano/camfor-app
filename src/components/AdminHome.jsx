@@ -2,18 +2,22 @@ import React, { useState, useEffect } from 'react';
 import './AdminHome.css';
 import { fecharLoja, abrirLoja } from '../services/storeControl';
 import { subscribeToAdminConfig } from '../services/firestoreService';
+import { isStoreOpen } from '../utils/storeHours';
 
 export default function AdminHome({ onBack, onSelectProducts, onViewOrders, onManageProducts }) {
   const [lojaFechada, setLojaFechada] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [adminConfig, setAdminConfig] = useState(null);
+  const [lojaRealmenteAberta, setLojaRealmenteAberta] = useState(false);
 
   // Escuta o status da loja em tempo real
   useEffect(() => {
     const unsubscribe = subscribeToAdminConfig((config) => {
       setLojaFechada(config?.lojaFechada || false);
       setAdminConfig(config);
+      // Verifica se a loja está REALMENTE aberta para os clientes
+      setLojaRealmenteAberta(isStoreOpen(config));
     });
     return () => unsubscribe();
   }, []);
@@ -89,29 +93,36 @@ export default function AdminHome({ onBack, onSelectProducts, onViewOrders, onMa
               marginBottom: '20px',
               padding: '16px 20px',
               borderRadius: '12px',
-              backgroundColor: lojaFechada ? '#ffebee' : '#e8f5e9',
-              border: lojaFechada ? '2px solid #ef5350' : '2px solid #66bb6a',
+              backgroundColor: lojaRealmenteAberta ? '#e8f5e9' : '#ffebee',
+              border: lojaRealmenteAberta ? '2px solid #66bb6a' : '2px solid #ef5350',
               boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
             }}>
               <div style={{ flex: 1 }}>
                 <div style={{
                   fontSize: '16px',
                   fontWeight: 'bold',
-                  color: lojaFechada ? '#c62828' : '#2e7d32',
+                  color: lojaRealmenteAberta ? '#2e7d32' : '#c62828',
                   marginBottom: '4px',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px'
                 }}>
-                  <span style={{ fontSize: '18px' }}>{lojaFechada ? '🔴' : '🟢'}</span>
-                  LOJA {lojaFechada ? 'FECHADA' : 'ABERTA'}
+                  <span style={{ fontSize: '18px' }}>{lojaRealmenteAberta ? '🟢' : '🔴'}</span>
+                  LOJA {lojaRealmenteAberta ? 'ABERTA' : 'FECHADA'}
                 </div>
                 <div style={{
                   fontSize: '13px',
-                  color: lojaFechada ? '#d32f2f' : '#388e3c',
+                  color: lojaRealmenteAberta ? '#388e3c' : '#d32f2f',
                   opacity: 0.9
                 }}>
-                  {lojaFechada ? 'Os clientes não podem fazer pedidos' : 'Os clientes podem fazer pedidos'}
+                  {lojaRealmenteAberta
+                    ? 'Os clientes podem fazer pedidos'
+                    : (!adminConfig?.selectedItems || adminConfig.selectedItems.length === 0)
+                      ? 'Sem produtos configurados - Clientes veem "AGUARDE"'
+                      : lojaFechada
+                        ? 'Fechada manualmente - Clientes não podem fazer pedidos'
+                        : 'Fora do horário ou sem produtos configurados'
+                  }
                 </div>
               </div>
               <button
