@@ -89,46 +89,47 @@ export default function AdminHome({ onBack, onSelectProducts, onViewOrders, onMa
             <div style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '12px',
-              marginBottom: '20px',
-              padding: '16px 20px',
-              borderRadius: '12px',
+              gap: '8px',
+              marginBottom: '16px',
+              padding: '12px 14px',
+              borderRadius: '10px',
               backgroundColor: lojaRealmenteAberta ? '#e8f5e9' : '#ffebee',
               border: lojaRealmenteAberta ? '2px solid #66bb6a' : '2px solid #ef5350',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+              boxShadow: '0 2px 6px rgba(0,0,0,0.08)'
             }}>
               <div style={{ flex: 1 }}>
                 <div style={{
-                  fontSize: '16px',
+                  fontSize: '14px',
                   fontWeight: 'bold',
                   color: lojaRealmenteAberta ? '#2e7d32' : '#c62828',
-                  marginBottom: '4px',
+                  marginBottom: '3px',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '8px'
+                  gap: '6px'
                 }}>
-                  <span style={{ fontSize: '18px' }}>{lojaRealmenteAberta ? '🟢' : '🔴'}</span>
+                  <span style={{ fontSize: '15px' }}>{lojaRealmenteAberta ? '🟢' : '🔴'}</span>
                   LOJA {lojaRealmenteAberta ? 'ABERTA' : 'FECHADA'}
                 </div>
                 <div style={{
-                  fontSize: '13px',
+                  fontSize: '11px',
                   color: lojaRealmenteAberta ? '#388e3c' : '#d32f2f',
-                  opacity: 0.9
+                  opacity: 0.9,
+                  lineHeight: '1.3'
                 }}>
                   {lojaRealmenteAberta
                     ? 'Os clientes podem fazer pedidos'
                     : (!adminConfig?.selectedItems || adminConfig.selectedItems.length === 0)
                       ? 'Sem produtos configurados'
                       : lojaFechada
-                        ? 'Fechada manualmente - Clientes não podem fazer pedidos'
-                        : 'Fora do horário ou sem produtos configurados'
+                        ? 'Fechada manualmente'
+                        : 'Fora do horário'
                   }
                 </div>
               </div>
               <button
                 style={{
-                  padding: '12px 24px',
-                  fontSize: '14px',
+                  padding: '10px 18px',
+                  fontSize: '12px',
                   fontWeight: '600',
                   color: '#fff',
                   backgroundColor: lojaFechada ? '#66bb6a' : '#ef5350',
@@ -137,8 +138,9 @@ export default function AdminHome({ onBack, onSelectProducts, onViewOrders, onMa
                   cursor: loading ? 'not-allowed' : 'pointer',
                   transition: 'all 0.2s ease',
                   boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-                  minWidth: '140px',
-                  opacity: loading ? 0.6 : 1
+                  minWidth: '100px',
+                  opacity: loading ? 0.6 : 1,
+                  whiteSpace: 'nowrap'
                 }}
                 onClick={handleClickFecharLoja}
                 disabled={loading}
