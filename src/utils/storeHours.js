@@ -1,8 +1,9 @@
 // Utilitário para controle de horário de funcionamento da loja
 
-// Horário de funcionamento
-export const OPENING_HOUR = 7;  // 7h
-export const CLOSING_HOUR = 17; // 17h
+// Horários de funcionamento
+export const OPENING_HOUR = 7;  // 7h (todos os dias úteis)
+export const CLOSING_HOUR = 17; // 17h (segunda a quinta para pedidos)
+export const FRIDAY_CLOSING_HOUR = 16; // 16h (sexta-feira para pedidos)
 
 /**
  * Retorna a data/hora atual no fuso horário de Brasília
@@ -28,12 +29,49 @@ export function getBrasiliaDateString() {
 }
 
 /**
- * Verifica se estamos dentro do horário comercial (7h-17h)
+ * Verifica se é fim de semana (sábado ou domingo)
+ */
+export function isWeekend() {
+  const brasiliaTime = getBrasiliaDateTime();
+  const day = brasiliaTime.getDay(); // 0 = domingo, 6 = sábado
+  return day === 0 || day === 6;
+}
+
+/**
+ * Verifica se é sexta-feira
+ */
+export function isFriday() {
+  const brasiliaTime = getBrasiliaDateTime();
+  return brasiliaTime.getDay() === 5;
+}
+
+/**
+ * Retorna o horário de fechamento baseado no dia da semana
+ */
+export function getClosingHourForToday() {
+  if (isFriday()) {
+    return FRIDAY_CLOSING_HOUR;
+  }
+  return CLOSING_HOUR;
+}
+
+/**
+ * Verifica se estamos dentro do horário comercial
+ * Segunda a Quinta: 7h-17h
+ * Sexta: 7h-16h
+ * Sábado e Domingo: Fechado
  */
 export function isWithinBusinessHours() {
+  // Fim de semana sempre fechado
+  if (isWeekend()) {
+    return false;
+  }
+
   const brasiliaTime = getBrasiliaDateTime();
   const hour = brasiliaTime.getHours();
-  return hour >= OPENING_HOUR && hour < CLOSING_HOUR;
+  const closingHour = getClosingHourForToday();
+
+  return hour >= OPENING_HOUR && hour < closingHour;
 }
 
 /**
@@ -157,12 +195,18 @@ export function getClosedReason(config) {
     return 'Aguardando atualização da configuração do dia';
   }
   if (!isWithinBusinessHours()) {
+    if (isWeekend()) {
+      return 'Fechado nos finais de semana - Volte na segunda-feira às 7h';
+    }
     const brasiliaTime = getBrasiliaDateTime();
     const hour = brasiliaTime.getHours();
     if (hour < OPENING_HOUR) {
       return `Abre às ${OPENING_HOUR}h`;
     } else {
-      return 'Fechado - Volte amanhã a partir das 7h';
+      if (isFriday()) {
+        return 'Fechado - Volte na segunda-feira às 7h';
+      }
+      return 'Fechado - Volte amanhã às 7h';
     }
   }
   return '';
@@ -173,4 +217,22 @@ export function getClosedReason(config) {
  */
 export function getBusinessHoursText() {
   return '07:00 às 17:00';
+}
+
+/**
+ * Retorna informações completas de horário de funcionamento
+ */
+export function getFullBusinessHoursInfo() {
+  return {
+    pedidos: {
+      segundaQuinta: '07:00 às 17:00',
+      sexta: '07:00 às 16:00',
+      fimSemana: 'Fechado'
+    },
+    estabelecimento: {
+      segundaQuinta: '07:00 às 17:30',
+      sexta: '07:00 às 16:30',
+      fimSemana: 'Fechado'
+    }
+  };
 }

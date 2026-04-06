@@ -267,16 +267,20 @@ export default function CamforHome() {
             </div>
             {!isOpenTime ? (
               <>
-                <div className="ch-closed-hours"><strong>Horário de Funcionamento:</strong></div>
-                <div className="ch-closed-hours">07:00 às 17:00</div>
-                <div className="ch-closed-note">Por favor, retorne no horário de funcionamento.</div>
+                <div className="ch-closed-hours"><strong>Horário para Pedidos Online:</strong></div>
+                <div className="ch-closed-hours">Segunda a Quinta: 07:00 às 17:00</div>
+                <div className="ch-closed-hours">Sexta-feira: 07:00 às 16:00</div>
+                <div className="ch-closed-hours">Sábado e Domingo: Fechado</div>
+                <div className="ch-closed-note" style={{ marginTop: 12 }}>Por favor, retorne no horário de funcionamento.</div>
               </>
             ) : (
               <>
                 <div className="ch-closed-hours">Os produtos do dia ainda não foram configurados.</div>
-                <div className="ch-closed-hours" style={{ marginTop: 12 }}><strong>Horário de Funcionamento:</strong></div>
-                <div className="ch-closed-hours">07:00 às 17:00</div>
-                <div className="ch-closed-note">Por favor, aguarde o administrador liberar os pedidos.</div>
+                <div className="ch-closed-hours" style={{ marginTop: 12 }}><strong>Horário para Pedidos Online:</strong></div>
+                <div className="ch-closed-hours">Segunda a Quinta: 07:00 às 17:00</div>
+                <div className="ch-closed-hours">Sexta-feira: 07:00 às 16:00</div>
+                <div className="ch-closed-hours">Sábado e Domingo: Fechado</div>
+                <div className="ch-closed-note" style={{ marginTop: 12 }}>Por favor, aguarde o administrador liberar os pedidos.</div>
               </>
             )}
           </div>
