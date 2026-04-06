@@ -268,15 +268,14 @@ export default function CamforHome() {
             {!isOpenTime ? (
               <>
                 <div className="ch-closed-hours"><strong>Horário de Funcionamento:</strong></div>
-                <div className="ch-closed-hours">08:00 às 18:00</div>
-                <div className="ch-closed-hours" style={{ marginTop: 8 }}><strong>Pedidos Online:</strong> até 17:00</div>
+                <div className="ch-closed-hours">07:00 às 17:00</div>
                 <div className="ch-closed-note">Por favor, retorne no horário de funcionamento.</div>
               </>
             ) : (
               <>
                 <div className="ch-closed-hours">Os produtos do dia ainda não foram configurados.</div>
                 <div className="ch-closed-hours" style={{ marginTop: 12 }}><strong>Horário de Funcionamento:</strong></div>
-                <div className="ch-closed-hours">08:00 às 18:00</div>
+                <div className="ch-closed-hours">07:00 às 17:00</div>
                 <div className="ch-closed-note">Por favor, aguarde o administrador liberar os pedidos.</div>
               </>
             )}
