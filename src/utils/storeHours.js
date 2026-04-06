@@ -64,13 +64,64 @@ export function wasConfigUpdatedToday(updatedAt) {
 }
 
 /**
+ * Verifica se a configuração é válida para hoje
+ * Aceita configurações de HOJE ou de ONTEM se foram feitas após 17h
+ * (admin pode configurar para o dia seguinte)
+ * @param {string} updatedAt - ISO string da data de atualização
+ */
+export function isConfigValidForToday(updatedAt) {
+  if (!updatedAt) return false;
+
+  try {
+    const updateDate = new Date(updatedAt);
+    const brasiliaOffset = -3 * 60;
+    const utcOffset = updateDate.getTimezoneOffset();
+    const updateBrasilia = new Date(updateDate.getTime() + (utcOffset + brasiliaOffset) * 60000);
+
+    const today = getBrasiliaDateTime();
+    const todayDateString = getBrasiliaDateString();
+
+    // Data de atualização
+    const updateYear = updateBrasilia.getFullYear();
+    const updateMonth = String(updateBrasilia.getMonth() + 1).padStart(2, '0');
+    const updateDay = String(updateBrasilia.getDate()).padStart(2, '0');
+    const updateDateString = `${updateYear}-${updateMonth}-${updateDay}`;
+
+    // Se foi atualizado hoje, é válido
+    if (updateDateString === todayDateString) {
+      return true;
+    }
+
+    // Se foi atualizado ontem após 17h, é válido para hoje
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayYear = yesterday.getFullYear();
+    const yesterdayMonth = String(yesterday.getMonth() + 1).padStart(2, '0');
+    const yesterdayDay = String(yesterday.getDate()).padStart(2, '0');
+    const yesterdayDateString = `${yesterdayYear}-${yesterdayMonth}-${yesterdayDay}`;
+
+    if (updateDateString === yesterdayDateString) {
+      const updateHour = updateBrasilia.getHours();
+      // Se foi após 17h de ontem, vale para hoje
+      return updateHour >= CLOSING_HOUR;
+    }
+
+    return false;
+  } catch (e) {
+    console.warn('Erro ao verificar validade da configuração:', e);
+    return false;
+  }
+}
+
+/**
  * Verifica se a loja está aberta
  * A loja está aberta se:
  * 1. Estamos dentro do horário comercial (7h-17h)
- * 2. O admin configurou os produtos HOJE (no mesmo dia)
+ * 2. O admin configurou os produtos (hoje OU ontem após 17h)
  * 3. Há produtos selecionados
+ * 4. Não está fechada manualmente
  *
- * @param {Object} config - Configuração do admin { selectedItems, updatedAt }
+ * @param {Object} config - Configuração do admin { selectedItems, updatedAt, lojaFechada }
  */
 export function isStoreOpen(config) {
   // Loja fechada manualmente
@@ -85,8 +136,8 @@ export function isStoreOpen(config) {
   // Fora do horário comercial = fechada
   if (!isWithinBusinessHours()) return false;
 
-  // Configuração não foi feita hoje = fechada
-  if (!wasConfigUpdatedToday(config.updatedAt)) return false;
+  // Configuração não é válida para hoje = fechada
+  if (!isConfigValidForToday(config.updatedAt)) return false;
 
   return true;
 }

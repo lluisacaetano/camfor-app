@@ -7,16 +7,27 @@ export default function AdminHome({ onBack, onSelectProducts, onViewOrders, onMa
   const [lojaFechada, setLojaFechada] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [adminConfig, setAdminConfig] = useState(null);
 
   // Escuta o status da loja em tempo real
   useEffect(() => {
     const unsubscribe = subscribeToAdminConfig((config) => {
       setLojaFechada(config?.lojaFechada || false);
+      setAdminConfig(config);
     });
     return () => unsubscribe();
   }, []);
 
   function handleClickFecharLoja() {
+    // Se está tentando abrir e não tem produtos, redireciona para selecionar produtos
+    if (lojaFechada) {
+      const hasProducts = adminConfig?.selectedItems && adminConfig.selectedItems.length > 0;
+      if (!hasProducts) {
+        alert('Você precisa selecionar os produtos antes de abrir a loja!');
+        onSelectProducts();
+        return;
+      }
+    }
     setShowModal(true);
   }
 
