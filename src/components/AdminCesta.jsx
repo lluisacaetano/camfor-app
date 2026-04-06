@@ -3,8 +3,22 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import './AdminCesta.css';
 import { handleImageError } from '../utils/imageUtils';
 import { saveAdminConfig, getAdminConfig, getProducts, seedProducts } from '../services/firestoreService';
+import { fecharLoja } from '../services/storeControl';
 
 export default function AdminCesta({ onBack }) {
+    const [fechando, setFechando] = useState(false);
+    async function handleFecharLoja() {
+      if (!window.confirm('Tem certeza que deseja fechar a loja? Isso impedirá novos pedidos.')) return;
+      setFechando(true);
+      try {
+        await fecharLoja();
+        alert('Loja fechada com sucesso!');
+      } catch (e) {
+        alert('Erro ao fechar loja. Tente novamente.');
+      } finally {
+        setFechando(false);
+      }
+    }
   const [produtos, setProdutos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selecionados, setSelecionados] = useState([]);
@@ -117,6 +131,15 @@ export default function AdminCesta({ onBack }) {
           <div className="col-12 col-md-10 col-lg-8">
             <div className="ch-cover-wrapper">
               <button className="cc-back" onClick={onBack} aria-label="Voltar">←</button>
+              <button
+                className="ch-btn ch-btn-danger"
+                style={{ position: 'absolute', right: 16, top: 16, zIndex: 2 }}
+                onClick={handleFecharLoja}
+                disabled={fechando}
+                title="Fechar loja para novos pedidos"
+              >
+                {fechando ? 'Fechando...' : 'Fechar Loja'}
+              </button>
               <div className="ch-cover-inner">
                 <img src="/images/capa.jpg" alt="Capa" className="ch-cover-img" />
               </div>

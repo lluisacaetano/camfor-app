@@ -73,6 +73,9 @@ export function wasConfigUpdatedToday(updatedAt) {
  * @param {Object} config - Configuração do admin { selectedItems, updatedAt }
  */
 export function isStoreOpen(config) {
+  // Loja fechada manualmente
+  if (config && config.lojaFechada) return false;
+
   // Sem configuração = fechada
   if (!config) return false;
 
@@ -93,25 +96,24 @@ export function isStoreOpen(config) {
  * @param {Object} config - Configuração do admin
  */
 export function getClosedReason(config) {
+  if (config && config.lojaFechada) {
+    return 'Loja fechada';
+  }
   if (!config || !config.selectedItems || config.selectedItems.length === 0) {
     return 'Aguardando seleção dos produtos do dia';
   }
-
   if (!wasConfigUpdatedToday(config.updatedAt)) {
-    return 'Aguardando seleção dos produtos do dia';
+    return 'Aguardando atualização da configuração do dia';
   }
-
   if (!isWithinBusinessHours()) {
     const brasiliaTime = getBrasiliaDateTime();
     const hour = brasiliaTime.getHours();
-
     if (hour < OPENING_HOUR) {
       return `Abre às ${OPENING_HOUR}h`;
     } else {
       return 'Fechado - Volte amanhã a partir das 7h';
     }
   }
-
   return '';
 }
 
