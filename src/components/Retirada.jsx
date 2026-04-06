@@ -155,7 +155,13 @@ export default function Retirada({ size, onBack, onFinish, cartItems = [], isMon
                   CEP: 35572-126
                 </p>
                 <p className="ret-info-text">
-                  <strong>Horário:</strong> até às 17h
+                  <strong>Horário de Funcionamento:</strong><br />
+                  Segunda a Quinta: 07:00 às 17:30<br />
+                  Sexta-feira: 07:00 às 16:30<br />
+                  Sábado e Domingo: Fechado
+                </p>
+                <p className="ret-info-text" style={{ fontSize: '13px', color: '#666', marginTop: '8px' }}>
+                  <em>Pedidos online: Segunda a Quinta até 17:00, Sexta até 16:00</em>
                 </p>
 
                 {/* Mapa Google Maps */}
