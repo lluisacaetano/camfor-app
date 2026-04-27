@@ -269,7 +269,6 @@ export default function Entrega({ size, onBack, onFinish, totalPrice = 0, cartIt
       valorTroco: payment === 'cash' && needChange ? changeForMask : null
     };
 
-    console.log('🔍 DEBUG ENTREGA - Pedido sendo salvo:', pedido);
     saveOrder(pedido);
 
     // Gera mensagem e link WhatsApp

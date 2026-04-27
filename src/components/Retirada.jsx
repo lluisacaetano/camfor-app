@@ -96,7 +96,6 @@ export default function Retirada({ size, onBack, onFinish, cartItems = [], isMon
       pagamento: 'Retirada no local'
     };
 
-    console.log('🔍 DEBUG RETIRADA - Pedido sendo salvo:', pedido);
     saveOrder(pedido);
 
     // Gera mensagem e link WhatsApp

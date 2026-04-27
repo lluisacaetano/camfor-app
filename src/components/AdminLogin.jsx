@@ -32,8 +32,11 @@ export default function AdminLogin({ onBack, onLoginSuccess }) {
       return;
     }
 
-    // Verificar credenciais
-    if (email === 'licitacao@camffor.com.br' && password === '4613') {
+    // Verificar credenciais (via variáveis de ambiente)
+    const adminEmail = import.meta.env.VITE_ADMIN_EMAIL;
+    const adminPassword = import.meta.env.VITE_ADMIN_PASSWORD;
+
+    if (email === adminEmail && password === adminPassword) {
       // Login bem-sucedido
       setIsLogged(true);
       localStorage.setItem('adminLogged', 'true');

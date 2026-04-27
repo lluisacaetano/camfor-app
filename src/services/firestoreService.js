@@ -14,8 +14,8 @@ import {
   writeBatch
 } from 'firebase/firestore';
 
-// Chave API do ImgBB
-const IMGBB_API_KEY = '81c43d5a38ab2752b3e26d8175b2e803';
+// Chave API do ImgBB (via variável de ambiente)
+const IMGBB_API_KEY = import.meta.env.VITE_IMGBB_API_KEY;
 
 // Referência do documento de configuração do admin
 const CONFIG_DOC = doc(db, 'config', 'admin');
