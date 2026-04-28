@@ -13,6 +13,7 @@ import {
   orderBy,
   writeBatch
 } from 'firebase/firestore';
+import { encryptOrderData, decryptOrderData, decryptOrdersList } from './cryptoService';
 
 // Chave API do ImgBB (via variável de ambiente)
 const IMGBB_API_KEY = import.meta.env.VITE_IMGBB_API_KEY;
@@ -92,12 +93,15 @@ export async function clearAdminConfig() {
 const ORDERS_COLLECTION = collection(db, 'orders');
 
 /**
- * Salva um novo pedido
+ * Salva um novo pedido (com dados sensíveis criptografados)
  */
 export async function saveOrder(orderData) {
   try {
+    // Criptografa os dados sensíveis antes de salvar
+    const encryptedData = encryptOrderData(orderData);
+
     const docRef = await addDoc(ORDERS_COLLECTION, {
-      ...orderData,
+      ...encryptedData,
       id: Date.now(),
       timestamp: new Date().toISOString(),
       entregue: false
@@ -110,7 +114,7 @@ export async function saveOrder(orderData) {
 }
 
 /**
- * Busca todos os pedidos
+ * Busca todos os pedidos (descriptografa dados sensíveis)
  */
 export async function getOrders() {
   try {
@@ -120,7 +124,8 @@ export async function getOrders() {
     querySnapshot.forEach((doc) => {
       orders.push({ ...doc.data(), docId: doc.id });
     });
-    return orders;
+    // Descriptografa os dados sensíveis
+    return decryptOrdersList(orders);
   } catch (error) {
     console.error('Erro ao buscar pedidos:', error);
     return [];
@@ -128,7 +133,7 @@ export async function getOrders() {
 }
 
 /**
- * Escuta mudanças em tempo real nos pedidos
+ * Escuta mudanças em tempo real nos pedidos (descriptografa dados sensíveis)
  */
 export function subscribeToOrders(callback) {
   const q = query(ORDERS_COLLECTION, orderBy('timestamp', 'desc'));
@@ -137,7 +142,8 @@ export function subscribeToOrders(callback) {
     querySnapshot.forEach((doc) => {
       orders.push({ ...doc.data(), docId: doc.id });
     });
-    callback(orders);
+    // Descriptografa os dados sensíveis
+    callback(decryptOrdersList(orders));
   }, (error) => {
     console.error('Erro ao escutar pedidos:', error);
     callback([]);
