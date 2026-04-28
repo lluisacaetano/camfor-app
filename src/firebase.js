@@ -1,14 +1,15 @@
 // Configuração do Firebase
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDuYdkgxeOwo0DPh_bLP4sYh9iwmHMJAUI",
-  authDomain: "camforapp.firebaseapp.com",
-  projectId: "camforapp",
-  storageBucket: "camforapp.firebasestorage.app",
-  messagingSenderId: "632400352863",
-  appId: "1:632400352863:web:20cef909b487f59f542dea"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
 // Inicializa o Firebase
@@ -16,5 +17,8 @@ const app = initializeApp(firebaseConfig);
 
 // Inicializa o Firestore
 export const db = getFirestore(app);
+
+// Inicializa o Authentication
+export const auth = getAuth(app);
 
 export default app;

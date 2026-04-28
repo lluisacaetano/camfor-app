@@ -3,6 +3,7 @@ import './AdminHome.css';
 import { fecharLoja, abrirLoja } from '../services/storeControl';
 import { subscribeToAdminConfig } from '../services/firestoreService';
 import { isStoreOpen } from '../utils/storeHours';
+import { logoutAdmin } from '../services/authService';
 
 export default function AdminHome({ onBack, onSelectProducts, onViewOrders, onManageProducts }) {
   const [lojaFechada, setLojaFechada] = useState(false);

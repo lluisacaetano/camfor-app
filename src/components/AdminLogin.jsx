@@ -1,28 +1,24 @@
 import { useState } from 'react';
+import { loginAdmin } from '../services/authService';
 import './AdminLogin.css';
 
 export default function AdminLogin({ onBack, onLoginSuccess }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  // eslint-disable-next-line no-unused-vars
-  const [isLogged, setIsLogged] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const validateEmail = (value) => {
-    return value.includes('@');
-  };
-
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
 
-    // Validações
+    // Validações básicas
     if (!email.trim()) {
       setError('Email é obrigatório');
       return;
     }
 
-    if (!validateEmail(email)) {
+    if (!email.includes('@')) {
       setError('Email inválido. Deve conter "@"');
       return;
     }
@@ -32,19 +28,20 @@ export default function AdminLogin({ onBack, onLoginSuccess }) {
       return;
     }
 
-    // Verificar credenciais (via variáveis de ambiente)
-    const adminEmail = import.meta.env.VITE_ADMIN_EMAIL;
-    const adminPassword = import.meta.env.VITE_ADMIN_PASSWORD;
+    setLoading(true);
 
-    if (email === adminEmail && password === adminPassword) {
+    try {
+      // Login real com Firebase Authentication
+      await loginAdmin(email, password);
+
       // Login bem-sucedido
-      setIsLogged(true);
-      localStorage.setItem('adminLogged', 'true');
       setTimeout(() => {
         onLoginSuccess && onLoginSuccess();
       }, 500);
-    } else {
-      setError('Email ou senha incorretos');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -66,7 +63,7 @@ export default function AdminLogin({ onBack, onLoginSuccess }) {
             <div className="admin-login-container-inner">
               <div className="admin-login-box">
                 <h1>LOGIN ADMINISTRADOR</h1>
-                
+
                 {error && <div className="error-message">{error}</div>}
 
                 <form onSubmit={handleLogin}>
@@ -79,6 +76,7 @@ export default function AdminLogin({ onBack, onLoginSuccess }) {
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="email"
                       className="input-field"
+                      disabled={loading}
                     />
                   </div>
 
@@ -91,11 +89,12 @@ export default function AdminLogin({ onBack, onLoginSuccess }) {
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="senha"
                       className="input-field"
+                      disabled={loading}
                     />
                   </div>
 
-                  <button type="submit" className="login-button">
-                    Entrar
+                  <button type="submit" className="login-button" disabled={loading}>
+                    {loading ? 'Entrando...' : 'Entrar'}
                   </button>
                 </form>
               </div>
@@ -103,7 +102,10 @@ export default function AdminLogin({ onBack, onLoginSuccess }) {
           </div>
         </div>
       </div>
-      <div className="ch-logos-bottom"><img src="/images/logo-ifmg.png" alt="IFMG" className="ch-ifmg-bottom" /><img src="/images/logo-sicoob.png" alt="SICOOB" className="ch-sicoob-bottom" /></div>
+      <div className="ch-logos-bottom">
+        <img src="/images/logo-ifmg.png" alt="IFMG" className="ch-ifmg-bottom" />
+        <img src="/images/logo-sicoob.png" alt="SICOOB" className="ch-sicoob-bottom" />
+      </div>
     </div>
   );
 }

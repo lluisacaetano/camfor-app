@@ -14,6 +14,7 @@ import OrderNotificationToast from './OrderNotificationToast';
 import { subscribeToAdminConfig } from '../services/firestoreService';
 import { isStoreOpen, isWithinBusinessHours, wasConfigUpdatedToday } from '../utils/storeHours';
 import useOrderNotifications from '../hooks/useOrderNotifications';
+import { subscribeToAuthChanges, logoutAdmin } from '../services/authService';
 
 export default function CamforHome() {
   const [showCesta, setShowCesta] = useState(false);
@@ -28,9 +29,25 @@ export default function CamforHome() {
   const [storeOpen, setStoreOpen] = useState(false);
   const [isOpenTime, setIsOpenTime] = useState(false);
   const [hasProducts, setHasProducts] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
 
   // Verifica se admin está logado (em qualquer tela do admin)
   const isAdminLoggedIn = showAdminHome || showAdminCesta || showAdminPedidos || showAdminProdutos;
+
+  // Escuta mudanças no estado de autenticação
+  useEffect(() => {
+    const unsubscribe = subscribeToAuthChanges((user) => {
+      setCurrentUser(user);
+      // Se o usuário deslogar e estiver em alguma tela admin, volta para home
+      if (!user && isAdminLoggedIn) {
+        setShowAdminHome(false);
+        setShowAdminCesta(false);
+        setShowAdminPedidos(false);
+        setShowAdminProdutos(false);
+      }
+    });
+    return () => unsubscribe();
+  }, [isAdminLoggedIn]);
 
   // Hook de notificações de pedidos
   const {
@@ -117,9 +134,9 @@ export default function CamforHome() {
           }}
         />
         <AdminHome
-          onBack={() => {
+          onBack={async () => {
+            await logoutAdmin();
             setShowAdminHome(false);
-            localStorage.removeItem('adminLogged');
           }}
           onSelectProducts={() => {
             setShowAdminHome(false);
