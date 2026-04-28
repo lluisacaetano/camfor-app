@@ -1,7 +1,12 @@
 import CryptoJS from 'crypto-js';
 
 // Chave de criptografia (vem da variável de ambiente)
-const ENCRYPTION_KEY = import.meta.env.VITE_ENCRYPTION_KEY || 'camfor-default-key-2024';
+const ENCRYPTION_KEY = import.meta.env.VITE_ENCRYPTION_KEY;
+
+// Verifica se a chave existe (apenas em produção)
+if (!ENCRYPTION_KEY && import.meta.env.PROD) {
+  console.error('ERRO: VITE_ENCRYPTION_KEY não está configurada!');
+}
 
 // Campos sensíveis que devem ser criptografados
 const SENSITIVE_FIELDS = [
@@ -23,6 +28,7 @@ const SENSITIVE_FIELDS = [
  */
 export function encrypt(value) {
   if (!value || typeof value !== 'string') return value;
+  if (!ENCRYPTION_KEY) return value; // Sem chave, não criptografa (dev mode)
   try {
     return CryptoJS.AES.encrypt(value, ENCRYPTION_KEY).toString();
   } catch (error) {
@@ -38,6 +44,7 @@ export function encrypt(value) {
  */
 export function decrypt(encryptedValue) {
   if (!encryptedValue || typeof encryptedValue !== 'string') return encryptedValue;
+  if (!ENCRYPTION_KEY) return encryptedValue; // Sem chave, retorna como está
   try {
     const bytes = CryptoJS.AES.decrypt(encryptedValue, ENCRYPTION_KEY);
     const decrypted = bytes.toString(CryptoJS.enc.Utf8);

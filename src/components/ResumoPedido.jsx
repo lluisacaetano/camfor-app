@@ -1,8 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './ResumoPedido.css';
-// eslint-disable-next-line no-unused-vars
-import { handleImageError } from '../utils/imageUtils';
 
 function cestaImgForSize(sz) {
   if (sz === 10) return '/images/cesta10itens.png';
@@ -20,12 +18,9 @@ export default function ResumoPedido({
   onConfirm,
   onFinalize
 }) {
-  // eslint-disable-next-line no-unused-vars
-  const [payment, setPayment] = useState('pix');
-  // eslint-disable-next-line no-unused-vars
-  const [needChange, setNeedChange] = useState(false);
-  // eslint-disable-next-line no-unused-vars
-  const [changeFor, setChangeFor] = useState('');
+  const [payment] = useState('pix');
+  const [needChange] = useState(false);
+  const [changeFor] = useState('');
 
   const prices = useMemo(() => {
     // Usa os preços passados via prop primeiro
