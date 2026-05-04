@@ -25,7 +25,7 @@ export default function AdminHome({ onBack, onSelectProducts, onViewOrders, onMa
 
   function handleClickFecharLoja() {
     // Se está tentando abrir e não tem produtos, redireciona para selecionar produtos
-    if (lojaFechada) {
+    if (!lojaRealmenteAberta) {
       const hasProducts = adminConfig?.selectedItems && adminConfig.selectedItems.length > 0;
       if (!hasProducts) {
         alert('Você precisa selecionar os produtos antes de abrir a loja!');
@@ -40,7 +40,7 @@ export default function AdminHome({ onBack, onSelectProducts, onViewOrders, onMa
     setShowModal(false);
     setLoading(true);
     try {
-      if (lojaFechada) {
+      if (!lojaRealmenteAberta) {
         await abrirLoja();
       } else {
         await fecharLoja();
@@ -133,7 +133,7 @@ export default function AdminHome({ onBack, onSelectProducts, onViewOrders, onMa
                   fontSize: '12px',
                   fontWeight: '600',
                   color: '#fff',
-                  backgroundColor: lojaFechada ? '#66bb6a' : '#ef5350',
+                  backgroundColor: lojaRealmenteAberta ? '#ef5350' : '#66bb6a',
                   border: 'none',
                   borderRadius: '8px',
                   cursor: loading ? 'not-allowed' : 'pointer',
@@ -156,7 +156,7 @@ export default function AdminHome({ onBack, onSelectProducts, onViewOrders, onMa
                   e.target.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
                 }}
               >
-                {loading ? 'PROCESSANDO...' : (lojaFechada ? 'ABRIR LOJA' : 'FECHAR LOJA')}
+                {loading ? 'PROCESSANDO...' : (lojaRealmenteAberta ? 'FECHAR LOJA' : 'ABRIR LOJA')}
               </button>
             </div>
 
@@ -219,14 +219,14 @@ export default function AdminHome({ onBack, onSelectProducts, onViewOrders, onMa
               width: '64px',
               height: '64px',
               borderRadius: '50%',
-              backgroundColor: lojaFechada ? '#e8f5e9' : '#ffebee',
+              backgroundColor: !lojaRealmenteAberta ? '#e8f5e9' : '#ffebee',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               margin: '0 auto 20px',
               fontSize: '32px'
             }}>
-              {lojaFechada ? '✅' : '⚠️'}
+              {!lojaRealmenteAberta ? '✅' : '⚠️'}
             </div>
 
             {/* Título */}
@@ -238,7 +238,7 @@ export default function AdminHome({ onBack, onSelectProducts, onViewOrders, onMa
               marginBottom: '12px',
               lineHeight: '1.3'
             }}>
-              {lojaFechada ? 'Reabrir a Loja?' : 'Fechar a Loja?'}
+              {!lojaRealmenteAberta ? 'Abrir a Loja?' : 'Fechar a Loja?'}
             </h3>
 
             {/* Mensagem */}
@@ -249,8 +249,8 @@ export default function AdminHome({ onBack, onSelectProducts, onViewOrders, onMa
               lineHeight: '1.6',
               marginBottom: '28px'
             }}>
-              {lojaFechada
-                ? 'Ao reabrir a loja, será necessário selecionar os produtos novamente.'
+              {!lojaRealmenteAberta
+                ? 'A loja será aberta e os clientes poderão fazer pedidos.'
                 : 'Isso impedirá novos pedidos e todos os produtos selecionados serão desmarcados.'
               }
             </p>
@@ -291,7 +291,7 @@ export default function AdminHome({ onBack, onSelectProducts, onViewOrders, onMa
                   fontSize: '15px',
                   fontWeight: '600',
                   color: '#fff',
-                  backgroundColor: lojaFechada ? '#66bb6a' : '#ef5350',
+                  backgroundColor: !lojaRealmenteAberta ? '#66bb6a' : '#ef5350',
                   border: 'none',
                   borderRadius: '10px',
                   cursor: 'pointer',
@@ -307,7 +307,7 @@ export default function AdminHome({ onBack, onSelectProducts, onViewOrders, onMa
                   e.target.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
                 }}
               >
-                {lojaFechada ? 'Sim, Abrir' : 'Sim, Fechar'}
+                {!lojaRealmenteAberta ? 'Sim, Abrir' : 'Sim, Fechar'}
               </button>
             </div>
           </div>
