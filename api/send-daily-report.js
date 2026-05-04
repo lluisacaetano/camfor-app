@@ -1,5 +1,7 @@
 // API Route para gerar e enviar relatório diário em PDF
-// Executada automaticamente às 17h pelo Vercel Cron
+// Executada automaticamente às 17h (horário de Brasília)
+// Agendamento configurado em: https://cron-job.org
+// Envio de email via: https://resend.com
 
 const { initializeApp, cert, getApps } = require('firebase-admin/app');
 const { getFirestore } = require('firebase-admin/firestore');
@@ -473,7 +475,7 @@ module.exports = async function handler(req, res) {
 
     // Envia email via Resend
     const RESEND_API_KEY = process.env.RESEND_API_KEY;
-    const TO_EMAIL = process.env.REPORT_EMAIL || 'lluisacaetanoaraujo@gmail.com';
+    const TO_EMAIL = process.env.REPORT_EMAIL || 'financeiro@camffor.com.br';
 
     if (!RESEND_API_KEY) {
       console.log('RESEND_API_KEY não configurada.');

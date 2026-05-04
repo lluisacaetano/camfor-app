@@ -1,5 +1,6 @@
 // API Route para limpeza diária
-// Executada automaticamente às 23h (horário de Brasília) pelo Vercel Cron
+// Executada automaticamente às 23h (horário de Brasília)
+// Agendamento configurado em: https://cron-job.org
 
 const { initializeApp, cert, getApps } = require('firebase-admin/app');
 const { getFirestore } = require('firebase-admin/firestore');
