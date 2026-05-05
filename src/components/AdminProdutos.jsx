@@ -22,6 +22,9 @@ export default function AdminProdutos({ onBack }) {
   const [searchTerm, setSearchTerm] = useState('');
   const fileInputRef = useRef(null);
 
+  // Estado para popup personalizado
+  const [popup, setPopup] = useState({ show: false, type: '', message: '' });
+
   // Escuta produtos em tempo real
   useEffect(() => {
     const unsubscribe = subscribeToProducts((prods) => {
@@ -59,17 +62,25 @@ export default function AdminProdutos({ onBack }) {
     setImagePreview('');
   }
 
+  function showPopup(type, message) {
+    setPopup({ show: true, type, message });
+  }
+
+  function closePopup() {
+    setPopup({ show: false, type: '', message: '' });
+  }
+
   function handleFileChange(e) {
     const file = e.target.files[0];
     if (file) {
       // Verifica se é uma imagem
       if (!file.type.startsWith('image/')) {
-        alert('Por favor, selecione um arquivo de imagem.');
+        showPopup('error', 'Por favor, selecione um arquivo de imagem.');
         return;
       }
       // Verifica tamanho (máx 5MB)
       if (file.size > 5 * 1024 * 1024) {
-        alert('A imagem deve ter no máximo 5MB.');
+        showPopup('error', 'A imagem deve ter no máximo 5MB.');
         return;
       }
       setImageFile(file);
@@ -88,11 +99,11 @@ export default function AdminProdutos({ onBack }) {
 
   async function handleSave() {
     if (!nome.trim()) {
-      alert('Digite o nome do produto');
+      showPopup('error', 'Digite o nome do produto');
       return;
     }
     if (!editingProduct && !imageFile) {
-      alert('Selecione uma imagem para o produto');
+      showPopup('error', 'Selecione uma imagem para o produto');
       return;
     }
 
@@ -108,7 +119,7 @@ export default function AdminProdutos({ onBack }) {
     });
 
     if (produtoExistente) {
-      alert(`Já existe um produto cadastrado com o nome "${produtoExistente.nome}".`);
+      showPopup('warning', `Já existe um produto cadastrado com o nome "${produtoExistente.nome}".`);
       return;
     }
 
@@ -121,13 +132,16 @@ export default function AdminProdutos({ onBack }) {
           imageFile,
           editingProduct.imagem
         );
+        handleCancelForm();
+        showPopup('success', 'Produto atualizado com sucesso!');
       } else {
         await addProductWithImage(nome.trim(), imageFile);
+        handleCancelForm();
+        showPopup('success', 'Produto cadastrado com sucesso!');
       }
-      handleCancelForm();
     } catch (e) {
       console.error('Erro ao salvar:', e);
-      alert(e.message || 'Erro ao salvar produto. Tente novamente.');
+      showPopup('error', e.message || 'Erro ao salvar produto. Tente novamente.');
     } finally {
       setSaving(false);
     }
@@ -137,8 +151,9 @@ export default function AdminProdutos({ onBack }) {
     try {
       await deleteProductWithImage(produto.docId, produto.imagem);
       setShowDeleteConfirm(null);
+      showPopup('success', 'Produto excluído com sucesso!');
     } catch (e) {
-      alert('Erro ao excluir produto. Tente novamente.');
+      showPopup('error', 'Erro ao excluir produto. Tente novamente.');
     }
   }
 
@@ -342,6 +357,28 @@ export default function AdminProdutos({ onBack }) {
                 EXCLUIR
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Popup Personalizado */}
+      {popup.show && (
+        <div className="ap-popup-backdrop" onClick={closePopup}>
+          <div className="ap-popup" onClick={(e) => e.stopPropagation()}>
+            <div className={`ap-popup-icon ap-popup-icon--${popup.type}`}>
+              {popup.type === 'success' && '✓'}
+              {popup.type === 'error' && '✕'}
+              {popup.type === 'warning' && '!'}
+            </div>
+            <h3 className={`ap-popup-title ap-popup-title--${popup.type}`}>
+              {popup.type === 'success' && 'Sucesso!'}
+              {popup.type === 'error' && 'Erro'}
+              {popup.type === 'warning' && 'Atenção'}
+            </h3>
+            <p className="ap-popup-message">{popup.message}</p>
+            <button className={`ap-popup-btn ap-popup-btn--${popup.type}`} onClick={closePopup}>
+              OK
+            </button>
           </div>
         </div>
       )}

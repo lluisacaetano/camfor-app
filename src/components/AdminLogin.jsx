@@ -67,30 +67,32 @@ export default function AdminLogin({ onBack, onLoginSuccess }) {
                 {error && <div className="error-message">{error}</div>}
 
                 <form onSubmit={handleLogin}>
-                  <div className="form-group">
-                    <label htmlFor="email">Email</label>
-                    <input
-                      id="email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="email"
-                      className="input-field"
-                      disabled={loading}
-                    />
-                  </div>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label htmlFor="email">Email</label>
+                      <input
+                        id="email"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="email"
+                        className="input-field"
+                        disabled={loading}
+                      />
+                    </div>
 
-                  <div className="form-group">
-                    <label htmlFor="password">Senha</label>
-                    <input
-                      id="password"
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="senha"
-                      className="input-field"
-                      disabled={loading}
-                    />
+                    <div className="form-group">
+                      <label htmlFor="password">Senha</label>
+                      <input
+                        id="password"
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="senha"
+                        className="input-field"
+                        disabled={loading}
+                      />
+                    </div>
                   </div>
 
                   <button type="submit" className="login-button" disabled={loading}>

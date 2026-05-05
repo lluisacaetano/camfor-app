@@ -9,6 +9,7 @@ export default function AdminHome({ onBack, onSelectProducts, onViewOrders, onMa
   const [lojaFechada, setLojaFechada] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [showNoProductsPopup, setShowNoProductsPopup] = useState(false);
   const [adminConfig, setAdminConfig] = useState(null);
   const [lojaRealmenteAberta, setLojaRealmenteAberta] = useState(false);
 
@@ -24,16 +25,20 @@ export default function AdminHome({ onBack, onSelectProducts, onViewOrders, onMa
   }, []);
 
   function handleClickFecharLoja() {
-    // Se está tentando abrir e não tem produtos, redireciona para selecionar produtos
+    // Se está tentando abrir e não tem produtos, mostra popup
     if (!lojaRealmenteAberta) {
       const hasProducts = adminConfig?.selectedItems && adminConfig.selectedItems.length > 0;
       if (!hasProducts) {
-        alert('Você precisa selecionar os produtos antes de abrir a loja!');
-        onSelectProducts();
+        setShowNoProductsPopup(true);
         return;
       }
     }
     setShowModal(true);
+  }
+
+  function handleGoToSelectProducts() {
+    setShowNoProductsPopup(false);
+    onSelectProducts();
   }
 
   async function handleConfirmFecharLoja() {
@@ -310,6 +315,102 @@ export default function AdminHome({ onBack, onSelectProducts, onViewOrders, onMa
                 {!lojaRealmenteAberta ? 'Sim, Abrir' : 'Sim, Fechar'}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Popup Sem Produtos */}
+      {showNoProductsPopup && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.6)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+          backdropFilter: 'blur(4px)',
+          animation: 'fadeIn 0.2s ease'
+        }} onClick={() => setShowNoProductsPopup(false)}>
+          <div style={{
+            backgroundColor: '#fff',
+            borderRadius: '20px',
+            padding: '32px 28px',
+            maxWidth: '340px',
+            width: '90%',
+            boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+            animation: 'slideUp 0.3s ease',
+            textAlign: 'center'
+          }} onClick={(e) => e.stopPropagation()}>
+            {/* Ícone */}
+            <div style={{
+              width: '70px',
+              height: '70px',
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, #ffc107 0%, #ffb300 100%)',
+              boxShadow: '0 8px 25px rgba(255, 193, 7, 0.4)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 18px',
+              fontSize: '36px',
+              fontWeight: 'bold',
+              color: '#333'
+            }}>
+              !
+            </div>
+
+            {/* Título */}
+            <h3 style={{
+              fontSize: '1.5rem',
+              fontWeight: '800',
+              color: '#e6a700',
+              margin: '0 0 12px',
+              letterSpacing: '0.5px'
+            }}>
+              Atenção
+            </h3>
+
+            {/* Mensagem */}
+            <p style={{
+              color: '#555',
+              fontSize: '1rem',
+              lineHeight: '1.5',
+              margin: '0 0 24px'
+            }}>
+              Você precisa selecionar os produtos antes de abrir a loja!
+            </p>
+
+            {/* Botão */}
+            <button
+              onClick={handleGoToSelectProducts}
+              style={{
+                width: '100%',
+                padding: '14px',
+                fontSize: '1rem',
+                fontWeight: '700',
+                color: '#fff',
+                background: 'linear-gradient(135deg, #26c6da 0%, #00acc1 100%)',
+                border: 'none',
+                borderRadius: '50px',
+                cursor: 'pointer',
+                boxShadow: '0 4px 15px rgba(38, 198, 218, 0.4)',
+                transition: 'all 0.2s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.transform = 'translateY(-2px)';
+                e.target.style.boxShadow = '0 6px 20px rgba(38, 198, 218, 0.5)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = '0 4px 15px rgba(38, 198, 218, 0.4)';
+              }}
+            >
+              SELECIONAR PRODUTOS
+            </button>
           </div>
         </div>
       )}

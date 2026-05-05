@@ -11,8 +11,8 @@ import AdminCesta from './AdminCesta';
 import AdminPedidos from './AdminPedidos';
 import AdminProdutos from './AdminProdutos';
 import OrderNotificationToast from './OrderNotificationToast';
-import { subscribeToAdminConfig } from '../services/firestoreService';
-import { isStoreOpen, isWithinBusinessHours, wasConfigUpdatedToday } from '../utils/storeHours';
+import { subscribeToAdminConfig, clearAdminConfig } from '../services/firestoreService';
+import { isStoreOpen, isWithinBusinessHours, isConfigValidForToday, shouldClearItems } from '../utils/storeHours';
 import useOrderNotifications from '../hooks/useOrderNotifications';
 import { subscribeToAuthChanges, logoutAdmin } from '../services/authService';
 
@@ -69,17 +69,29 @@ export default function CamforHome() {
   }, []);
 
   // Verifica se a loja está aberta (atualiza a cada minuto)
+  // Também limpa itens antigos automaticamente
   useEffect(() => {
-    function checkStoreStatus() {
+    async function checkStoreStatus() {
+      // Verifica se deve limpar itens antigos (do dia anterior durante horário comercial)
+      if (shouldClearItems(adminConfig)) {
+        console.log('Limpando itens antigos automaticamente...');
+        try {
+          await clearAdminConfig();
+        } catch (e) {
+          console.error('Erro ao limpar config antiga:', e);
+        }
+        return; // O useEffect será chamado novamente quando a config atualizar
+      }
+
       const open = isStoreOpen(adminConfig);
       setStoreOpen(open);
       setIsOpenTime(isWithinBusinessHours());
 
-      // Verifica se tem produtos configurados hoje
+      // Verifica se tem produtos configurados (válidos para hoje)
       const configOk = adminConfig &&
         adminConfig.selectedItems &&
         adminConfig.selectedItems.length > 0 &&
-        wasConfigUpdatedToday(adminConfig.updatedAt);
+        isConfigValidForToday(adminConfig.updatedAt);
       setHasProducts(configOk);
     }
 

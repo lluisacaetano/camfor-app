@@ -9,9 +9,9 @@
 }
 
 .admin-login-container-inner {
-  max-width: 400px;
+  width: 100%;
   margin: 24px auto 0;
-  padding: 0 12px;
+  padding: 0;
 }
 
 .admin-login-box {
@@ -29,8 +29,14 @@
   font-weight: 700;
 }
 
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
 .form-group {
-  margin-bottom: 18px;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -90,6 +96,10 @@
 }
 
 @media (max-width: 576px) {
+  .admin-login-container-inner {
+    padding: 0 12px;
+  }
+
   .admin-login-box {
     padding: 24px 18px;
   }
@@ -97,6 +107,15 @@
   .admin-login-box h1 {
     font-size: 1.4rem;
     margin-bottom: 20px;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .form-group {
+    margin-bottom: 16px;
   }
 
   .input-field {
@@ -108,6 +127,10 @@
 /* Desktop - espaçamento entre login e logos */
 @media (min-width: 768px) {
   .admin-login-page .admin-login-container-inner {
-    margin-bottom: 60px;
+    margin-bottom: 30px;
   }
+}
+
+.admin-login-page .ch-logos-bottom {
+  margin-top: 20px;
 }

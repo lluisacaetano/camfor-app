@@ -254,7 +254,7 @@ export default function CestaDetalhes({ onClose, onFinish }) {
               {[10,15,18].map(sz => {
                 const qty = basketCounts[sz] || 0;
                 return (
-                  <div className="mc-cart-item" key={sz} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div className="mc-cart-item" key={sz}>
                     <img
                       className="mc-cart-img"
                       src={cestaImgForSize(sz)}
@@ -262,38 +262,37 @@ export default function CestaDetalhes({ onClose, onFinish }) {
                       onError={handleImageError}
                     />
                     <div className="mc-cart-name">Cesta de {sz} itens</div>
-
-                    <div className="mc-qty-wrap" style={{ marginLeft: 8 }}>
+                    <div className="mc-cart-controls">
+                      <div className="mc-qty-wrap">
+                        <button
+                          type="button"
+                          className="mc-plus-btn"
+                          onClick={() => updateBasketCount(sz, Math.max(0, qty - 1))}
+                          disabled={storeClosed}
+                          aria-label={`Diminuir cestas ${sz}`}
+                        >
+                          -
+                        </button>
+                        <div className="mc-qty-display" aria-live="polite">{qty}</div>
+                        <button
+                          type="button"
+                          className="mc-plus-btn"
+                          onClick={() => updateBasketCount(sz, Math.min(99, qty + 1))}
+                          disabled={storeClosed}
+                          aria-label={`Aumentar cestas ${sz}`}
+                        >
+                          +
+                        </button>
+                      </div>
                       <button
                         type="button"
-                        className="mc-plus-btn"
-                        onClick={() => updateBasketCount(sz, Math.max(0, qty - 1))}
-                        disabled={storeClosed}
-                        aria-label={`Diminuir cestas ${sz}`}
+                        className="mc-cart-remove"
+                        onClick={() => removeBasket(sz)}
+                        aria-label={`Remover cesta ${sz}`}
                       >
-                        -
-                      </button>
-                      <div className="mc-qty-display" aria-live="polite">{qty}</div>
-                      <button
-                        type="button"
-                        className="mc-plus-btn"
-                        onClick={() => updateBasketCount(sz, Math.min(99, qty + 1))}
-                        disabled={storeClosed}
-                        aria-label={`Aumentar cestas ${sz}`}
-                      >
-                        +
+                        REMOVER
                       </button>
                     </div>
-
-                    <button
-                      type="button"
-                      className="mc-remove-btn"
-                      onClick={() => removeBasket(sz)}
-                      style={{ marginLeft: 5 }}
-                      aria-label={`Remover cesta ${sz}`}
-                    >
-                      🗑️
-                    </button>
                   </div>
                 );
               })}

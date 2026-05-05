@@ -2,8 +2,8 @@
 
 /* ===== PRODUCT LIST ===== */
 .mc-list {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 10px;
   margin-top: 16px;
   padding: 0 4px;
@@ -57,57 +57,67 @@
 .mc-qty-wrap {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  background: rgba(0,0,0,0.15);
-  border-radius: 10px;
-  padding: 4px;
+  gap: 0;
+  background: linear-gradient(135deg, rgba(38, 198, 218, 0.15) 0%, rgba(0, 172, 193, 0.15) 100%);
+  border-radius: 25px;
+  padding: 3px;
+  border: 2px solid rgba(38, 198, 218, 0.3);
 }
 
 .mc-qty-display {
-  min-width: 40px;
+  min-width: 32px;
   text-align: center;
-  background: rgba(255,255,255,0.1);
+  background: transparent;
   color: #fff;
-  padding: 8px 10px;
-  border-radius: 8px;
-  font-weight: 700;
+  padding: 6px 8px;
+  font-weight: 800;
   font-size: 1rem;
 }
 
 .mc-plus-btn {
-  background: rgba(255,255,255,0.1);
+  background: linear-gradient(135deg, #26c6da 0%, #00acc1 100%);
   color: #fff;
   border: none;
-  padding: 8px 12px;
-  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
   cursor: pointer;
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(38, 198, 218, 0.4);
+}
+
+.mc-plus-btn:first-child {
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: none;
+}
+
+.mc-plus-btn:first-child:hover {
+  background: rgba(255, 255, 255, 0.25);
 }
 
 .mc-plus-btn:hover {
-  background: rgba(255,255,255,0.2);
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(38, 198, 218, 0.5);
 }
 
 .mc-plus-btn:active {
   transform: scale(0.95);
 }
 
-.mc-remove-btn {
-  background: rgba(255,100,100,0.1);
-  border: none;
-  color: rgba(255,200,200,0.8);
-  cursor: pointer;
-  font-size: 18px;
-  padding: 8px 10px;
-  border-radius: 8px;
-  transition: all 0.2s ease;
+.mc-plus-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
-.mc-remove-btn:hover {
-  background: rgba(255,0,0,0.15);
-  color: #ff6b6b;
+.mc-remove-btn {
+  display: none;
 }
 
 /* ===== ADD BUTTON ===== */
@@ -141,61 +151,75 @@
 .mc-cart {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .mc-empty {
   color: rgba(255,255,255,0.6);
   text-align: center;
-  padding: 20px;
+  padding: 24px;
   font-style: italic;
+  background: rgba(255,255,255,0.03);
+  border-radius: 12px;
+  border: 1px dashed rgba(255,255,255,0.2);
 }
 
 .mc-cart-item {
   display: flex;
   align-items: center;
   gap: 12px;
-  background: rgba(255,255,255,0.06);
-  padding: 12px;
-  border-radius: 14px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  background: linear-gradient(135deg, rgba(38, 198, 218, 0.08) 0%, rgba(0, 172, 193, 0.08) 100%);
+  padding: 14px;
+  border-radius: 16px;
+  border: 2px solid rgba(38, 198, 218, 0.2);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
 
 .mc-cart-img {
-  width: 64px;
-  height: 50px;
+  width: 60px;
+  height: 60px;
   object-fit: cover;
-  border-radius: 8px;
+  border-radius: 12px;
   background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  flex-shrink: 0;
 }
 
 .mc-cart-name {
   color: #fff;
-  font-weight: 600;
+  font-weight: 700;
   flex: 1;
-  font-size: 0.95rem;
+  font-size: 1rem;
 }
 
-.mc-cart-qty {
-  width: 72px;
-  padding: 8px;
-  border-radius: 8px;
-  border: none;
-  text-align: center;
-  font-weight: 600;
+.mc-cart-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
 }
 
 .mc-trash {
-  color: rgba(255,100,100,0.7);
-  cursor: pointer;
-  font-size: 20px;
-  padding: 6px;
-  transition: all 0.2s ease;
+  display: none;
 }
 
-.mc-trash:hover {
-  color: #ff4444;
-  transform: scale(1.1);
+.mc-cart-remove {
+  background: #d64545;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 10px 14px;
+  border-radius: 20px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.mc-cart-remove:hover {
+  background: #c23a3a;
+  transform: translateY(-2px);
 }
 
 /* ===== DISABLED STATES ===== */
@@ -211,7 +235,8 @@
 .cd-note {
   color: rgba(255,255,255,0.85);
   text-align: center;
-  margin: 16px 0;
+  margin-top: 20px;
+  margin-bottom: 16px;
   font-size: 0.9rem;
   line-height: 1.5;
   padding: 0 16px;
@@ -248,13 +273,13 @@
 .mc-obs-title {
   color: #26c6da;
   font-weight: 800;
-  font-size: 1rem;
+  font-size: 1.15rem;
   margin-bottom: 6px;
 }
 
 .mc-obs-text {
   color: rgba(255, 255, 255, 0.9);
-  font-size: 0.9rem;
+  font-size: 1.05rem;
   line-height: 1.5;
 }
 
@@ -338,24 +363,20 @@
 
   /* Botões menores */
   .mc-qty-display {
-    min-width: 28px;
+    min-width: 26px;
     padding: 4px 6px;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
   }
 
   .mc-plus-btn {
-    padding: 4px 8px;
-    font-size: 0.95rem;
-  }
-
-  .mc-remove-btn {
-    padding: 4px 6px;
-    font-size: 14px;
+    width: 28px;
+    height: 28px;
+    font-size: 1rem;
   }
 
   .mc-qty-wrap {
-    gap: 2px;
-    padding: 3px;
+    padding: 2px;
+    border-width: 1.5px;
   }
 
   .mc-float-counter {
@@ -377,8 +398,12 @@
     margin: 0 12px 16px 12px;
   }
 
+  .mc-obs-title {
+    font-size: 1.05rem;
+  }
+
   .mc-obs-text {
-    font-size: 0.85rem;
+    font-size: 0.95rem;
   }
 
   /* Carrinho mais compacto */
@@ -401,13 +426,26 @@
     height: 40px;
   }
 
+  .mc-cart-item {
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .mc-cart-img {
+    width: 50px;
+    height: 50px;
+  }
+
   .mc-cart-name {
     font-size: 0.85rem;
   }
 
-  .mc-cart-qty {
-    width: 50px;
-    padding: 6px;
-    font-size: 0.9rem;
+  .mc-cart-controls {
+    gap: 6px;
+  }
+
+  .mc-cart-remove {
+    padding: 8px 10px;
+    font-size: 0.6rem;
   }
 }

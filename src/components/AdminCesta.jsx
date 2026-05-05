@@ -11,6 +11,7 @@ export default function AdminCesta({ onBack }) {
   const [valor10, setValor10] = useState('');
   const [valor15, setValor15] = useState('');
   const [valor18, setValor18] = useState('');
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
 
   // Carrega produtos do Firebase
   useEffect(() => {
@@ -102,12 +103,16 @@ export default function AdminCesta({ onBack }) {
     // Salva seleção e preços no Firestore
     try {
       await saveAdminConfig(selecionados, { 10: v10, 15: v15, 18: v18 });
-      alert('Configuração salva com sucesso!');
-      onBack && onBack();
+      setShowSuccessPopup(true);
     } catch (e) {
       console.error('Falha ao salvar configuração no Firestore', e);
       alert('Erro ao salvar. Tente novamente.');
     }
+  }
+
+  function handleCloseSuccessPopup() {
+    setShowSuccessPopup(false);
+    onBack && onBack();
   }
 
   return (
@@ -127,8 +132,8 @@ export default function AdminCesta({ onBack }) {
             <h2 className="ch-title">SELECIONAR PRODUTOS</h2>
 
             {/* Contador de Itens */}
-            <div className="admin-note" style={{ marginBottom: 8, marginTop: -10 }}>
-              <div className="admin-remaining" style={{ marginTop: 6 }}>
+            <div className="admin-note">
+              <div className="admin-remaining">
                 {totalSelected === 0
                   ? 'Selecione os itens que deseja incluir na cesta.'
                   : `Você selecionou ${totalSelected} item${totalSelected > 1 ? 's' : ''}.`}
@@ -225,6 +230,118 @@ export default function AdminCesta({ onBack }) {
         </div>
         {totalSelected >= 18 && <div className="ac-float-check">✓</div>}
       </div>
+
+      {/* Popup de Sucesso */}
+      {showSuccessPopup && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.6)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+          backdropFilter: 'blur(4px)',
+          animation: 'fadeIn 0.2s ease'
+        }}>
+          <div style={{
+            backgroundColor: '#fff',
+            borderRadius: '20px',
+            padding: '32px 28px',
+            maxWidth: '340px',
+            width: '90%',
+            boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+            animation: 'slideUp 0.3s ease',
+            textAlign: 'center'
+          }}>
+            {/* Ícone */}
+            <div style={{
+              width: '70px',
+              height: '70px',
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, #28a745 0%, #20c997 100%)',
+              boxShadow: '0 8px 25px rgba(40, 167, 69, 0.4)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 18px',
+              fontSize: '36px',
+              color: '#fff'
+            }}>
+              ✓
+            </div>
+
+            {/* Título */}
+            <h3 style={{
+              fontSize: '1.5rem',
+              fontWeight: '800',
+              color: '#28a745',
+              margin: '0 0 12px',
+              letterSpacing: '0.5px'
+            }}>
+              Sucesso!
+            </h3>
+
+            {/* Mensagem */}
+            <p style={{
+              color: '#555',
+              fontSize: '1rem',
+              lineHeight: '1.5',
+              margin: '0 0 24px'
+            }}>
+              Configuração salva com sucesso!
+            </p>
+
+            {/* Botão */}
+            <button
+              onClick={handleCloseSuccessPopup}
+              style={{
+                width: '100%',
+                padding: '14px',
+                fontSize: '1rem',
+                fontWeight: '700',
+                color: '#fff',
+                background: 'linear-gradient(135deg, #28a745 0%, #20c997 100%)',
+                border: 'none',
+                borderRadius: '50px',
+                cursor: 'pointer',
+                boxShadow: '0 4px 15px rgba(40, 167, 69, 0.4)',
+                transition: 'all 0.2s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.transform = 'translateY(-2px)';
+                e.target.style.boxShadow = '0 6px 20px rgba(40, 167, 69, 0.5)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = '0 4px 15px rgba(40, 167, 69, 0.4)';
+              }}
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
+
+      <style>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes slideUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
     </div>
   );
 }

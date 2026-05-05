@@ -106,7 +106,7 @@ export default function MontarCesta({ onBack }) {
   function handleIncrement(prod) {
     setQuantidades(q => {
       const current = q[prod.id] || 0;
-      if (current >= 2) return q; // Limita a 2 
+      if (current >= 2) return q; // Máximo 2 unidades por produto 
       const nextQty = current + 1;
       // Atualiza o carrinho
       setCart(prev => {
@@ -144,7 +144,7 @@ export default function MontarCesta({ onBack }) {
 
   function updateCartQty(id, value) {
     const num = Number(value);
-    const v = Number.isNaN(num) ? 0 : Math.min(3, Math.max(0, Math.floor(num)));
+    const v = Number.isNaN(num) ? 0 : Math.min(2, Math.max(0, Math.floor(num)));
     if (v <= 0) {
       // Remove do carrinho e zera quantidade
       setCart(prev => prev.filter(i => i.id !== id));
@@ -249,7 +249,7 @@ export default function MontarCesta({ onBack }) {
               <div className="mc-obs-title">Como funciona:</div>
               <div className="mc-obs-text">
                 Escolha <strong>exatamente 10, 15 ou 18 itens</strong> para montar sua cesta.
-                <br />Você pode adicionar até 3 unidades de cada produto.
+                <br />Você pode adicionar até 2 unidades de cada produto.
               </div>
             </div>
 
@@ -283,16 +283,14 @@ export default function MontarCesta({ onBack }) {
                         <button
                           className="mc-plus-btn"
                           onClick={() => handleIncrement(prod)}
-                          disabled={(quantidades[prod.id] || 0) >= 3}
-                          title={(quantidades[prod.id] || 0) >= 3 ? 'Máximo 3 unidades' : ''}
+                          disabled={(quantidades[prod.id] || 0) >= 2}
+                          title={(quantidades[prod.id] || 0) >= 2 ? 'Máximo 2 unidades' : ''}
                         >
                           +
                         </button>
                       </div>
-                       {/* Remover */}
-                       <button className="mc-remove-btn" onClick={() => removeFromCart(prod.id)} aria-label="Remover">🗑️</button>
-                     </div>
-                   </div>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
@@ -326,15 +324,14 @@ export default function MontarCesta({ onBack }) {
                     }}
                   />
                   <div className="mc-cart-name">{item.name}</div>
-                  <input
-                    className="mc-cart-qty"
-                    type="number"
-                    min="0"
-                    max="3"
-                    value={item.qty}
-                    onChange={(e) => updateCartQty(item.id, e.target.value)}
-                  />
-                  <button className="mc-remove-btn" onClick={() => removeFromCart(item.id)}>🗑️</button>
+                  <div className="mc-cart-controls">
+                    <div className="mc-qty-wrap">
+                      <button className="mc-plus-btn" onClick={() => updateCartQty(item.id, item.qty - 1)}>-</button>
+                      <div className="mc-qty-display">{item.qty}</div>
+                      <button className="mc-plus-btn" onClick={() => updateCartQty(item.id, item.qty + 1)} disabled={item.qty >= 2}>+</button>
+                    </div>
+                    <button className="mc-cart-remove" onClick={() => removeFromCart(item.id)}>REMOVER</button>
+                  </div>
                 </div>
               ))}
             </div>

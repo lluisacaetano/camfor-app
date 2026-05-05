@@ -23,13 +23,18 @@ const CONFIG_DOC = doc(db, 'config', 'admin');
 
 /**
  * Salva a configuração do admin (itens selecionados e preços)
+ * Quando há produtos selecionados, automaticamente prepara a loja para abrir
+ * no próximo horário comercial (lojaFechada: false)
  */
 export async function saveAdminConfig(selectedItems, prices) {
   try {
     await setDoc(CONFIG_DOC, {
       selectedItems,
       prices,
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
+      // Se há produtos selecionados, permite que a loja abra automaticamente
+      // no próximo horário comercial
+      lojaFechada: selectedItems.length === 0
     });
     return true;
   } catch (error) {

@@ -68,14 +68,32 @@
 /* Título */
 .ch-title {
   margin-top: -10px;
+  margin-bottom: 28px;
   text-align: center;
   color: #fff;
   font-size: 1.8rem;
   font-weight: bold;
   letter-spacing: 1px;
+  position: relative;
+  display: inline-block;
+  width: 100%;
 }
+
+/* Linha gradiente abaixo do título */
+.ch-title::after {
+  content: '';
+  position: absolute;
+  bottom: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 4px;
+  background: linear-gradient(90deg, transparent, #26c6da, transparent);
+  border-radius: 2px;
+}
+
 .ch-title + .ch-btn-group {
-  margin-top: 28px;
+  margin-top: 8px;
 }
 
 /* Botões */
@@ -91,13 +109,65 @@
   box-shadow: 0 4px 15px rgba(38, 198, 218, 0.4);
   transition: transform .2s ease, box-shadow .2s ease;
   text-transform: uppercase;
+  position: relative;
+  overflow: hidden;
 }
+
+/* Efeito de brilho no botão */
+.ch-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s ease;
+}
+
+.ch-btn:hover::before {
+  left: 100%;
+}
+
 .ch-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(38, 198, 218, 0.5);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(38, 198, 218, 0.5);
+}
+
+.ch-btn:active {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(38, 198, 218, 0.4);
 }
 .ch-btn-group {
   gap: 28px !important;
+}
+
+/* Animações de entrada */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ch-cover-wrapper {
+  animation: fadeInUp 0.5s ease-out;
+}
+
+.ch-title {
+  animation: fadeInUp 0.5s ease-out 0.15s both;
+}
+
+.ch-btn-group {
+  animation: fadeInUp 0.5s ease-out 0.3s both;
+}
+
+.ch-logos-bottom {
+  animation: fadeInUp 0.5s ease-out 0.45s both;
 }
 
 /* Botões quando a loja está fechada */
@@ -196,6 +266,8 @@
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
   justify-content: center;
