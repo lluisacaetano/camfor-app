@@ -628,7 +628,7 @@ module.exports = async function handler(req, res) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'CAMFOR <onboarding@resend.dev>',
+        from: 'CAMFOR <sistema@loja.camffor.com.br>',
         to: [TO_EMAIL],
         subject: `📊 Relatório CAMFOR - ${formatShortDate(today)}`,
         html: emailBody,
