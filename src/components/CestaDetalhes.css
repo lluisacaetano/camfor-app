@@ -95,6 +95,24 @@
   box-shadow: none;
 }
 
+/* Layout preço + como funciona lado a lado */
+.cd-info-row {
+  display: flex;
+  gap: 16px;
+  align-items: stretch;
+  margin-bottom: 16px;
+}
+
+.cd-info-row .cd-price-item {
+  flex-shrink: 0;
+  justify-content: center;
+}
+
+.cd-info-row .mc-obs-box {
+  flex: 1;
+  margin: 0;
+}
+
 .cd-prices {
   display: flex;
   gap: 14px;
@@ -127,6 +145,13 @@
 
 /* Mobile */
 @media (max-width: 576px) {
+  .cd-info-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .cd-info-row .cd-price-item {
+    align-self: center;
+  }
   .cd-list {
     grid-template-columns: 1fr;
     gap: 12px;

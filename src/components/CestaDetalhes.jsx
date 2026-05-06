@@ -195,20 +195,18 @@ export default function CestaDetalhes({ onClose, onFinish }) {
 
             <h2 className="ch-title">ITENS DISPONÍVEIS</h2>
 
-            {/* Valor da cesta */}
-            <div className="cd-prices" aria-hidden={storeClosed}>
-              <div className="cd-price-item">
+            {/* Preço + Como funciona lado a lado */}
+            <div className="cd-info-row">
+              <div className="cd-price-item" aria-hidden={storeClosed}>
                 <div className="cd-price-size">18 itens</div>
                 <div className="cd-price-value">{prices[18] ? formatBRL(prices[18]) : '—'}</div>
               </div>
-            </div>
-
-            {/* Observação sobre como funciona */}
-            <div className="mc-obs-box">
-              <div className="mc-obs-title">Como funciona:</div>
-              <div className="mc-obs-text">
-                A cesta contém <strong>18 itens diferentes</strong>, com apenas <strong>1 unidade</strong> de cada produto.
-                <br />Os itens serão selecionados <strong>aleatoriamente</strong> da lista abaixo.
+              <div className="mc-obs-box">
+                <div className="mc-obs-title">Como funciona:</div>
+                <div className="mc-obs-text">
+                  A cesta contém <strong>18 itens diferentes</strong>, com apenas <strong>1 unidade</strong> de cada produto.
+                  <br />Os itens serão selecionados <strong>aleatoriamente</strong> da lista abaixo.
+                </div>
               </div>
             </div>
 
