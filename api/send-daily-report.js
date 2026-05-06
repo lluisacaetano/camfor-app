@@ -40,6 +40,15 @@ function formatBRL(value) {
   return 'R$ ' + Number(value || 0).toFixed(2).replace('.', ',');
 }
 
+// Remove acentos para compatibilidade com Windows antigo
+function removeAccents(str) {
+  if (!str) return str;
+  return str
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^\x00-\x7F]/g, ''); // Remove caracteres não-ASCII
+}
+
 // Retorna data atual no fuso horário de Brasília
 function getBrasiliaDate() {
   const now = new Date();
@@ -110,6 +119,23 @@ async function generatePDF(orders, date) {
   const retiradas = orders.filter(o => o.tipo === 'retirada').length;
   const entregas = orders.filter(o => o.tipo === 'entrega').length;
 
+  // Agrupa por forma de pagamento
+  const paymentGroups = {
+    'PIX': orders.filter(o => o.pagamento === 'PIX'),
+    'Cartao': orders.filter(o => o.pagamento === 'Cartão' || o.pagamento === 'Cartao'),
+    'Dinheiro': orders.filter(o => o.pagamento === 'Dinheiro'),
+    'Retirada': orders.filter(o => o.pagamento === 'Retirada no local' || (!o.pagamento && o.tipo === 'retirada'))
+  };
+
+  // Calcula totais por forma de pagamento
+  const paymentTotals = {};
+  for (const [key, group] of Object.entries(paymentGroups)) {
+    paymentTotals[key] = {
+      count: group.length,
+      value: group.reduce((sum, o) => sum + (o.total || 0), 0)
+    };
+  }
+
   // Configurações
   const marginLeft = 35;
   const marginRight = 35;
@@ -141,7 +167,7 @@ async function generatePDF(orders, date) {
   });
 
   // Data (canto direito)
-  const dateText = formatDate(date);
+  const dateText = removeAccents(formatDate(date));
   const dateWidth = font.widthOfTextAtSize(dateText, 9);
   page.drawText(dateText, {
     x: pageWidth - marginRight - dateWidth,
@@ -153,7 +179,7 @@ async function generatePDF(orders, date) {
 
   y -= 55;
 
-  // Resumo
+  // Resumo geral
   page.drawRectangle({
     x: marginLeft,
     y: y - 30,
@@ -162,7 +188,7 @@ async function generatePDF(orders, date) {
     color: COLORS.lightGray
   });
 
-  const resumoText = `${totalOrders} pedidos  •  ${retiradas} retiradas  •  ${entregas} entregas  •  Total: ${formatBRL(totalValue)}`;
+  const resumoText = removeAccents(`${totalOrders} pedidos  -  ${retiradas} retiradas  -  ${entregas} entregas  -  Total: ${formatBRL(totalValue)}`);
   page.drawText(resumoText, {
     x: marginLeft + 15,
     y: y - 20,
@@ -172,6 +198,41 @@ async function generatePDF(orders, date) {
   });
 
   y -= 45;
+
+  // Resumo por forma de pagamento
+  page.drawText(removeAccents('RESUMO POR FORMA DE PAGAMENTO'), {
+    x: marginLeft,
+    y: y,
+    size: 9,
+    font: fontBold,
+    color: COLORS.primary
+  });
+
+  y -= 15;
+
+  const paymentLabels = {
+    'PIX': 'PIX',
+    'Cartao': 'Cartao',
+    'Dinheiro': 'Dinheiro',
+    'Retirada': 'Retirada no local'
+  };
+
+  for (const [key, label] of Object.entries(paymentLabels)) {
+    const data = paymentTotals[key];
+    if (data.count > 0) {
+      const payText = removeAccents(`${label}: ${data.count} pedido(s) - ${formatBRL(data.value)}`);
+      page.drawText(payText, {
+        x: marginLeft + 10,
+        y: y,
+        size: 8,
+        font: font,
+        color: COLORS.black
+      });
+      y -= 12;
+    }
+  }
+
+  y -= 10;
 
   // Linha divisória
   page.drawLine({
@@ -213,11 +274,11 @@ async function generatePDF(orders, date) {
     const isEntrega = order.tipo === 'entrega';
     const items = order.items || [];
 
-    // Formata itens como lista compacta
-    const itemsFormatted = items.map(item => {
+    // Formata itens como lista compacta (sem acentos para compatibilidade)
+    const itemsFormatted = removeAccents(items.map(item => {
       const qty = item.qty || 1;
       return qty > 1 ? `${item.nome || item.name} (${qty}x)` : (item.nome || item.name);
-    }).join(', ');
+    }).join(', '));
 
     // Calcula altura necessária
     const itemsLines = wrapText(itemsFormatted, contentWidth - 20, 8);
@@ -274,7 +335,7 @@ async function generatePDF(orders, date) {
     });
 
     // Cliente
-    const clienteText = order.nome || '-';
+    const clienteText = removeAccents(order.nome || '-');
     page.drawText(clienteText, {
       x: marginLeft + badgeWidth + 15,
       y: currentY,
@@ -310,12 +371,12 @@ async function generatePDF(orders, date) {
     if (isEntrega) {
       const enderecoParts = [
         order.rua,
-        order.numero ? `nº ${order.numero}` : null,
+        order.numero ? `n ${order.numero}` : null,
         order.complemento,
         order.bairro,
         order.cidade
       ].filter(Boolean);
-      const enderecoText = enderecoParts.join(', ');
+      const enderecoText = removeAccents(enderecoParts.join(', '));
 
       page.drawText(enderecoText, {
         x: marginLeft + 8,
@@ -354,10 +415,57 @@ async function generatePDF(orders, date) {
     y -= blockHeight + 5;
   }
 
-  // ========== DESENHA PEDIDOS ==========
-  orders.forEach((order, index) => {
-    drawOrder(order, index);
-  });
+  // ========== DESENHA PEDIDOS AGRUPADOS POR FORMA DE PAGAMENTO ==========
+  const paymentOrder = ['PIX', 'Cartao', 'Dinheiro', 'Retirada'];
+  const paymentDisplayNames = {
+    'PIX': 'PIX',
+    'Cartao': 'CARTAO',
+    'Dinheiro': 'DINHEIRO',
+    'Retirada': 'RETIRADA NO LOCAL'
+  };
+
+  let globalIndex = 0;
+
+  for (const paymentKey of paymentOrder) {
+    const groupOrders = paymentGroups[paymentKey];
+    if (groupOrders.length === 0) continue;
+
+    // Verifica se precisa de nova página para o título da seção
+    if (y < 80) {
+      page = pdfDoc.addPage([pageWidth, pageHeight]);
+      y = pageHeight - marginTop;
+    }
+
+    // Linha divisória antes da seção
+    page.drawLine({
+      start: { x: marginLeft, y: y },
+      end: { x: pageWidth - marginRight, y: y },
+      thickness: 1.5,
+      color: COLORS.primary
+    });
+
+    y -= 20;
+
+    // Título da seção de pagamento
+    const sectionTitle = `${paymentDisplayNames[paymentKey]} (${groupOrders.length} pedido${groupOrders.length > 1 ? 's' : ''} - ${formatBRL(paymentTotals[paymentKey].value)})`;
+    page.drawText(removeAccents(sectionTitle), {
+      x: marginLeft,
+      y: y,
+      size: 11,
+      font: fontBold,
+      color: COLORS.primary
+    });
+
+    y -= 20;
+
+    // Desenha os pedidos desta forma de pagamento
+    groupOrders.forEach((order) => {
+      drawOrder(order, globalIndex);
+      globalIndex++;
+    });
+
+    y -= 10;
+  }
 
   // ========== RODAPÉ FINAL ==========
   y -= 5;
@@ -379,7 +487,7 @@ async function generatePDF(orders, date) {
     color: COLORS.primary
   });
 
-  page.drawText(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, {
+  page.drawText(removeAccents(`Gerado em: ${new Date().toLocaleString('pt-BR')}`), {
     x: marginLeft,
     y: y,
     size: 8,
