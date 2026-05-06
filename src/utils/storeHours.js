@@ -1,7 +1,9 @@
 // Utilitário para controle de horário de funcionamento da loja
 
 // Horários de funcionamento
-export const OPENING_HOUR = 7;  // 7h (todos os dias úteis)
+export const OPENING_HOUR = 7;  // 7h - horário oficial exibido ao cliente
+export const OPENING_HOUR_REAL = 6;  // 6h30 - horário real de abertura (se config pronta)
+export const OPENING_MINUTE_REAL = 30; // 30 minutos
 export const CLOSING_HOUR = 17; // 17h (segunda a quinta para pedidos)
 export const FRIDAY_CLOSING_HOUR = 16; // 16h (sexta-feira para pedidos)
 
@@ -88,9 +90,10 @@ export function getClosingHourForToday() {
 
 /**
  * Verifica se estamos dentro do horário comercial
- * Segunda a Quinta: 7h-17h
- * Sexta: 7h-16h
+ * Segunda a Quinta: 6h30-17h (aceita pedidos a partir de 6h30)
+ * Sexta: 6h30-16h
  * Sábado e Domingo: Fechado
+ * Nota: O horário oficial exibido é 7h, mas pedidos são aceitos a partir de 6h30
  */
 export function isWithinBusinessHours() {
   // Fim de semana sempre fechado
@@ -100,9 +103,13 @@ export function isWithinBusinessHours() {
 
   const brasiliaTime = getBrasiliaDateTime();
   const hour = brasiliaTime.getHours();
+  const minute = brasiliaTime.getMinutes();
   const closingHour = getClosingHourForToday();
 
-  return hour >= OPENING_HOUR && hour < closingHour;
+  // Verifica se passou das 6h30 (horário real de abertura)
+  const isAfterOpening = hour > OPENING_HOUR_REAL || (hour === OPENING_HOUR_REAL && minute >= OPENING_MINUTE_REAL);
+
+  return isAfterOpening && hour < closingHour;
 }
 
 /**
@@ -152,11 +159,14 @@ export function wasConfigMadeDuringBusinessHours(updatedAt) {
     // Se não foi hoje, não é do horário comercial de hoje
     if (updateDateString !== todayDateString) return false;
 
-    // Verifica se foi durante o horário comercial
+    // Verifica se foi durante o horário comercial (a partir de 6h30)
     const updateHour = updateBrasilia.getHours();
+    const updateMinute = updateBrasilia.getMinutes();
     const closingHour = getClosingHourForDay(updateBrasilia);
 
-    return updateHour >= OPENING_HOUR && updateHour < closingHour;
+    const isAfterOpening = updateHour > OPENING_HOUR_REAL || (updateHour === OPENING_HOUR_REAL && updateMinute >= OPENING_MINUTE_REAL);
+
+    return isAfterOpening && updateHour < closingHour;
   } catch (e) {
     return false;
   }
@@ -285,7 +295,8 @@ export function shouldClearItems(config) {
 /**
  * Verifica se a loja está aberta
  * A loja está aberta se:
- * 1. Estamos dentro do horário comercial (7h-17h seg-qui, 7h-16h sex)
+ * 1. Estamos dentro do horário comercial (6h30-17h seg-qui, 6h30-16h sex)
+ *    Nota: O horário exibido ao cliente é 7h, mas pedidos são aceitos a partir de 6h30
  * 2. O admin configurou os produtos (hoje OU após fechamento do dia anterior)
  * 3. Há produtos selecionados
  * 4. Não está fechada manualmente
@@ -331,8 +342,11 @@ export function getClosedReason(config) {
     }
     const brasiliaTime = getBrasiliaDateTime();
     const hour = brasiliaTime.getHours();
-    if (hour < OPENING_HOUR) {
-      return `Abre às ${OPENING_HOUR}h`;
+    const minute = brasiliaTime.getMinutes();
+    // Verifica se é antes das 6h30
+    const isBeforeOpening = hour < OPENING_HOUR_REAL || (hour === OPENING_HOUR_REAL && minute < OPENING_MINUTE_REAL);
+    if (isBeforeOpening) {
+      return `Abre às ${OPENING_HOUR}h`; // Exibe 7h (horário oficial)
     } else {
       if (isFriday()) {
         return 'Fechado - Volte na segunda-feira às 7h';
