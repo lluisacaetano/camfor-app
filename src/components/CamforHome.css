@@ -344,7 +344,7 @@
     margin-left: calc(50% - 50vw);
     margin-right: calc(50% - 50vw);
     margin-top: 0 !important;
-    margin-bottom: 70px;
+    margin-bottom: 50px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.12);
     border-radius: 0;
   }
@@ -371,7 +371,7 @@
 
   .ch-title {
     font-size: 1.4rem;
-    margin-top: 70px;
+    margin-top: 20px;
   }
 
   .ch-sicoob-img {

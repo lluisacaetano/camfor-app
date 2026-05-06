@@ -127,6 +127,10 @@
 
 /* Mobile */
 @media (max-width: 576px) {
+  .cd-list {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
   .cd-prices {
     gap: 8px;
   }

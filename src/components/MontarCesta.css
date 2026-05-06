@@ -340,10 +340,12 @@
 
 /* ===== MOBILE ADJUSTMENTS ===== */
 @media (max-width: 576px) {
-  /* Mais espaçamento nas laterais */
+  /* Lista em coluna única no mobile */
   .mc-list {
-    padding: 0 12px;
+    grid-template-columns: 1fr;
+    padding: 0 16px;
     margin-top: 12px;
+    gap: 12px;
   }
 
   .mc-item {
