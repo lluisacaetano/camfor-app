@@ -80,31 +80,27 @@ export default function CestaDetalhes({ onClose, onFinish }) {
     setBasketCounts(b => ({ ...b, [size]: 0 }));
   }
 
-  const totalBaskets = (basketCounts[10]||0) + (basketCounts[15]||0) + (basketCounts[18]||0);
-  const totalValue = (basketCounts[10]||0) * (prices[10]||0) + (basketCounts[15]||0) * (prices[15]||0) + (basketCounts[18]||0) * (prices[18]||0);
+  const totalBaskets = basketCounts[18] || 0;
+  const totalValue = (basketCounts[18] || 0) * (prices[18] || 0);
 
-  // Pode finalizar se pelo menos 1 cesta e preços configurados para as selecionadas
+  // Pode finalizar se pelo menos 1 cesta e preço configurado
   function canFinalize() {
     if (totalBaskets === 0) return false;
-    for (const sz of [10,15,18]) {
-      if ((basketCounts[sz]||0) > 0 && !(prices[sz] && prices[sz] > 0)) return false;
-    }
+    if (!(prices[18] && prices[18] > 0)) return false;
     return true;
   }
 
   if (showRetirada) {
     // Converte basketCounts em itens para salvar/visualizar
     const basketItems = [];
-    for (const sz of [10,15,18]) {
-      const qty = Number(basketCounts[sz] || 0);
-      if (qty > 0) {
-        basketItems.push({
-          id: `cesta${sz}`,
-          name: `Cesta ${sz} itens`,
-          qty,
-          price: prices[sz] || 0
-        });
-      }
+    const qty = Number(basketCounts[18] || 0);
+    if (qty > 0) {
+      basketItems.push({
+        id: 'cesta18',
+        name: 'Cesta 18 itens',
+        qty,
+        price: prices[18] || 0
+      });
     }
     return (
       <Retirada
@@ -122,16 +118,14 @@ export default function CestaDetalhes({ onClose, onFinish }) {
   }
   if (showEntrega) {
     const basketItems = [];
-    for (const sz of [10,15,18]) {
-      const qty = Number(basketCounts[sz] || 0);
-      if (qty > 0) {
-        basketItems.push({
-          id: `cesta${sz}`,
-          name: `Cesta ${sz} itens`,
-          qty,
-          price: prices[sz] || 0
-        });
-      }
+    const qtyEntrega = Number(basketCounts[18] || 0);
+    if (qtyEntrega > 0) {
+      basketItems.push({
+        id: 'cesta18',
+        name: 'Cesta 18 itens',
+        qty: qtyEntrega,
+        price: prices[18] || 0
+      });
     }
     return (
       <Entrega
@@ -201,16 +195,8 @@ export default function CestaDetalhes({ onClose, onFinish }) {
 
             <h2 className="ch-title">ITENS DISPONÍVEIS</h2>
 
-            {/* Valores das cestas */}
+            {/* Valor da cesta */}
             <div className="cd-prices" aria-hidden={storeClosed}>
-              <div className="cd-price-item">
-                <div className="cd-price-size">10 itens</div>
-                <div className="cd-price-value">{prices[10] ? formatBRL(prices[10]) : '—'}</div>
-              </div>
-              <div className="cd-price-item">
-                <div className="cd-price-size">15 itens</div>
-                <div className="cd-price-value">{prices[15] ? formatBRL(prices[15]) : '—'}</div>
-              </div>
               <div className="cd-price-item">
                 <div className="cd-price-size">18 itens</div>
                 <div className="cd-price-value">{prices[18] ? formatBRL(prices[18]) : '—'}</div>
@@ -221,7 +207,7 @@ export default function CestaDetalhes({ onClose, onFinish }) {
             <div className="mc-obs-box">
               <div className="mc-obs-title">Como funciona:</div>
               <div className="mc-obs-text">
-                Escolha a quantidade de cestas desejada (10, 15 ou 18 itens).
+                A cesta contém <strong>18 itens diferentes</strong>, com apenas <strong>1 unidade</strong> de cada produto.
                 <br />Os itens serão selecionados <strong>aleatoriamente</strong> da lista abaixo.
               </div>
             </div>
@@ -251,51 +237,46 @@ export default function CestaDetalhes({ onClose, onFinish }) {
             {/* Carrinho */}
             <h3 className="mc-cart-title">Carrinho</h3>
             <div className="mc-cart" style={{ marginTop: 8 }}>
-              {[10,15,18].map(sz => {
-                const qty = basketCounts[sz] || 0;
-                return (
-                  <div className="mc-cart-item" key={sz}>
-                    <img
-                      className="mc-cart-img"
-                      src={cestaImgForSize(sz)}
-                      alt={`Cesta ${sz}`}
-                      onError={handleImageError}
-                    />
-                    <div className="mc-cart-name">Cesta de {sz} itens</div>
-                    <div className="mc-cart-controls">
-                      <div className="mc-qty-wrap">
-                        <button
-                          type="button"
-                          className="mc-plus-btn"
-                          onClick={() => updateBasketCount(sz, Math.max(0, qty - 1))}
-                          disabled={storeClosed}
-                          aria-label={`Diminuir cestas ${sz}`}
-                        >
-                          -
-                        </button>
-                        <div className="mc-qty-display" aria-live="polite">{qty}</div>
-                        <button
-                          type="button"
-                          className="mc-plus-btn"
-                          onClick={() => updateBasketCount(sz, Math.min(99, qty + 1))}
-                          disabled={storeClosed}
-                          aria-label={`Aumentar cestas ${sz}`}
-                        >
-                          +
-                        </button>
-                      </div>
-                      <button
-                        type="button"
-                        className="mc-cart-remove"
-                        onClick={() => removeBasket(sz)}
-                        aria-label={`Remover cesta ${sz}`}
-                      >
-                        REMOVER
-                      </button>
-                    </div>
+              <div className="mc-cart-item">
+                <img
+                  className="mc-cart-img"
+                  src={cestaImgForSize(18)}
+                  alt="Cesta 18 itens"
+                  onError={handleImageError}
+                />
+                <div className="mc-cart-name">Cesta de 18 itens</div>
+                <div className="mc-cart-controls">
+                  <div className="mc-qty-wrap">
+                    <button
+                      type="button"
+                      className="mc-plus-btn"
+                      onClick={() => updateBasketCount(18, Math.max(0, (basketCounts[18] || 0) - 1))}
+                      disabled={storeClosed}
+                      aria-label="Diminuir cestas"
+                    >
+                      -
+                    </button>
+                    <div className="mc-qty-display" aria-live="polite">{basketCounts[18] || 0}</div>
+                    <button
+                      type="button"
+                      className="mc-plus-btn"
+                      onClick={() => updateBasketCount(18, Math.min(99, (basketCounts[18] || 0) + 1))}
+                      disabled={storeClosed}
+                      aria-label="Aumentar cestas"
+                    >
+                      +
+                    </button>
                   </div>
-                );
-              })}
+                  <button
+                    type="button"
+                    className="mc-cart-remove"
+                    onClick={() => removeBasket(18)}
+                    aria-label="Remover cesta"
+                  >
+                    REMOVER
+                  </button>
+                </div>
+              </div>
             </div>
 
             <div className="cd-note" style={{ marginTop: 8 }}>
