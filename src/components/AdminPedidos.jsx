@@ -480,8 +480,8 @@ function OrderDetail({ order, onBack }) {
                   <div className="od-info-row">
                     <span className="od-label">Precisa de troco?</span>
                     <span className="od-value">
-                      {order.precisaTroco ? (
-                        <span className="od-troco-sim">Sim - para {formatBRL(order.trocoValor || 0)}</span>
+                      {order.precisaTroco && order.valorTroco ? (
+                        <span className="od-troco-sim">Sim - para {order.valorTroco}</span>
                       ) : (
                         <span className="od-troco-nao">Não precisa</span>
                       )}

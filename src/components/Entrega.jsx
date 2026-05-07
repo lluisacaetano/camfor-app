@@ -265,8 +265,8 @@ export default function Entrega({ size, onBack, onFinish, totalPrice = 0, cartIt
       size: itemsForOrder.length || size || 0,
       source: source,
       pagamento: payment === 'pix' ? 'PIX' : payment === 'card' ? 'Cartão' : payment === 'cash' ? 'Dinheiro' : 'Não informado',
-      precisaTroco: payment === 'cash' && needChange,
-      valorTroco: payment === 'cash' && needChange ? changeForMask : null
+      precisaTroco: payment === 'cash' && needChange && isChangeValid && changeForMask,
+      valorTroco: payment === 'cash' && needChange && isChangeValid && changeForMask ? changeForMask : null
     };
 
     saveOrder(pedido);
