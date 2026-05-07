@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './MontarCesta.css';
+import './CestaDetalhes.css';
 import FinalizarPedido from './FinalizarPedido';
 import Retirada from './Retirada';
 import Entrega from './Entrega';
@@ -243,6 +244,22 @@ export default function MontarCesta({ onBack }) {
             </div>
 
             <h2 className="ch-title">MONTAR MINHA CESTA</h2>
+
+            {/* Cards de preços das cestas */}
+            <div className="cd-prices">
+              <div className="cd-price-item">
+                <div className="cd-price-size">10 itens</div>
+                <div className="cd-price-value">{prices[10] ? Number(prices[10]).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '—'}</div>
+              </div>
+              <div className="cd-price-item">
+                <div className="cd-price-size">15 itens</div>
+                <div className="cd-price-value">{prices[15] ? Number(prices[15]).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '—'}</div>
+              </div>
+              <div className="cd-price-item">
+                <div className="cd-price-size">18 itens</div>
+                <div className="cd-price-value">{prices[18] ? Number(prices[18]).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '—'}</div>
+              </div>
+            </div>
 
             {/* Observação sobre quantidade */}
             <div className="mc-obs-box">

@@ -104,7 +104,8 @@
 }
 
 .cd-info-row .cd-price-item {
-  flex-shrink: 0;
+  flex: 0 0 auto;
+  min-width: 130px;
   justify-content: center;
 }
 
@@ -117,12 +118,12 @@
   display: flex;
   gap: 14px;
   justify-content: center;
-  margin: 14px 0 8px;
-  flex-wrap: wrap;
-  margin-bottom: 14px;
+  margin: 14px 0 16px;
+  flex-wrap: nowrap;
 }
 .cd-price-item {
-  background: rgba(255,255,255,0.05);
+  background: rgba(38, 198, 218, 0.15);
+  border: 2px solid rgba(38, 198, 218, 0.3);
   padding: 14px 20px;
   border-radius: 12px;
   display: flex;
@@ -130,6 +131,12 @@
   align-items: center;
   min-width: 130px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+/* Os 3 cards de preço devem expandir para ocupar a largura */
+.cd-prices .cd-price-item {
+  flex: 1;
+  min-width: 0;
 }
 .cd-price-size {
   color: rgba(255,255,255,0.85);
@@ -158,9 +165,12 @@
   }
   .cd-prices {
     gap: 8px;
+    flex-wrap: nowrap;
+    margin-left: 12px;
+    margin-right: 12px;
   }
   .cd-price-item {
-    min-width: 100px;
-    padding: 8px 10px;
+    flex: 1;
+    padding: 10px 8px;
   }
 }
