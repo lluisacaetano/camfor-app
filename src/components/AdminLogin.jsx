@@ -112,7 +112,7 @@ export default function AdminLogin({ onBack, onLoginSuccess }) {
         <div className="ch-footer-content">
           <span className="ch-copyright-text">
             <span className="ch-copyright-symbol">©</span>
-            <span className="ch-copyright-year"> 2025</span>
+            <span className="ch-copyright-year"> 2026</span>
             <span className="ch-copyright-divider">|</span>
             <span className="ch-copyright-names">Desenvolvido por Luisa Caetano Araujo, Júlia Cristina Martins de Almeida Nakano, Maria Eduarda Siqueira Silva e Yasmin Stefane Faria</span>
           </span>
