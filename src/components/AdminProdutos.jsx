@@ -5,8 +5,7 @@ import {
   subscribeToProducts,
   addProductWithImage,
   updateProductWithImage,
-  deleteProductWithImage,
-  migrateProductsUnits
+  deleteProductWithImage
 } from '../services/firestoreService';
 import { handleImageError } from '../utils/imageUtils';
 
@@ -26,7 +25,6 @@ export default function AdminProdutos({ onBack }) {
 
   // Estado para popup personalizado
   const [popup, setPopup] = useState({ show: false, type: '', message: '' });
-  const [migrating, setMigrating] = useState(false);
 
   // Escuta produtos em tempo real
   useEffect(() => {
@@ -74,18 +72,6 @@ export default function AdminProdutos({ onBack }) {
 
   function closePopup() {
     setPopup({ show: false, type: '', message: '' });
-  }
-
-  async function handleMigrate() {
-    setMigrating(true);
-    try {
-      await migrateProductsUnits();
-      showPopup('success', 'Migração concluída! Todos os produtos foram atualizados com o tipo de medida correto.');
-    } catch (e) {
-      showPopup('error', 'Erro na migração: ' + e.message);
-    } finally {
-      setMigrating(false);
-    }
   }
 
   function handleFileChange(e) {
@@ -195,17 +181,9 @@ export default function AdminProdutos({ onBack }) {
             <h2 className="ch-title">GERENCIAR PRODUTOS</h2>
 
             {/* Botão Adicionar */}
-            <div style={{ textAlign: 'center', marginBottom: 16, display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <div style={{ textAlign: 'center', marginBottom: 16 }}>
               <button className="ap-add-btn" onClick={handleAdd}>
                 + ADICIONAR PRODUTO
-              </button>
-              <button
-                className="ap-migrate-btn"
-                onClick={handleMigrate}
-                disabled={migrating}
-                title="Atualiza todos os produtos com o tipo de medida correto"
-              >
-                {migrating ? '⏳ MIGRANDO...' : '🔄 MIGRAR UNIDADES'}
               </button>
             </div>
 
