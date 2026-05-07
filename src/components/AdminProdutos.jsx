@@ -327,7 +327,7 @@ export default function AdminProdutos({ onBack }) {
               >
                 <span className="ap-unit-icon">⚖️</span>
                 <span className="ap-unit-text">Peso</span>
-                <span className="ap-unit-desc">200g a 500g</span>
+                <span className="ap-unit-desc">200g a 1kg</span>
               </button>
               <button
                 type="button"
