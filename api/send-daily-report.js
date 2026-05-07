@@ -6,6 +6,50 @@
 const { initializeApp, cert, getApps } = require('firebase-admin/app');
 const { getFirestore } = require('firebase-admin/firestore');
 const { PDFDocument, rgb, StandardFonts } = require('pdf-lib');
+const CryptoJS = require('crypto-js');
+
+// Chave de criptografia
+const ENCRYPTION_KEY = process.env.VITE_ENCRYPTION_KEY;
+
+// Campos sensíveis que estão criptografados
+const SENSITIVE_FIELDS = [
+  'nome',
+  'telefone',
+  'cep',
+  'rua',
+  'numero',
+  'complemento',
+  'bairro',
+  'cidade',
+  'uf'
+];
+
+// Descriptografa um valor
+function decrypt(encryptedValue) {
+  if (!encryptedValue || typeof encryptedValue !== 'string') return encryptedValue;
+  if (!ENCRYPTION_KEY) return encryptedValue;
+  try {
+    const bytes = CryptoJS.AES.decrypt(encryptedValue, ENCRYPTION_KEY);
+    const decrypted = bytes.toString(CryptoJS.enc.Utf8);
+    return decrypted || encryptedValue;
+  } catch (error) {
+    return encryptedValue;
+  }
+}
+
+// Descriptografa os campos sensíveis de um pedido
+function decryptOrderData(orderData) {
+  if (!orderData || typeof orderData !== 'object') return orderData;
+  if (!orderData._encrypted) return orderData;
+
+  const decryptedData = { ...orderData };
+  SENSITIVE_FIELDS.forEach(field => {
+    if (decryptedData[field] && typeof decryptedData[field] === 'string') {
+      decryptedData[field] = decrypt(decryptedData[field]);
+    }
+  });
+  return decryptedData;
+}
 
 // Cores
 const COLORS = {
@@ -557,9 +601,11 @@ module.exports = async function handler(req, res) {
         const orderDateBrasilia = new Date(orderDateUTC.getTime() + (orderDateUTC.getTimezoneOffset() + brasiliaOffset) * 60000);
 
         if (orderDateBrasilia >= today && orderDateBrasilia < tomorrow) {
+          // Descriptografa os dados do pedido antes de adicionar
+          const decryptedData = decryptOrderData(data);
           orders.push({
             id: doc.id,
-            ...data
+            ...decryptedData
           });
         }
       }
