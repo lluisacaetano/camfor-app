@@ -310,6 +310,11 @@
   border-color: #2196F3;
 }
 
+.ap-unit-btn--active.ap-unit-btn--molho {
+  background: rgba(156, 39, 176, 0.2);
+  border-color: #9C27B0;
+}
+
 .ap-unit-icon {
   font-size: 1.5rem;
 }
