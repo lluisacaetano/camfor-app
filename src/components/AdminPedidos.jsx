@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './AdminPedidos.css';
-import { subscribeToOrders, clearAllOrders, updateOrder } from '../services/firestoreService';
+import { subscribeToOrders, clearAllOrders, updateOrder, subscribeToProducts } from '../services/firestoreService';
 import { handleImageError } from '../utils/imageUtils';
 
 function cestaImgForSize(sz) {
@@ -63,6 +63,7 @@ function getElapsedTime(timestamp) {
 
 export default function AdminPedidos({ onBack, onMount }) {
   const [orders, setOrders] = useState([]);
+  const [products, setProducts] = useState([]);
   const [selectedOrderId, setSelectedOrderId] = useState(null);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [, setTick] = useState(0); // Para forçar re-render a cada minuto
@@ -78,6 +79,14 @@ export default function AdminPedidos({ onBack, onMount }) {
   useEffect(() => {
     const unsubscribe = subscribeToOrders((ordersList) => {
       setOrders(ordersList);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // Escuta produtos para obter unidade
+  useEffect(() => {
+    const unsubscribe = subscribeToProducts((prods) => {
+      setProducts(prods);
     });
     return () => unsubscribe();
   }, []);
@@ -142,7 +151,7 @@ export default function AdminPedidos({ onBack, onMount }) {
   if (selectedOrderId !== null) {
     const selectedOrder = orders.find(o => o.id === selectedOrderId);
     if (selectedOrder) {
-      return <OrderDetail order={selectedOrder} onBack={() => setSelectedOrderId(null)} />;
+      return <OrderDetail order={selectedOrder} products={products} onBack={() => setSelectedOrderId(null)} />;
     }
   }
 
@@ -345,7 +354,7 @@ export default function AdminPedidos({ onBack, onMount }) {
   );
 }
 
-function OrderDetail({ order, onBack }) {
+function OrderDetail({ order, products = [], onBack }) {
   const formatBRL = v => {
     try { return Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
     catch { return 'R$ 0,00'; }
@@ -357,6 +366,15 @@ function OrderDetail({ order, onBack }) {
     if (unidade === 'pct') return { text: '1 bandeja', className: 'od-badge-pct' };
     if (unidade === 'g') return { text: 'Variação de 200g a 1kg', className: 'od-badge-g' };
     return null;
+  }
+
+  // Busca a unidade do produto no banco de dados pelo nome
+  function getProductUnidade(itemName) {
+    if (!itemName || !products.length) return 'g'; // padrão
+    const product = products.find(p =>
+      p.nome && p.nome.toLowerCase() === itemName.toLowerCase()
+    );
+    return product?.unidade || 'g';
   }
 
   // normalize name -> product id filename
@@ -499,7 +517,9 @@ function OrderDetail({ order, onBack }) {
                   itemsToRender.map((item, idx) => {
                     const isCesta = item.id && String(item.id).toLowerCase().startsWith('cesta');
                     const imgSrc = item.img || (isCesta ? cestaImgForSize(Number((String(item.id||'').match(/cesta(\d{2})/i)||[])[1])) : '/images/placeholder.png');
-                    const badge = item.unidade ? getUnitBadge(item.unidade) : null;
+                    // Usa unidade salva no item, ou busca no banco de dados
+                    const unidade = item.unidade || getProductUnidade(item.name);
+                    const badge = !isCesta ? getUnitBadge(unidade) : null;
                     return (
                       <div key={idx} className="od-item">
                         <img
