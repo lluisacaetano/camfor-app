@@ -208,6 +208,22 @@
   opacity: 0.96;
 }
 
+/* Copyright footer */
+.ch-copyright {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.7rem;
+  margin-top: 12px;
+  margin-bottom: 16px;
+  line-height: 1.5;
+  padding: 0 20px;
+}
+
+.ch-copyright-label {
+  font-weight: 600;
+  opacity: 0.85;
+}
+
 /* Overlay mensagem de loja fechada (central, mas não bloqueia navegação completa se quiser abrir admin) */
 .ch-closed-overlay-message {
   position: absolute;

@@ -424,6 +424,9 @@ export default function AdminProdutos({ onBack }) {
         <img src="/images/logo-ifmg.png" alt="IFMG" className="ch-ifmg-bottom" />
         <img src="/images/logo-sicoob.png" alt="SICOOB" className="ch-sicoob-bottom" />
       </div>
+      <p className="ch-copyright">
+        <span className="ch-copyright-label">Desenvolvido por:</span> Luisa Caetano Araujo, Júlia Cristina Martins de Almeida Nakano, Maria Eduarda Siqueira Silva e Yasmin Stefane Faria
+      </p>
     </div>
   );
 }
