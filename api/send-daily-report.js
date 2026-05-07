@@ -51,15 +51,34 @@ function decryptOrderData(orderData) {
   return decryptedData;
 }
 
-// Cores
+// Cores - Paleta Premium
 const COLORS = {
-  primary: rgb(10/255, 77/255, 92/255),
-  secondary: rgb(13/255, 100/255, 120/255),
+  // Cores principais
+  primary: rgb(10/255, 77/255, 92/255),        // #0a4d5c - Teal escuro
+  secondary: rgb(13/255, 100/255, 120/255),    // #0d6478 - Teal médio
+  accent: rgb(38/255, 198/255, 218/255),       // #26c6da - Turquesa vibrante
+
+  // Neutros
   white: rgb(1, 1, 1),
   black: rgb(0, 0, 0),
-  gray: rgb(100/255, 100/255, 100/255),
-  lightGray: rgb(245/255, 245/255, 245/255),
-  border: rgb(200/255, 200/255, 200/255)
+  darkText: rgb(33/255, 33/255, 33/255),       // #212121
+  gray: rgb(97/255, 97/255, 97/255),           // #616161
+  lightGray: rgb(250/255, 250/255, 250/255),   // #fafafa
+  mediumGray: rgb(238/255, 238/255, 238/255),  // #eeeeee
+  border: rgb(224/255, 224/255, 224/255),      // #e0e0e0
+
+  // Badges e status
+  entrega: rgb(13/255, 100/255, 120/255),      // Teal para entrega
+  retirada: rgb(46/255, 125/255, 50/255),      // Verde para retirada
+
+  // Formas de pagamento
+  pix: rgb(0/255, 189/255, 174/255),           // Verde PIX
+  cartao: rgb(63/255, 81/255, 181/255),        // Azul cartão
+  dinheiro: rgb(76/255, 175/255, 80/255),      // Verde dinheiro
+
+  // Destaques
+  highlight: rgb(255/255, 248/255, 225/255),   // Amarelo suave
+  success: rgb(232/255, 245/255, 233/255)      // Verde suave
 };
 
 // Inicializa Firebase Admin
@@ -136,7 +155,7 @@ async function fetchLogoBytes() {
   }
 }
 
-// Gera PDF com pdf-lib
+// Gera PDF com pdf-lib - Design Premium
 async function generatePDF(orders, date) {
   const pdfDoc = await PDFDocument.create();
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
@@ -181,69 +200,172 @@ async function generatePDF(orders, date) {
   }
 
   // Configurações
-  const marginLeft = 35;
-  const marginRight = 35;
-  const marginTop = 40;
+  const marginLeft = 40;
+  const marginRight = 40;
   const contentWidth = pageWidth - marginLeft - marginRight;
 
   let page = pdfDoc.addPage([pageWidth, pageHeight]);
-  let y = pageHeight - marginTop;
+  let y = pageHeight;
 
-  // ========== CABEÇALHO ==========
+  // ========== HEADER COM FUNDO COLORIDO ==========
+  const headerHeight = 85;
+
+  // Fundo do header (gradiente simulado com retângulos)
+  page.drawRectangle({
+    x: 0,
+    y: pageHeight - headerHeight,
+    width: pageWidth,
+    height: headerHeight,
+    color: COLORS.primary
+  });
+
+  // Faixa accent no topo
+  page.drawRectangle({
+    x: 0,
+    y: pageHeight - 4,
+    width: pageWidth,
+    height: 4,
+    color: COLORS.accent
+  });
+
+  // Logo no header (branco sobre fundo colorido)
   if (logoImage) {
-    page.drawImage(logoImage, { x: marginLeft, y: y - 40, width: 45, height: 45 });
+    // Círculo branco atrás do logo
+    page.drawRectangle({
+      x: marginLeft,
+      y: pageHeight - 65,
+      width: 50,
+      height: 50,
+      color: COLORS.white,
+      borderRadius: 25
+    });
+    page.drawImage(logoImage, { x: marginLeft + 2, y: pageHeight - 63, width: 46, height: 46 });
   }
 
+  // Título CAMFOR
   page.drawText('CAMFOR', {
-    x: marginLeft + (logoImage ? 55 : 0),
-    y: y - 12,
-    size: 22,
+    x: marginLeft + (logoImage ? 60 : 0),
+    y: pageHeight - 35,
+    size: 26,
     font: fontBold,
-    color: COLORS.primary
+    color: COLORS.white
   });
 
-  page.drawText('Relatório Diário de Pedidos', {
-    x: marginLeft + (logoImage ? 55 : 0),
-    y: y - 28,
-    size: 10,
+  // Subtítulo
+  page.drawText(removeAccents('Relatorio Diario de Pedidos'), {
+    x: marginLeft + (logoImage ? 60 : 0),
+    y: pageHeight - 52,
+    size: 11,
     font: font,
-    color: COLORS.gray
+    color: rgb(255/255, 255/255, 255/255, 0.85)
   });
 
-  // Data (canto direito)
+  // Data (canto direito, sobre fundo colorido)
   const dateText = removeAccents(formatDate(date));
-  const dateWidth = font.widthOfTextAtSize(dateText, 9);
+  const dateWidth = font.widthOfTextAtSize(dateText, 10);
   page.drawText(dateText, {
     x: pageWidth - marginRight - dateWidth,
-    y: y - 12,
-    size: 9,
-    font: font,
-    color: COLORS.black
-  });
-
-  y -= 55;
-
-  // Resumo geral
-  page.drawRectangle({
-    x: marginLeft,
-    y: y - 30,
-    width: contentWidth,
-    height: 30,
-    color: COLORS.lightGray
-  });
-
-  const resumoText = removeAccents(`${totalOrders} pedidos  -  ${retiradas} retiradas  -  ${entregas} entregas  -  Total: ${formatBRL(totalValue)}`);
-  page.drawText(resumoText, {
-    x: marginLeft + 15,
-    y: y - 20,
+    y: pageHeight - 35,
     size: 10,
-    font: fontBold,
+    font: font,
+    color: COLORS.white
+  });
+
+  // Hora de geração
+  const horaText = removeAccents(`Gerado as ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`);
+  const horaWidth = font.widthOfTextAtSize(horaText, 8);
+  page.drawText(horaText, {
+    x: pageWidth - marginRight - horaWidth,
+    y: pageHeight - 50,
+    size: 8,
+    font: font,
+    color: rgb(255/255, 255/255, 255/255, 0.7)
+  });
+
+  y = pageHeight - headerHeight - 25;
+
+  // ========== CARDS DE ESTATÍSTICAS ==========
+  const cardWidth = (contentWidth - 30) / 4; // 4 cards com 10px de gap
+  const cardHeight = 60;
+  const cardY = y - cardHeight;
+
+  // Função auxiliar para desenhar card de estatística
+  function drawStatCard(x, label, value, bgColor, textColor) {
+    // Fundo do card
+    page.drawRectangle({
+      x: x,
+      y: cardY,
+      width: cardWidth,
+      height: cardHeight,
+      color: bgColor
+    });
+
+    // Borda esquerda colorida
+    page.drawRectangle({
+      x: x,
+      y: cardY,
+      width: 4,
+      height: cardHeight,
+      color: textColor
+    });
+
+    // Label
+    page.drawText(removeAccents(label.toUpperCase()), {
+      x: x + 14,
+      y: cardY + cardHeight - 18,
+      size: 7,
+      font: fontBold,
+      color: COLORS.gray
+    });
+
+    // Valor
+    page.drawText(value, {
+      x: x + 14,
+      y: cardY + 15,
+      size: 22,
+      font: fontBold,
+      color: textColor
+    });
+  }
+
+  // Card 1: Total de Pedidos
+  drawStatCard(marginLeft, 'Pedidos', String(totalOrders), COLORS.lightGray, COLORS.primary);
+
+  // Card 2: Retiradas
+  drawStatCard(marginLeft + cardWidth + 10, 'Retiradas', String(retiradas), COLORS.lightGray, COLORS.retirada);
+
+  // Card 3: Entregas
+  drawStatCard(marginLeft + (cardWidth + 10) * 2, 'Entregas', String(entregas), COLORS.lightGray, COLORS.entrega);
+
+  // Card 4: Valor Total (destaque)
+  page.drawRectangle({
+    x: marginLeft + (cardWidth + 10) * 3,
+    y: cardY,
+    width: cardWidth,
+    height: cardHeight,
     color: COLORS.primary
   });
 
-  y -= 45;
+  page.drawText('TOTAL', {
+    x: marginLeft + (cardWidth + 10) * 3 + 14,
+    y: cardY + cardHeight - 18,
+    size: 7,
+    font: fontBold,
+    color: rgb(255/255, 255/255, 255/255, 0.8)
+  });
 
-  // Resumo por forma de pagamento
+  page.drawText(formatBRL(totalValue), {
+    x: marginLeft + (cardWidth + 10) * 3 + 14,
+    y: cardY + 15,
+    size: 16,
+    font: fontBold,
+    color: COLORS.white
+  });
+
+  y = cardY - 25;
+
+  // ========== RESUMO POR FORMA DE PAGAMENTO ==========
+  // Título da seção
   page.drawText(removeAccents('RESUMO POR FORMA DE PAGAMENTO'), {
     x: marginLeft,
     y: y,
@@ -252,41 +374,65 @@ async function generatePDF(orders, date) {
     color: COLORS.primary
   });
 
-  y -= 15;
+  y -= 18;
 
+  // Mini cards para cada forma de pagamento
   const paymentLabels = {
-    'PIX': 'PIX',
-    'Cartao': 'Cartao',
-    'Dinheiro': 'Dinheiro',
-    'Retirada': 'Retirada no local'
+    'PIX': { label: 'PIX', color: COLORS.pix },
+    'Cartao': { label: 'Cartao', color: COLORS.cartao },
+    'Dinheiro': { label: 'Dinheiro', color: COLORS.dinheiro },
+    'Retirada': { label: 'Retirada', color: COLORS.retirada }
   };
 
-  for (const [key, label] of Object.entries(paymentLabels)) {
+  let paymentX = marginLeft;
+  for (const [key, config] of Object.entries(paymentLabels)) {
     const data = paymentTotals[key];
     if (data.count > 0) {
-      const payText = removeAccents(`${label}: ${data.count} pedido(s) - ${formatBRL(data.value)}`);
-      page.drawText(payText, {
-        x: marginLeft + 10,
+      // Badge colorido
+      const badgeText = `${config.label}: ${data.count}x = ${formatBRL(data.value)}`;
+      const badgeWidth = font.widthOfTextAtSize(removeAccents(badgeText), 8) + 16;
+
+      page.drawRectangle({
+        x: paymentX,
+        y: y - 4,
+        width: badgeWidth,
+        height: 18,
+        color: COLORS.mediumGray
+      });
+
+      // Indicador de cor
+      page.drawRectangle({
+        x: paymentX,
+        y: y - 4,
+        width: 3,
+        height: 18,
+        color: config.color
+      });
+
+      page.drawText(removeAccents(badgeText), {
+        x: paymentX + 10,
         y: y,
         size: 8,
         font: font,
-        color: COLORS.black
+        color: COLORS.darkText
       });
-      y -= 12;
+
+      paymentX += badgeWidth + 8;
     }
   }
 
-  y -= 10;
+  y -= 30;
 
-  // Linha divisória
-  page.drawLine({
-    start: { x: marginLeft, y: y },
-    end: { x: pageWidth - marginRight, y: y },
-    thickness: 1.5,
+  // Linha divisória elegante
+  page.drawRectangle({
+    x: marginLeft,
+    y: y,
+    width: contentWidth,
+    height: 2,
     color: COLORS.primary
   });
 
-  y -= 20;
+  y -= 25;
 
   // ========== FUNÇÃO PARA QUEBRAR TEXTO EM LINHAS ==========
   function wrapText(text, maxWidth, fontSize) {
@@ -313,7 +459,7 @@ async function generatePDF(orders, date) {
     return lines;
   }
 
-  // ========== FUNÇÃO PARA DESENHAR PEDIDO ==========
+  // ========== FUNÇÃO PARA DESENHAR PEDIDO (DESIGN PREMIUM) ==========
   function drawOrder(order, index) {
     const isEntrega = order.tipo === 'entrega';
     const items = order.items || [];
@@ -325,93 +471,129 @@ async function generatePDF(orders, date) {
     }).join(', '));
 
     // Calcula altura necessária
-    const itemsLines = wrapText(itemsFormatted, contentWidth - 20, 8);
-    let blockHeight = 50 + (itemsLines.length * 10);
-    if (isEntrega) blockHeight += 12;
+    const itemsLines = wrapText(itemsFormatted, contentWidth - 30, 8);
+    let blockHeight = 58 + (itemsLines.length * 11);
+    if (isEntrega) blockHeight += 14;
 
     // Verifica se precisa de nova página
-    if (y - blockHeight < 50) {
+    if (y - blockHeight < 60) {
       page = pdfDoc.addPage([pageWidth, pageHeight]);
-      y = pageHeight - marginTop;
-    }
+      y = pageHeight - 50;
 
-    // Fundo alternado
-    if (index % 2 === 0) {
+      // Adiciona mini header na nova página
       page.drawRectangle({
+        x: 0,
+        y: pageHeight - 30,
+        width: pageWidth,
+        height: 30,
+        color: COLORS.primary
+      });
+      page.drawText('CAMFOR - Continuacao', {
         x: marginLeft,
-        y: y - blockHeight,
-        width: contentWidth,
-        height: blockHeight,
-        color: COLORS.lightGray
+        y: pageHeight - 20,
+        size: 10,
+        font: fontBold,
+        color: COLORS.white
       });
     }
 
-    // Borda inferior
+    // Card do pedido com borda esquerda colorida
+    const cardColor = index % 2 === 0 ? COLORS.white : COLORS.lightGray;
+    const borderColor = isEntrega ? COLORS.entrega : COLORS.retirada;
+
+    // Fundo do card
+    page.drawRectangle({
+      x: marginLeft,
+      y: y - blockHeight,
+      width: contentWidth,
+      height: blockHeight,
+      color: cardColor
+    });
+
+    // Borda esquerda colorida (indicador de tipo)
+    page.drawRectangle({
+      x: marginLeft,
+      y: y - blockHeight,
+      width: 4,
+      height: blockHeight,
+      color: borderColor
+    });
+
+    // Linha inferior sutil
     page.drawLine({
-      start: { x: marginLeft, y: y - blockHeight },
+      start: { x: marginLeft + 4, y: y - blockHeight },
       end: { x: pageWidth - marginRight, y: y - blockHeight },
       thickness: 0.5,
       color: COLORS.border
     });
 
-    let currentY = y - 15;
+    let currentY = y - 18;
 
-    // === LINHA 1: Badge + Cliente + Telefone + Valor ===
-    // Badge tipo
+    // === LINHA 1: Badge + Cliente + Valor ===
+    // Badge tipo (pill style)
     const tipoText = isEntrega ? 'ENTREGA' : 'RETIRADA';
-    const tipoColor = isEntrega ? rgb(13/255, 100/255, 120/255) : rgb(46/255, 125/255, 50/255);
-    const badgeWidth = fontBold.widthOfTextAtSize(tipoText, 7) + 10;
+    const badgeWidth = fontBold.widthOfTextAtSize(tipoText, 6) + 12;
 
     page.drawRectangle({
-      x: marginLeft + 8,
-      y: currentY - 4,
+      x: marginLeft + 14,
+      y: currentY - 5,
       width: badgeWidth,
-      height: 12,
-      color: tipoColor
+      height: 14,
+      color: borderColor
     });
 
     page.drawText(tipoText, {
-      x: marginLeft + 13,
+      x: marginLeft + 20,
       y: currentY - 1,
-      size: 7,
+      size: 6,
       font: fontBold,
       color: COLORS.white
     });
 
-    // Cliente
+    // Nome do cliente
     const clienteText = removeAccents(order.nome || '-');
     page.drawText(clienteText, {
-      x: marginLeft + badgeWidth + 15,
+      x: marginLeft + badgeWidth + 22,
       y: currentY,
-      size: 11,
+      size: 12,
       font: fontBold,
-      color: COLORS.black
+      color: COLORS.darkText
     });
 
-    // Telefone (logo após o nome)
-    const clienteWidth = fontBold.widthOfTextAtSize(clienteText, 11);
+    // Telefone
+    const clienteWidth = fontBold.widthOfTextAtSize(clienteText, 12);
     page.drawText(order.telefone || '-', {
-      x: marginLeft + badgeWidth + 15 + clienteWidth + 12,
+      x: marginLeft + badgeWidth + 22 + clienteWidth + 10,
       y: currentY,
       size: 9,
       font: font,
       color: COLORS.gray
     });
 
-    // Valor (direita)
+    // Valor (destaque no canto direito)
     const valorText = formatBRL(order.total);
-    const valorWidth = fontBold.widthOfTextAtSize(valorText, 12);
+    const valorWidth = fontBold.widthOfTextAtSize(valorText, 14);
+
+    // Fundo do valor
+    page.drawRectangle({
+      x: pageWidth - marginRight - valorWidth - 20,
+      y: currentY - 6,
+      width: valorWidth + 16,
+      height: 20,
+      color: COLORS.highlight
+    });
+
     page.drawText(valorText, {
-      x: pageWidth - marginRight - valorWidth - 8,
-      y: currentY,
-      size: 12,
+      x: pageWidth - marginRight - valorWidth - 12,
+      y: currentY - 1,
+      size: 14,
       font: fontBold,
       color: COLORS.primary
     });
 
-    currentY -= 16;
+    currentY -= 20;
 
-    // === LINHA 2: Endereço completo (se entrega) ===
+    // === LINHA 2: Endereço (se entrega) ===
     if (isEntrega) {
       const enderecoParts = [
         order.rua,
@@ -422,50 +604,60 @@ async function generatePDF(orders, date) {
       ].filter(Boolean);
       const enderecoText = removeAccents(enderecoParts.join(', '));
 
+      // Ícone de localização (simulado com texto)
+      page.drawText('>', {
+        x: marginLeft + 14,
+        y: currentY,
+        size: 8,
+        font: fontBold,
+        color: COLORS.entrega
+      });
+
       page.drawText(enderecoText, {
-        x: marginLeft + 8,
+        x: marginLeft + 26,
         y: currentY,
         size: 8,
         font: font,
         color: COLORS.gray
       });
 
-      currentY -= 14;
+      currentY -= 16;
     }
 
-    // === ITENS ===
+    // === LINHA 3: ITENS ===
+    // Label
     page.drawText(`Itens (${items.length}):`, {
-      x: marginLeft + 8,
+      x: marginLeft + 14,
       y: currentY,
       size: 8,
       font: fontBold,
-      color: COLORS.black
+      color: COLORS.darkText
     });
 
-    currentY -= 11;
+    currentY -= 12;
 
-    // Desenha itens em linhas
+    // Lista de itens
     itemsLines.forEach(line => {
       page.drawText(line, {
-        x: marginLeft + 8,
+        x: marginLeft + 14,
         y: currentY,
         size: 8,
         font: font,
-        color: COLORS.black
+        color: COLORS.gray
       });
-      currentY -= 10;
+      currentY -= 11;
     });
 
-    y -= blockHeight + 5;
+    y -= blockHeight + 8;
   }
 
   // ========== DESENHA PEDIDOS AGRUPADOS POR FORMA DE PAGAMENTO ==========
   const paymentOrder = ['PIX', 'Cartao', 'Dinheiro', 'Retirada'];
-  const paymentDisplayNames = {
-    'PIX': 'PIX',
-    'Cartao': 'CARTAO',
-    'Dinheiro': 'DINHEIRO',
-    'Retirada': 'RETIRADA NO LOCAL'
+  const paymentConfig = {
+    'PIX': { name: 'PIX', color: COLORS.pix },
+    'Cartao': { name: 'CARTAO', color: COLORS.cartao },
+    'Dinheiro': { name: 'DINHEIRO', color: COLORS.dinheiro },
+    'Retirada': { name: 'RETIRADA NO LOCAL', color: COLORS.retirada }
   };
 
   let globalIndex = 0;
@@ -474,33 +666,63 @@ async function generatePDF(orders, date) {
     const groupOrders = paymentGroups[paymentKey];
     if (groupOrders.length === 0) continue;
 
+    const config = paymentConfig[paymentKey];
+
     // Verifica se precisa de nova página para o título da seção
-    if (y < 80) {
+    if (y < 100) {
       page = pdfDoc.addPage([pageWidth, pageHeight]);
-      y = pageHeight - marginTop;
+      y = pageHeight - 50;
+
+      // Mini header na nova página
+      page.drawRectangle({
+        x: 0,
+        y: pageHeight - 30,
+        width: pageWidth,
+        height: 30,
+        color: COLORS.primary
+      });
+      page.drawText('CAMFOR - Continuacao', {
+        x: marginLeft,
+        y: pageHeight - 20,
+        size: 10,
+        font: fontBold,
+        color: COLORS.white
+      });
     }
 
-    // Linha divisória antes da seção
-    page.drawLine({
-      start: { x: marginLeft, y: y },
-      end: { x: pageWidth - marginRight, y: y },
-      thickness: 1.5,
-      color: COLORS.primary
+    // ===== HEADER DA SEÇÃO COM FUNDO COLORIDO =====
+    const sectionHeaderHeight = 28;
+
+    // Fundo do header da seção
+    page.drawRectangle({
+      x: marginLeft,
+      y: y - sectionHeaderHeight,
+      width: contentWidth,
+      height: sectionHeaderHeight,
+      color: config.color
     });
 
-    y -= 20;
-
-    // Título da seção de pagamento
-    const sectionTitle = `${paymentDisplayNames[paymentKey]} (${groupOrders.length} pedido${groupOrders.length > 1 ? 's' : ''} - ${formatBRL(paymentTotals[paymentKey].value)})`;
-    page.drawText(removeAccents(sectionTitle), {
-      x: marginLeft,
-      y: y,
+    // Nome da forma de pagamento
+    page.drawText(removeAccents(config.name), {
+      x: marginLeft + 12,
+      y: y - 18,
       size: 11,
       font: fontBold,
-      color: COLORS.primary
+      color: COLORS.white
     });
 
-    y -= 20;
+    // Contagem e valor (lado direito)
+    const statsText = removeAccents(`${groupOrders.length} pedido${groupOrders.length > 1 ? 's' : ''} | ${formatBRL(paymentTotals[paymentKey].value)}`);
+    const statsWidth = font.widthOfTextAtSize(statsText, 9);
+    page.drawText(statsText, {
+      x: pageWidth - marginRight - statsWidth - 12,
+      y: y - 18,
+      size: 9,
+      font: font,
+      color: COLORS.white
+    });
+
+    y -= sectionHeaderHeight + 10;
 
     // Desenha os pedidos desta forma de pagamento
     groupOrders.forEach((order) => {
@@ -508,51 +730,111 @@ async function generatePDF(orders, date) {
       globalIndex++;
     });
 
-    y -= 10;
+    y -= 15;
   }
 
-  // ========== RODAPÉ FINAL ==========
-  y -= 5;
+  // ========== RODAPÉ FINAL ELEGANTE ==========
+  // Verifica se precisa de espaço para o rodapé
+  if (y < 80) {
+    page = pdfDoc.addPage([pageWidth, pageHeight]);
+    y = pageHeight - 50;
+  }
 
-  page.drawLine({
-    start: { x: marginLeft, y: y },
-    end: { x: pageWidth - marginRight, y: y },
-    thickness: 1,
-    color: COLORS.primary
-  });
+  y -= 10;
 
-  y -= 18;
-
-  page.drawText(`Total Geral: ${formatBRL(totalValue)}`, {
-    x: pageWidth - marginRight - 120,
-    y: y,
-    size: 11,
-    font: fontBold,
-    color: COLORS.primary
-  });
-
-  page.drawText(removeAccents(`Gerado em: ${new Date().toLocaleString('pt-BR')}`), {
+  // Linha decorativa dupla
+  page.drawRectangle({
     x: marginLeft,
     y: y,
+    width: contentWidth,
+    height: 3,
+    color: COLORS.primary
+  });
+
+  y -= 25;
+
+  // Card de total final
+  const totalCardWidth = 180;
+  const totalCardHeight = 45;
+
+  page.drawRectangle({
+    x: pageWidth - marginRight - totalCardWidth,
+    y: y - totalCardHeight,
+    width: totalCardWidth,
+    height: totalCardHeight,
+    color: COLORS.primary
+  });
+
+  page.drawText('TOTAL GERAL', {
+    x: pageWidth - marginRight - totalCardWidth + 15,
+    y: y - 18,
+    size: 8,
+    font: fontBold,
+    color: rgb(255/255, 255/255, 255/255, 0.8)
+  });
+
+  page.drawText(formatBRL(totalValue), {
+    x: pageWidth - marginRight - totalCardWidth + 15,
+    y: y - 38,
+    size: 18,
+    font: fontBold,
+    color: COLORS.white
+  });
+
+  // Info de geração (lado esquerdo)
+  page.drawText(removeAccents(`Relatorio gerado automaticamente`), {
+    x: marginLeft,
+    y: y - 18,
     size: 8,
     font: font,
     color: COLORS.gray
   });
 
-  // Rodapé em todas as páginas
+  page.drawText(removeAccents(`${new Date().toLocaleString('pt-BR')}`), {
+    x: marginLeft,
+    y: y - 32,
+    size: 9,
+    font: fontBold,
+    color: COLORS.darkText
+  });
+
+  // ========== RODAPÉ EM TODAS AS PÁGINAS ==========
   const pages = pdfDoc.getPages();
   pages.forEach((p, i) => {
+    // Barra de rodapé
+    p.drawRectangle({
+      x: 0,
+      y: 0,
+      width: pageWidth,
+      height: 35,
+      color: COLORS.lightGray
+    });
+
+    // Linha accent no topo do rodapé
+    p.drawRectangle({
+      x: 0,
+      y: 35,
+      width: pageWidth,
+      height: 2,
+      color: COLORS.accent
+    });
+
+    // Nome da empresa
     p.drawText('CAMFOR - Agricultura Familiar', {
       x: marginLeft,
-      y: 25,
-      size: 7,
-      font: font,
-      color: COLORS.gray
+      y: 14,
+      size: 8,
+      font: fontBold,
+      color: COLORS.primary
     });
-    p.drawText(`Página ${i + 1} de ${pages.length}`, {
-      x: pageWidth - marginRight - 55,
-      y: 25,
-      size: 7,
+
+    // Paginação
+    const pageText = `Pagina ${i + 1} de ${pages.length}`;
+    const pageTextWidth = font.widthOfTextAtSize(pageText, 8);
+    p.drawText(pageText, {
+      x: pageWidth - marginRight - pageTextWidth,
+      y: 14,
+      size: 8,
       font: font,
       color: COLORS.gray
     });
