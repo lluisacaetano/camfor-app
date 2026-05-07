@@ -498,7 +498,7 @@ function OrderDetail({ order, products = [], onBack }) {
                   <div className="od-info-row">
                     <span className="od-label">Precisa de troco?</span>
                     <span className="od-value">
-                      {order.precisaTroco && order.valorTroco ? (
+                      {order.precisaTroco && order.valorTroco && order.valorTroco !== 'R$ 0,00' ? (
                         <span className="od-troco-sim">Sim - para {order.valorTroco}</span>
                       ) : (
                         <span className="od-troco-nao">Não precisa</span>
