@@ -223,7 +223,7 @@ export default function CestaDetalhes({ onClose, onFinish }) {
                   const imgId = p.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
                   const imgSrc = p.img || `/images/produtos/${imgId}.jpg`;
                   const unidade = p.unidade || 'g';
-                  const descricao = unidade === 'un' ? '1 maço/unidade' : 'Variação de 200g a 1kg';
+                  const descricao = unidade === 'un' ? '1 maço/unidade' : unidade === 'pct' ? '1 pacote' : 'Variação de 200g a 1kg';
                   return (
                     <li key={idx} className="cd-item">
                       <img src={imgSrc} alt={p.name} className="cd-prod-img" onError={handleImageError} />

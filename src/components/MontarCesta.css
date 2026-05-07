@@ -86,6 +86,11 @@
   color: #FFCC80;
 }
 
+.mc-badge-inline-pct {
+  background: rgba(33, 150, 243, 0.3);
+  color: #90CAF9;
+}
+
 .mc-controls {
   display: flex;
   gap: 6px;

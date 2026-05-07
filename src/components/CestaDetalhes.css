@@ -60,6 +60,11 @@
   color: #FFCC80;
 }
 
+.cd-prod-unit-pct {
+  background: rgba(33, 150, 243, 0.3);
+  color: #90CAF9;
+}
+
 /* Subtítulo */
 .cd-subtitle {
   color: rgba(255,255,255,0.9);

@@ -338,6 +338,15 @@ export default function AdminProdutos({ onBack }) {
                 <span className="ap-unit-text">Unidade</span>
                 <span className="ap-unit-desc">1 maço/unidade</span>
               </button>
+              <button
+                type="button"
+                className={`ap-unit-btn ${unidade === 'pct' ? 'ap-unit-btn--active ap-unit-btn--pacote' : ''}`}
+                onClick={() => setUnidade('pct')}
+              >
+                <span className="ap-unit-icon">📦</span>
+                <span className="ap-unit-text">Pacote</span>
+                <span className="ap-unit-desc">1 pacote</span>
+              </button>
             </div>
 
             <div className="ap-modal-buttons">
