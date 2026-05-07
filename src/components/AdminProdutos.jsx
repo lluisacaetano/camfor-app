@@ -343,9 +343,9 @@ export default function AdminProdutos({ onBack }) {
                 className={`ap-unit-btn ${unidade === 'pct' ? 'ap-unit-btn--active ap-unit-btn--pacote' : ''}`}
                 onClick={() => setUnidade('pct')}
               >
-                <span className="ap-unit-icon">📦</span>
-                <span className="ap-unit-text">Pacote</span>
-                <span className="ap-unit-desc">1 pacote</span>
+                <span className="ap-unit-icon">🍱</span>
+                <span className="ap-unit-text">Bandeja</span>
+                <span className="ap-unit-desc">1 bandeja</span>
               </button>
             </div>
 
