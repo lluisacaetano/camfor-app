@@ -351,6 +351,14 @@ function OrderDetail({ order, onBack }) {
     catch { return 'R$ 0,00'; }
   };
 
+  // Retorna descrição do badge de unidade
+  function getUnitBadge(unidade) {
+    if (unidade === 'un') return { text: '1 maço/unidade', className: 'od-badge-un' };
+    if (unidade === 'pct') return { text: '1 bandeja', className: 'od-badge-pct' };
+    if (unidade === 'g') return { text: 'Variação de 200g a 1kg', className: 'od-badge-g' };
+    return null;
+  }
+
   // normalize name -> product id filename
   function imgFromName(name) {
     if (!name) return null;
@@ -368,7 +376,8 @@ function OrderDetail({ order, onBack }) {
           name: it.name || it.id || 'Item',
           qty: it.qty || 1,
           price: Number(it.price || 0),
-          img: it.img || imgFromName(it.name || it.id)
+          img: it.img || imgFromName(it.name || it.id),
+          unidade: it.unidade || null
         }));
       }
       // Se não tiver items, não exibir nada ou mostrar mensagem
@@ -381,7 +390,7 @@ function OrderDetail({ order, onBack }) {
         const id = it.id || (it.name ? it.name.toLowerCase().replace(/\s+/g,'-') : null);
         const name = it.name || it.id || 'Item';
         let img = it.img;
-        
+
         // Se for uma cesta fechada (cesta10, cesta15, cesta18), usar a imagem correta
         if (id && String(id).toLowerCase().startsWith('cesta')) {
           const match = String(id).match(/cesta(\d{2})/i);
@@ -390,20 +399,21 @@ function OrderDetail({ order, onBack }) {
         } else if (!img && name) {
           img = imgFromName(name);
         }
-        
+
         return {
           id,
           name,
           qty: it.qty || 1,
           price: Number(it.price || 0),
-          img: img || null
+          img: img || null,
+          unidade: it.unidade || null
         };
       });
     }
 
     if (order.size) {
       const sz = Number(order.size);
-      return [{ id: `cesta${sz}`, name: `Cesta ${sz} itens`, qty: 1, price: Number(order.total || 0), img: cestaImgForSize(sz) }];
+      return [{ id: `cesta${sz}`, name: `Cesta ${sz} itens`, qty: 1, price: Number(order.total || 0), img: cestaImgForSize(sz), unidade: null }];
     }
 
     return [];
@@ -456,6 +466,31 @@ function OrderDetail({ order, onBack }) {
               </div>
             </div>
 
+            {/* Pagamento */}
+            <div className="od-section">
+              <h3 className="od-subtitle">Pagamento</h3>
+              <div className="od-info">
+                <div className="od-info-row">
+                  <span className="od-label">Forma de Pagamento:</span>
+                  <span className="od-value od-payment-badge">
+                    {order.pagamento || 'Não informado'}
+                  </span>
+                </div>
+                {order.pagamento === 'Dinheiro' && (
+                  <div className="od-info-row">
+                    <span className="od-label">Precisa de troco?</span>
+                    <span className="od-value">
+                      {order.precisaTroco ? (
+                        <span className="od-troco-sim">Sim - para {formatBRL(order.trocoValor || 0)}</span>
+                      ) : (
+                        <span className="od-troco-nao">Não precisa</span>
+                      )}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+
             {/* Itens do Pedido */}
             <div className="od-section">
               <h3 className="od-subtitle">Itens do Pedido</h3>
@@ -464,6 +499,7 @@ function OrderDetail({ order, onBack }) {
                   itemsToRender.map((item, idx) => {
                     const isCesta = item.id && String(item.id).toLowerCase().startsWith('cesta');
                     const imgSrc = item.img || (isCesta ? cestaImgForSize(Number((String(item.id||'').match(/cesta(\d{2})/i)||[])[1])) : '/images/placeholder.png');
+                    const badge = item.unidade ? getUnitBadge(item.unidade) : null;
                     return (
                       <div key={idx} className="od-item">
                         <img
@@ -475,6 +511,9 @@ function OrderDetail({ order, onBack }) {
                         <div className="od-item-info">
                           <div className="od-item-name">{item.name || 'Item'}</div>
                           <div className="od-item-qty">Quantidade: {item.qty || 1}</div>
+                          {badge && (
+                            <span className={`od-item-badge ${badge.className}`}>{badge.text}</span>
+                          )}
                         </div>
                         {/* NÃO mostra preço por item se for MontarCesta */}
                         {!isMontarCesta && item.price ? (
