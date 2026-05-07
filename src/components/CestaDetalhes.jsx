@@ -57,12 +57,16 @@ export default function CestaDetalhes({ onClose, onFinish }) {
       const mapped = selectedNames.map(name => {
         const product = allProducts.find(p => p.nome === name);
         let img = null;
-        if (product && product.imagem) {
-          img = product.imagem.startsWith('http')
-            ? product.imagem
-            : `/images/produtos/${product.imagem}`;
+        let unidade = 'g'; // padrão
+        if (product) {
+          if (product.imagem) {
+            img = product.imagem.startsWith('http')
+              ? product.imagem
+              : `/images/produtos/${product.imagem}`;
+          }
+          unidade = product.unidade || 'g';
         }
-        return { name, img };
+        return { name, img, unidade };
       });
       // Ordena alfabeticamente
       mapped.sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
@@ -204,8 +208,8 @@ export default function CestaDetalhes({ onClose, onFinish }) {
               <div className="mc-obs-box">
                 <div className="mc-obs-title">Como funciona:</div>
                 <div className="mc-obs-text">
-                  A cesta contém <strong>18 itens diferentes</strong>, com apenas <strong>1 unidade</strong> de cada produto.
-                  <br />Os itens serão selecionados <strong>aleatoriamente</strong> da lista abaixo.
+                  A cesta contém <strong>18 itens diferentes</strong>, selecionados <strong>aleatoriamente</strong> da lista abaixo.
+                  <br />A quantidade de cada produto está indicada no card.
                 </div>
               </div>
             </div>
@@ -218,19 +222,20 @@ export default function CestaDetalhes({ onClose, onFinish }) {
                   // Fallback para imagem baseada no nome se não houver img
                   const imgId = p.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
                   const imgSrc = p.img || `/images/produtos/${imgId}.jpg`;
+                  const unidade = p.unidade || 'g';
+                  const descricao = unidade === 'un' ? '1 maço/unidade' : '200g a 500g';
                   return (
                     <li key={idx} className="cd-item">
                       <img src={imgSrc} alt={p.name} className="cd-prod-img" onError={handleImageError} />
-                      <span className="cd-prod-name">{p.name}</span>
+                      <div className="cd-prod-info">
+                        <span className="cd-prod-name">{p.name}</span>
+                        <span className={`cd-prod-unit cd-prod-unit-${unidade}`}>{descricao}</span>
+                      </div>
                     </li>
                   );
                 })}
               </ul>
             )}
-
-            <div className="cd-note" style={{ marginTop: 8 }}>
-             Obs: A quantidade de cada produto varia de 200g a 500g.
-            </div>
 
             {/* Carrinho */}
             <h3 className="mc-cart-title">Carrinho</h3>

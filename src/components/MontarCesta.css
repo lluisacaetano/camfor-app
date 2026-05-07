@@ -47,6 +47,45 @@
   font-size: 1rem;
 }
 
+.mc-prod-unit {
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-top: 4px;
+}
+
+.mc-prod-unit-un {
+  background: rgba(76, 175, 80, 0.25);
+  color: #81C784;
+}
+
+.mc-prod-unit-g {
+  background: rgba(255, 152, 0, 0.25);
+  color: #FFB74D;
+}
+
+/* Badge inline abaixo do incrementador */
+.mc-badge-inline {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 12px;
+  width: fit-content;
+  margin-top: 6px;
+}
+
+.mc-badge-inline-un {
+  background: rgba(76, 175, 80, 0.3);
+  color: #A5D6A7;
+}
+
+.mc-badge-inline-g {
+  background: rgba(255, 152, 0, 0.3);
+  color: #FFCC80;
+}
+
 .mc-controls {
   display: flex;
   gap: 6px;
@@ -285,6 +324,66 @@
 
 .mc-obs-text strong {
   color: #fff;
+}
+
+/* ===== LEGENDA DE UNIDADES ===== */
+.mc-obs-legend {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(38, 198, 218, 0.2);
+}
+
+.mc-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.9rem;
+}
+
+/* ===== BADGES DE UNIDADE ===== */
+.mc-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 3px 6px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.mc-badge-un {
+  background: linear-gradient(135deg, #4CAF50 0%, #388E3C 100%);
+  color: #fff;
+  box-shadow: 0 2px 4px rgba(76, 175, 80, 0.3);
+}
+
+.mc-badge-g {
+  background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+  color: #fff;
+  box-shadow: 0 2px 4px rgba(255, 152, 0, 0.3);
+}
+
+/* Wrapper para posicionar badge sobre a imagem */
+.mc-img-wrapper,
+.cd-img-wrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.mc-img-wrapper .mc-badge,
+.cd-img-wrapper .mc-badge {
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  font-size: 0.6rem;
+  padding: 2px 5px;
+  border-radius: 4px;
 }
 
 /* ===== FLOATING COUNTER ===== */

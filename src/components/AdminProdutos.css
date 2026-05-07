@@ -18,6 +18,29 @@
   box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
 }
 
+.ap-migrate-btn {
+  background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+  color: #fff;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 50px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.ap-migrate-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 152, 0, 0.4);
+}
+
+.ap-migrate-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
 .ap-prod-list {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -240,6 +263,61 @@
   font-size: 0.8rem;
   margin-top: 8px;
   word-break: break-all;
+}
+
+/* Select de Unidade */
+.ap-unit-select {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.ap-unit-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.ap-unit-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.ap-unit-btn--active {
+  border-width: 3px;
+}
+
+.ap-unit-btn--active.ap-unit-btn--peso {
+  background: rgba(255, 152, 0, 0.2);
+  border-color: #FF9800;
+}
+
+.ap-unit-btn--active.ap-unit-btn--unidade {
+  background: rgba(76, 175, 80, 0.2);
+  border-color: #4CAF50;
+}
+
+.ap-unit-icon {
+  font-size: 1.5rem;
+}
+
+.ap-unit-text {
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.ap-unit-desc {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.75rem;
 }
 
 .ap-modal-buttons {

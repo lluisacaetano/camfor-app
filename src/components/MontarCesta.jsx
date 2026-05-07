@@ -55,13 +55,17 @@ export default function MontarCesta({ onBack }) {
 
         // Usa a imagem do Firebase ou fallback para caminho local
         let img = `/images/produtos/${id}.jpg`;
-        if (product && product.imagem) {
-          img = product.imagem.startsWith('http')
-            ? product.imagem
-            : `/images/produtos/${product.imagem}`;
+        let unidade = 'g'; // padrão
+        if (product) {
+          if (product.imagem) {
+            img = product.imagem.startsWith('http')
+              ? product.imagem
+              : `/images/produtos/${product.imagem}`;
+          }
+          unidade = product.unidade || 'g';
         }
 
-        return { id, name, img };
+        return { id, name, img, unidade };
       });
       // Ordena em ordem alfabética
       mapped.sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
@@ -266,13 +270,17 @@ export default function MontarCesta({ onBack }) {
               <div className="mc-obs-title">Como funciona:</div>
               <div className="mc-obs-text">
                 Escolha <strong>exatamente 10, 15 ou 18 itens</strong> para montar sua cesta.
-                <br />Você pode adicionar até 2 unidades de cada produto.
+                <br />Você pode adicionar até <strong>2 unidades</strong> de cada produto.
+                <br />A quantidade de cada produto está indicada no card.
               </div>
             </div>
 
             {/* Lista de Produtos */}
             <div className="mc-list">
-              {produtosDisponiveis.map(prod => (
+              {produtosDisponiveis.map(prod => {
+                const unidade = prod.unidade || 'g';
+                const descricao = unidade === 'un' ? '1 maço/unidade' : '200g a 500g';
+                return (
                 <div className="mc-item" key={prod.id}>
                   <img
                     className="mc-prod-img"
@@ -307,14 +315,11 @@ export default function MontarCesta({ onBack }) {
                         </button>
                       </div>
                     </div>
+                    <span className={`mc-badge-inline mc-badge-inline-${unidade}`}>{descricao}</span>
                   </div>
                 </div>
-              ))}
-            </div>
-
-            {/* Nota sobre Quantidade */}
-            <div className="cd-note">
-              Obs: A quantidade de cada produto varia de 200g a 500g.
+              );
+              })}
             </div>
 
             {/* Carrinho */}

@@ -5,7 +5,8 @@ import {
   subscribeToProducts,
   addProductWithImage,
   updateProductWithImage,
-  deleteProductWithImage
+  deleteProductWithImage,
+  migrateProductsUnits
 } from '../services/firestoreService';
 import { handleImageError } from '../utils/imageUtils';
 
@@ -15,6 +16,7 @@ export default function AdminProdutos({ onBack }) {
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [nome, setNome] = useState('');
+  const [unidade, setUnidade] = useState('g'); // 'un' ou 'g'
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
@@ -24,6 +26,7 @@ export default function AdminProdutos({ onBack }) {
 
   // Estado para popup personalizado
   const [popup, setPopup] = useState({ show: false, type: '', message: '' });
+  const [migrating, setMigrating] = useState(false);
 
   // Escuta produtos em tempo real
   useEffect(() => {
@@ -37,6 +40,7 @@ export default function AdminProdutos({ onBack }) {
   function handleAdd() {
     setEditingProduct(null);
     setNome('');
+    setUnidade('g');
     setImageFile(null);
     setImagePreview('');
     setShowForm(true);
@@ -45,6 +49,7 @@ export default function AdminProdutos({ onBack }) {
   function handleEdit(produto) {
     setEditingProduct(produto);
     setNome(produto.nome);
+    setUnidade(produto.unidade || 'g');
     setImageFile(null);
     // Usa URL completa ou adiciona prefixo para imagens locais
     const imgSrc = produto.imagem && produto.imagem.startsWith('http')
@@ -58,6 +63,7 @@ export default function AdminProdutos({ onBack }) {
     setShowForm(false);
     setEditingProduct(null);
     setNome('');
+    setUnidade('g');
     setImageFile(null);
     setImagePreview('');
   }
@@ -68,6 +74,18 @@ export default function AdminProdutos({ onBack }) {
 
   function closePopup() {
     setPopup({ show: false, type: '', message: '' });
+  }
+
+  async function handleMigrate() {
+    setMigrating(true);
+    try {
+      await migrateProductsUnits();
+      showPopup('success', 'Migração concluída! Todos os produtos foram atualizados com o tipo de medida correto.');
+    } catch (e) {
+      showPopup('error', 'Erro na migração: ' + e.message);
+    } finally {
+      setMigrating(false);
+    }
   }
 
   function handleFileChange(e) {
@@ -130,12 +148,13 @@ export default function AdminProdutos({ onBack }) {
           editingProduct.docId,
           nome.trim(),
           imageFile,
-          editingProduct.imagem
+          editingProduct.imagem,
+          unidade
         );
         handleCancelForm();
         showPopup('success', 'Produto atualizado com sucesso!');
       } else {
-        await addProductWithImage(nome.trim(), imageFile);
+        await addProductWithImage(nome.trim(), imageFile, unidade);
         handleCancelForm();
         showPopup('success', 'Produto cadastrado com sucesso!');
       }
@@ -176,9 +195,17 @@ export default function AdminProdutos({ onBack }) {
             <h2 className="ch-title">GERENCIAR PRODUTOS</h2>
 
             {/* Botão Adicionar */}
-            <div style={{ textAlign: 'center', marginBottom: 16 }}>
+            <div style={{ textAlign: 'center', marginBottom: 16, display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
               <button className="ap-add-btn" onClick={handleAdd}>
                 + ADICIONAR PRODUTO
+              </button>
+              <button
+                className="ap-migrate-btn"
+                onClick={handleMigrate}
+                disabled={migrating}
+                title="Atualiza todos os produtos com o tipo de medida correto"
+              >
+                {migrating ? '⏳ MIGRANDO...' : '🔄 MIGRAR UNIDADES'}
               </button>
             </div>
 
@@ -312,6 +339,28 @@ export default function AdminProdutos({ onBack }) {
                 )}
               </div>
             )}
+
+            <label className="ap-label">Tipo de Medida</label>
+            <div className="ap-unit-select">
+              <button
+                type="button"
+                className={`ap-unit-btn ${unidade === 'g' ? 'ap-unit-btn--active ap-unit-btn--peso' : ''}`}
+                onClick={() => setUnidade('g')}
+              >
+                <span className="ap-unit-icon">⚖️</span>
+                <span className="ap-unit-text">Peso</span>
+                <span className="ap-unit-desc">200g a 500g</span>
+              </button>
+              <button
+                type="button"
+                className={`ap-unit-btn ${unidade === 'un' ? 'ap-unit-btn--active ap-unit-btn--unidade' : ''}`}
+                onClick={() => setUnidade('un')}
+              >
+                <span className="ap-unit-icon">🥬</span>
+                <span className="ap-unit-text">Unidade</span>
+                <span className="ap-unit-desc">1 maço/unidade</span>
+              </button>
+            </div>
 
             <div className="ap-modal-buttons">
               <button

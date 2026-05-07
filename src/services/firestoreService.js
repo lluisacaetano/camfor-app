@@ -427,14 +427,17 @@ export async function deleteProductImage(imageUrl) {
 
 /**
  * Adiciona um produto com upload de imagem
+ * @param {string} nome - Nome do produto
+ * @param {File} imageFile - Arquivo de imagem
+ * @param {string} unidade - Tipo de unidade: 'un' (unidade/maço) ou 'g' (peso em gramas)
  */
-export async function addProductWithImage(nome, imageFile) {
+export async function addProductWithImage(nome, imageFile, unidade = 'g') {
   try {
     // Faz upload da imagem primeiro
     const imageUrl = await uploadProductImage(imageFile);
 
-    // Cria o documento com a URL da imagem
-    const docRef = await addDoc(PRODUCTS_COLLECTION, { nome, imagem: imageUrl });
+    // Cria o documento com a URL da imagem e unidade
+    const docRef = await addDoc(PRODUCTS_COLLECTION, { nome, imagem: imageUrl, unidade });
 
     return docRef.id;
   } catch (error) {
@@ -445,23 +448,68 @@ export async function addProductWithImage(nome, imageFile) {
 
 /**
  * Atualiza um produto (com ou sem nova imagem)
+ * @param {string} docId - ID do documento
+ * @param {string} nome - Nome do produto
+ * @param {File|null} imageFile - Arquivo de imagem (opcional)
+ * @param {string} currentImageUrl - URL da imagem atual
+ * @param {string} unidade - Tipo de unidade: 'un' ou 'g'
  */
-export async function updateProductWithImage(docId, nome, imageFile, currentImageUrl) {
+export async function updateProductWithImage(docId, nome, imageFile, currentImageUrl, unidade) {
   try {
     const productRef = doc(db, 'products', docId);
 
     if (imageFile) {
       // Se há nova imagem, faz upload para ImgBB
       const imageUrl = await uploadProductImage(imageFile);
-      await updateDoc(productRef, { nome, imagem: imageUrl });
+      await updateDoc(productRef, { nome, imagem: imageUrl, unidade });
     } else {
-      // Só atualiza o nome
-      await updateDoc(productRef, { nome });
+      // Só atualiza o nome e unidade
+      await updateDoc(productRef, { nome, unidade });
     }
 
     return true;
   } catch (error) {
     console.error('Erro ao atualizar produto:', error);
+    throw error;
+  }
+}
+
+/**
+ * Atualiza todos os produtos existentes com a classificação correta de unidade
+ * Usar apenas uma vez para migração
+ */
+export async function migrateProductsUnits() {
+  // Produtos vendidos por unidade/maço
+  const PRODUTOS_UNIDADE = [
+    // Folhosos
+    'Acelga', 'Agrião', 'Alface', 'Almeirão', 'Chicória', 'Couve', 'Espinafre', 'Mostarda', 'Repolho', 'Rúcula',
+    // Temperos
+    'Alho Poró', 'Cebolinha', 'Coentro', 'Salsinha',
+    // Brócolis
+    'Brócolis Chinês', 'Brócolis Ramoso', 'Couve Flor',
+    // Outros
+    'Milho', 'Vagem',
+    // Pacotes/Processados
+    'Biscoito', 'Mandioca Congelada', 'Pão de Queijo', 'Rosquinha'
+  ];
+
+  try {
+    const products = await getProducts();
+    const batch = writeBatch(db);
+
+    products.forEach((product) => {
+      const productRef = doc(db, 'products', product.docId);
+      const isUnidade = PRODUTOS_UNIDADE.some(
+        nome => product.nome.toLowerCase().includes(nome.toLowerCase())
+      );
+      batch.update(productRef, { unidade: isUnidade ? 'un' : 'g' });
+    });
+
+    await batch.commit();
+    console.log('Migração de unidades concluída!');
+    return true;
+  } catch (error) {
+    console.error('Erro na migração:', error);
     throw error;
   }
 }
