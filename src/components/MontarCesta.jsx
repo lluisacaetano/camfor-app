@@ -279,7 +279,7 @@ export default function MontarCesta({ onBack }) {
             <div className="mc-list">
               {produtosDisponiveis.map(prod => {
                 const unidade = prod.unidade || 'g';
-                const descricao = unidade === 'un' ? '1 maço/unidade' : unidade === 'pct' ? '1 bandeja' : unidade === 'molho' ? '1 molho' : 'Variação de 200g a 1kg';
+                const descricao = unidade === 'un' ? '1 maço/unidade' : unidade === 'pct' ? '1 bandeja' : 'Variação de 200g a 1kg';
                 return (
                 <div className="mc-item" key={prod.id}>
                   <img

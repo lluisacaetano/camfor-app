@@ -347,15 +347,6 @@ export default function AdminProdutos({ onBack }) {
                 <span className="ap-unit-text">Bandeja</span>
                 <span className="ap-unit-desc">1 bandeja</span>
               </button>
-              <button
-                type="button"
-                className={`ap-unit-btn ${unidade === 'molho' ? 'ap-unit-btn--active ap-unit-btn--molho' : ''}`}
-                onClick={() => setUnidade('molho')}
-              >
-                <span className="ap-unit-icon">🌿</span>
-                <span className="ap-unit-text">Molho</span>
-                <span className="ap-unit-desc">1 molho</span>
-              </button>
             </div>
 
             <div className="ap-modal-buttons">

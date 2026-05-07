@@ -91,11 +91,6 @@
   color: #90CAF9;
 }
 
-.mc-badge-inline-molho {
-  background: rgba(156, 39, 176, 0.3);
-  color: #CE93D8;
-}
-
 .mc-controls {
   display: flex;
   gap: 6px;
