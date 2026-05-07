@@ -370,10 +370,26 @@ function OrderDetail({ order, products = [], onBack }) {
 
   // Busca a unidade do produto no banco de dados pelo nome
   function getProductUnidade(itemName) {
-    if (!itemName || !products.length) return 'g'; // padrão
-    const product = products.find(p =>
-      p.nome && p.nome.toLowerCase() === itemName.toLowerCase()
-    );
+    if (!itemName) return 'g'; // padrão
+    if (!products || products.length === 0) return 'g'; // produtos não carregados ainda
+
+    // Normaliza o nome para comparação (remove acentos, lowercase)
+    const normalizedItemName = itemName
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim();
+
+    const product = products.find(p => {
+      if (!p.nome) return false;
+      const normalizedProdName = p.nome
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .trim();
+      return normalizedProdName === normalizedItemName;
+    });
+
     return product?.unidade || 'g';
   }
 
