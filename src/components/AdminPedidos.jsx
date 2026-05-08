@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './AdminPedidos.css';
-import { subscribeToOrders, clearAllOrders, updateOrder, subscribeToProducts } from '../services/firestoreService';
+import { subscribeToOrders, clearAllOrders, updateOrder, deleteOrder, subscribeToProducts } from '../services/firestoreService';
 import { handleImageError } from '../utils/imageUtils';
 
 function cestaImgForSize(sz) {
@@ -66,6 +66,7 @@ export default function AdminPedidos({ onBack, onMount }) {
   const [products, setProducts] = useState([]);
   const [selectedOrderId, setSelectedOrderId] = useState(null);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(null); // Guarda o pedido a ser excluído
   const [, setTick] = useState(0); // Para forçar re-render a cada minuto
 
   // Executa onMount quando o componente é montado (marca notificações como lidas)
@@ -145,6 +146,28 @@ export default function AdminPedidos({ onBack, onMount }) {
     }
   }
 
+  async function handleTogglePago(orderId, docId) {
+    const order = orders.find(o => o.id === orderId);
+    if (order && docId) {
+      try {
+        await updateOrder(docId, { pago: !order.pago });
+      } catch (e) {
+        console.error('Erro ao atualizar pagamento:', e);
+      }
+    }
+  }
+
+  async function confirmDeleteOrder() {
+    if (showDeleteConfirm && showDeleteConfirm.docId) {
+      try {
+        await deleteOrder(showDeleteConfirm.docId);
+      } catch (e) {
+        console.error('Erro ao excluir pedido:', e);
+      }
+    }
+    setShowDeleteConfirm(null);
+  }
+
   const retiradaOrders = orders.filter(o => o.tipo === 'retirada');
   const entregaOrders = orders.filter(o => o.tipo === 'entrega');
 
@@ -207,11 +230,28 @@ export default function AdminPedidos({ onBack, onMount }) {
                             >
                               Visualizar
                             </button>
+                            {order.pagamento === 'PIX' && (
+                              <button
+                                className={`ap-pago-btn ${order.pago ? 'ap-pago-ativo' : ''}`}
+                                onClick={() => handleTogglePago(order.id, order.docId)}
+                              >
+                                {order.pago ? '✓ Pago' : 'Pago'}
+                              </button>
+                            )}
                             <button
                               className={`ap-entregue-btn ${order.entregue ? 'ap-entregue-ativo' : ''}`}
                               onClick={() => handleToggleEntregue(order.id, order.docId)}
                             >
                               {order.entregue ? '✓ Entregue' : 'Entregue'}
+                            </button>
+                            <button
+                              className="ap-delete-btn"
+                              onClick={() => setShowDeleteConfirm(order)}
+                              title="Excluir pedido"
+                            >
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                              </svg>
                             </button>
                           </div>
                         </div>
@@ -249,11 +289,28 @@ export default function AdminPedidos({ onBack, onMount }) {
                             >
                               Visualizar
                             </button>
+                            {order.pagamento === 'PIX' && (
+                              <button
+                                className={`ap-pago-btn ${order.pago ? 'ap-pago-ativo' : ''}`}
+                                onClick={() => handleTogglePago(order.id, order.docId)}
+                              >
+                                {order.pago ? '✓ Pago' : 'Pago'}
+                              </button>
+                            )}
                             <button
                               className={`ap-entregue-btn ${order.entregue ? 'ap-entregue-ativo' : ''}`}
                               onClick={() => handleToggleEntregue(order.id, order.docId)}
                             >
                               {order.entregue ? '✓ Entregue' : 'Entregue'}
+                            </button>
+                            <button
+                              className="ap-delete-btn"
+                              onClick={() => setShowDeleteConfirm(order)}
+                              title="Excluir pedido"
+                            >
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                              </svg>
                             </button>
                           </div>
                         </div>
@@ -346,6 +403,80 @@ export default function AdminPedidos({ onBack, onMount }) {
                 }}
               >
                 LIMPAR
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Popup de confirmação para excluir pedido */}
+      {showDeleteConfirm && (
+        <div style={{
+          position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: 'rgba(10, 77, 92, 0.85)', zIndex: 9999
+        }}>
+          <div style={{
+            background: 'linear-gradient(135deg, #0a4d5c 0%, #0d6478 100%)',
+            color: '#fff',
+            padding: '30px 24px',
+            borderRadius: 16,
+            width: '90%',
+            maxWidth: 380,
+            textAlign: 'center',
+            boxShadow: '0 10px 40px rgba(0,0,0,0.4)'
+          }}>
+            <div style={{
+              width: 70,
+              height: 70,
+              margin: '0 auto 16px',
+              background: 'rgba(255, 107, 107, 0.15)',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              border: '3px solid #ff6b6b'
+            }}>
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ff6b6b" strokeWidth="2">
+                <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                <line x1="10" y1="11" x2="10" y2="17"/>
+                <line x1="14" y1="11" x2="14" y2="17"/>
+              </svg>
+            </div>
+            <h3 style={{ margin: '0 0 8px', fontSize: '1.3rem', fontWeight: 800, letterSpacing: '1px' }}>EXCLUIR PEDIDO</h3>
+            <p style={{ margin: '0 0 24px', opacity: 0.95, fontSize: '0.95rem', lineHeight: 1.5 }}>
+              Deseja realmente excluir o pedido de<br/><strong>{showDeleteConfirm.nome}</strong>?
+            </p>
+            <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+              <button
+                onClick={() => setShowDeleteConfirm(null)}
+                style={{
+                  background: 'rgba(255,255,255,0.15)',
+                  color: '#fff',
+                  border: '2px solid rgba(255,255,255,0.3)',
+                  padding: '12px 24px',
+                  borderRadius: 50,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  fontSize: '0.95rem'
+                }}
+              >
+                CANCELAR
+              </button>
+              <button
+                onClick={confirmDeleteOrder}
+                style={{
+                  background: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%)',
+                  color: '#fff',
+                  border: 'none',
+                  padding: '12px 24px',
+                  borderRadius: 50,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  fontSize: '0.95rem',
+                  boxShadow: '0 4px 15px rgba(255, 107, 107, 0.4)'
+                }}
+              >
+                EXCLUIR
               </button>
             </div>
           </div>

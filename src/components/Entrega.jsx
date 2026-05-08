@@ -1,7 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './Entrega.css';
 import { saveOrder } from '../services/firestoreService';
+
+// Dados PIX do estabelecimento
+const PIX_KEY = '33270327000132';
+const PIX_NAME = 'Cooperativa Agrícola Mista de Formiga - CAMFOR';
 
 // Bairros de Formiga-MG
 const BAIRROS_FORMIGA = [
@@ -112,11 +116,16 @@ export default function Entrega({ size, onBack, onFinish, totalPrice = 0, cartIt
   }
 
   // pagamento local (Entrega)
-  const [payment, setPayment] = useState('pix'); 
+  const [payment, setPayment] = useState('card'); 
   const [needChange, setNeedChange] = useState(false);
   const [changeForRaw, setChangeForRaw] = useState('');  
   const [changeForMask, setChangeForMask] = useState(''); 
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showPixPopup, setShowPixPopup] = useState(false);
+  const [pixTimer, setPixTimer] = useState(300); // 5 minutos em segundos
+  const [pixWppLink, setPixWppLink] = useState('');
+  const [pixTotal, setPixTotal] = useState(0);
+  const timerRef = useRef(null);
   const totalPriceCents = Math.round((Number(totalPrice) || 0) * 100);
   const changeForCents = Number(String(changeForRaw || '').replace(/\D/g, '')) || 0;
   const isChangeValid = !needChange || (changeForCents > totalPriceCents);
@@ -133,6 +142,48 @@ export default function Entrega({ size, onBack, onFinish, totalPrice = 0, cartIt
     const raw = String(e.target.value || '').replace(/\D/g, '');
     setChangeForRaw(raw);
     setChangeForMask(formatCurrencyFromRaw(raw));
+  }
+
+  // Efeito para o contador regressivo do PIX
+  useEffect(() => {
+    if (showPixPopup && pixTimer > 0) {
+      timerRef.current = setInterval(() => {
+        setPixTimer(prev => {
+          if (prev <= 1) {
+            clearInterval(timerRef.current);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [showPixPopup]);
+
+  // Formata o tempo em MM:SS
+  function formatTime(seconds) {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  }
+
+  // Função para abrir WhatsApp do popup PIX
+  function handlePixWhatsApp() {
+    if (pixWppLink) {
+      window.open(pixWppLink, '_blank');
+    }
+    // Fecha popup e mostra sucesso
+    setShowPixPopup(false);
+    setPixTimer(300);
+    setShowSuccess(true);
+  }
+
+  // Função para cancelar popup PIX
+  function handlePixCancel() {
+    setShowPixPopup(false);
+    setPixTimer(300);
   }
 
   async function lookupCep(value) {
@@ -269,14 +320,24 @@ export default function Entrega({ size, onBack, onFinish, totalPrice = 0, cartIt
       valorTroco: payment === 'cash' && needChange && isChangeValid && changeForMask ? changeForMask : null
     };
 
+    // Salva o pedido no backend
     saveOrder(pedido);
 
     // Gera mensagem e link WhatsApp
     const msg = encodeURIComponent(getResumoPedidoMsg({ ...pedido }));
     const wppLink = `https://wa.me/553733220800?text=${msg}`;
-    window.open(wppLink, '_blank');
 
-    setShowSuccess(true);
+    // Se for PIX, mostra popup especial ao invés de abrir WhatsApp direto
+    if (payment === 'pix') {
+      setPixWppLink(wppLink);
+      setPixTotal(total);
+      setPixTimer(300); // Reset 5 minutos
+      setShowPixPopup(true);
+    } else {
+      // Cartão ou Dinheiro: abre WhatsApp direto
+      window.open(wppLink, '_blank');
+      setShowSuccess(true);
+    }
   }
 
   return (
@@ -405,7 +466,7 @@ export default function Entrega({ size, onBack, onFinish, totalPrice = 0, cartIt
                     <span className="ent-pay-icon" aria-hidden>
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="2" y="6" width="20" height="12" rx="2" stroke="#111" strokeWidth="1.2" /><circle cx="8" cy="12" r="1.2" fill="#111" /></svg>
                     </span>
-                    <span className="ent-pay-label">Cartão</span>
+                    <span className="ent-pay-label">Cartão ou PIX via Maquininha</span>
                   </label>
 
                   <label className={`ent-pay-option ${payment === 'cash' ? 'active' : ''}`}>
@@ -422,9 +483,19 @@ export default function Entrega({ size, onBack, onFinish, totalPrice = 0, cartIt
                       {/* simple card-like icon */}
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="2" y="6" width="20" height="12" rx="2" stroke="#111" strokeWidth="1.2" /><rect x="3.5" y="10" width="6" height="2" fill="#111" /></svg>
                     </span>
-                    <span className="ent-pay-label">PIX (maquininha)</span>
+                    <span className="ent-pay-label">PIX Online</span>
                   </label>
                 </div>
+
+                {payment === 'pix' && (
+                  <div className="ent-pix-box">
+                    <div className="ent-pix-title">Atenção:</div>
+                    <div className="ent-pix-text">
+                      Após a finalização do pedido, será apresentada a <strong>chave PIX</strong>.
+                      <br />O comprovante deve ser enviado via <strong>WhatsApp</strong> sem falta!
+                    </div>
+                  </div>
+                )}
 
                 {payment === 'cash' && (
                   <div className="ent-cash-row">
@@ -461,6 +532,97 @@ export default function Entrega({ size, onBack, onFinish, totalPrice = 0, cartIt
                 </button>
               </div>
             </form>
+
+            {/* Popup PIX */}
+            {showPixPopup && (
+              <div className="pix-popup-overlay">
+                <div className="pix-popup-container">
+                  {/* Header com ícone PIX */}
+                  <div className="pix-popup-header">
+                    <div className="pix-popup-icon">
+                      <svg viewBox="0 0 512 512" width="40" height="40">
+                        <path fill="#26c6da" d="M242.4 292.5C247.8 287.1 257.1 287.1 262.5 292.5L339.5 369.5C353.7 383.7 372.6 391.5 392.6 391.5H407.7L310.6 488.6C280.3 518.9 231.1 518.9 200.8 488.6L103.3 391.2H112.6C132.6 391.2 151.5 383.4 165.7 369.2L242.4 292.5zM262.5 218.9C257.1 224.4 247.8 224.4 242.4 218.9L165.7 142.2C151.5 127.1 132.6 120.2 112.6 120.2H103.3L200.7 22.8C231.1-7.6 280.3-7.6 310.6 22.8L407.8 120H392.6C372.6 120 353.7 127.8 339.5 142L262.5 218.9zM112.6 142.7C126.4 142.7 139.1 148.3 149.7 158.1L226.4 234.8C233.6 241.1 243 245.6 253.5 245.6C## 245.6 273 241.1 280.2 234.8L203.5 158.1C## 148.3 139.1 142.7 126.4 142.7H80.8L22.8 200.7C-7.6 231.1-7.6 280.3 22.8 310.6L80.8 368.6H126.4C139.1 368.6 151.8 374.2 162.4 384L239.1 460.7C247.4 468.1 257.1 472 267.7 472C278.3 472 288 468.1 296.3 460.7L373.1 384C383.7 374.2 396.4 368.6 410.1 368.6H455.7L488.6 401.5C518.9 431.8 518.9 481 488.6 511.4C## 511.4 431.8 511.4 401.5 481L368.6 448.1V410.1C368.6 396.4 374.2 383.7 384 373.1L460.7 296.3C468.1 288 472 278.3 472 267.7C472 257.1 468.1 247.4 460.7 239.1L384 162.4C374.2 151.8 368.6 139.1 368.6 126.4V88.3L401.5 121.3C431.8 151.6 481 151.6 511.4 121.3C511.4## 151.6-7.6 121.3-37.9L88.3 5.0V42.6C88.3 56.4 82.7 69.1 72.9 79.7L-3.9 156.5C-11.2 163.7-15.8 173.1-15.8 183.6C-15.8 194.2-11.2 203.5-3.9 210.8L72.9 287.5C82.7 298.1 88.3 310.8 88.3 324.6V368.6L22.8 310.6C-7.6 280.3-7.6 231.1 22.8 200.7L80.8 142.7H112.6z"/>
+                      </svg>
+                    </div>
+                    <h3 className="pix-popup-title">Pagamento via PIX</h3>
+                  </div>
+
+                  {/* Valor do pedido */}
+                  <div className="pix-popup-value">
+                    <span className="pix-value-label">Valor do Pedido</span>
+                    <span className="pix-value-amount">
+                      {Number(pixTotal).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                    </span>
+                  </div>
+
+                  {/* Chave PIX */}
+                  <div className="pix-popup-key-section">
+                    <span className="pix-key-label">Chave PIX (CNPJ)</span>
+                    <div className="pix-key-box">
+                      <span className="pix-key-value">{PIX_KEY}</span>
+                      <button
+                        className="pix-copy-btn"
+                        onClick={() => {
+                          navigator.clipboard.writeText(PIX_KEY);
+                        }}
+                        title="Copiar chave"
+                      >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                        </svg>
+                      </button>
+                    </div>
+                    <span className="pix-key-name">{PIX_NAME}</span>
+                  </div>
+
+                  {/* Contador */}
+                  <div className="pix-popup-timer">
+                    <div className={`pix-timer-circle ${pixTimer <= 60 ? 'warning' : ''}`}>
+                      <svg className="pix-timer-svg" viewBox="0 0 100 100">
+                        <circle className="pix-timer-bg" cx="50" cy="50" r="45"/>
+                        <circle
+                          className="pix-timer-progress"
+                          cx="50"
+                          cy="50"
+                          r="45"
+                          style={{
+                            strokeDasharray: 283,
+                            strokeDashoffset: 283 - (283 * pixTimer / 300)
+                          }}
+                        />
+                      </svg>
+                      <div className="pix-timer-text">
+                        <span className="pix-timer-value">{formatTime(pixTimer)}</span>
+                        <span className="pix-timer-label">restantes</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Observação */}
+                  <div className="pix-popup-obs">
+                    <svg className="pix-obs-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="12" cy="12" r="10"/>
+                      <path d="M12 16v-4M12 8h.01"/>
+                    </svg>
+                    <p>Envie o comprovante pelo WhatsApp para confirmar seu pedido!</p>
+                  </div>
+
+                  {/* Botão WhatsApp */}
+                  <button className="pix-whatsapp-btn" onClick={handlePixWhatsApp}>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                    </svg>
+                    Enviar Comprovante ao Estabelecimento
+                  </button>
+
+                  {/* Botão cancelar */}
+                  <button className="pix-close-btn" onClick={handlePixCancel}>
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            )}
 
             {showSuccess && (
               <div style={{

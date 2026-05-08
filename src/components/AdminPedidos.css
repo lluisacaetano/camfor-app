@@ -117,6 +117,49 @@
   color: #fff;
 }
 
+/* Botão Pago (para PIX) */
+.ap-pago-btn {
+  background: transparent;
+  color: #ff6b6b;
+  border: 2px solid #ff6b6b;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.ap-pago-btn:hover {
+  background: rgba(255, 107, 107, 0.1);
+}
+
+.ap-pago-btn.ap-pago-ativo {
+  background: #4CAF50;
+  border-color: #4CAF50;
+  color: #fff;
+}
+
+/* Botão Excluir */
+.ap-delete-btn {
+  background: transparent;
+  color: rgba(255, 255, 255, 0.5);
+  border: none;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ap-delete-btn:hover {
+  background: rgba(255, 107, 107, 0.15);
+  color: #ff6b6b;
+}
+
 .ap-order-card.ap-order-entregue {
   background: rgba(76, 175, 80, 0.15);
   border-left: 3px solid #4CAF50;
@@ -344,7 +387,8 @@
     align-self: flex-end;
   }
 
-  .ap-entregue-btn {
+  .ap-entregue-btn,
+  .ap-pago-btn {
     padding: 6px 10px;
     font-size: 0.8rem;
   }
