@@ -289,6 +289,7 @@
   z-index: 10000;
   padding: 16px;
   animation: fadeIn 0.3s ease;
+  overflow: hidden;
 }
 
 @keyframes fadeIn {
@@ -302,11 +303,20 @@
   padding: 28px 24px;
   width: 100%;
   max-width: 480px;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
   box-shadow:
     0 20px 60px rgba(0, 0, 0, 0.5),
     0 0 0 1px rgba(38, 198, 218, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
   animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  /* Hide scrollbar while allowing scroll */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+.pix-popup-container::-webkit-scrollbar {
+  display: none; /* Chrome/Safari/Opera */
 }
 
 @keyframes slideUp {
@@ -338,6 +348,35 @@
   align-items: center;
   justify-content: center;
   margin-bottom: 12px;
+}
+
+/* Ícone de sucesso (check) */
+.pix-popup-icon-success {
+  width: 60px;
+  height: 60px;
+  background: rgba(76, 175, 80, 0.15);
+  border: 3px solid #4CAF50;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.pix-popup-success-title {
+  color: #4CAF50;
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0 0 4px;
+  text-align: center;
+}
+
+.pix-popup-subtitle {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.95rem;
+  font-weight: 500;
+  margin: 0;
+  text-align: center;
 }
 
 .pix-popup-title {
@@ -450,8 +489,8 @@
 
 .pix-timer-circle {
   position: relative;
-  width: 105px;
-  height: 105px;
+  width: 140px;
+  height: 140px;
 }
 
 .pix-timer-svg {
@@ -463,13 +502,13 @@
 .pix-timer-bg {
   fill: none;
   stroke: rgba(255, 255, 255, 0.1);
-  stroke-width: 8;
+  stroke-width: 6;
 }
 
 .pix-timer-progress {
   fill: none;
   stroke: #26c6da;
-  stroke-width: 8;
+  stroke-width: 6;
   stroke-linecap: round;
   transition: stroke-dashoffset 1s linear;
 }
@@ -495,7 +534,7 @@
 
 .pix-timer-value {
   color: #fff;
-  font-size: 1.5rem;
+  font-size: 1.7rem;
   font-weight: 800;
   font-family: 'Monaco', 'Consolas', monospace;
 }
@@ -605,12 +644,12 @@
   }
 
   .pix-timer-circle {
-    width: 90px;
-    height: 90px;
+    width: 120px;
+    height: 120px;
   }
 
   .pix-timer-value {
-    font-size: 1.3rem;
+    font-size: 1.4rem;
   }
 
   .pix-whatsapp-btn {
