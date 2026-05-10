@@ -389,7 +389,7 @@
 /* Responsivo */
 @media (max-width: 576px) {
   .ap-prod-list {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr;
     gap: 8px;
   }
 
