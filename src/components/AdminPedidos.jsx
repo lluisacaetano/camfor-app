@@ -157,6 +157,17 @@ export default function AdminPedidos({ onBack, onMount }) {
     }
   }
 
+  async function handleToggleEmbalado(orderId, docId) {
+    const order = orders.find(o => o.id === orderId);
+    if (order && docId) {
+      try {
+        await updateOrder(docId, { embalado: !order.embalado });
+      } catch (e) {
+        console.error('Erro ao atualizar embalagem:', e);
+      }
+    }
+  }
+
   async function confirmDeleteOrder() {
     if (showDeleteConfirm && showDeleteConfirm.docId) {
       try {
@@ -207,7 +218,7 @@ export default function AdminPedidos({ onBack, onMount }) {
                     <h3 className="ap-section-title">RETIRADA</h3>
                     <div className="ap-orders-list">
                       {retiradaOrders.map(order => (
-                        <div key={order.id} className={`ap-order-card ${order.entregue ? 'ap-order-entregue' : ''}`}>
+                        <div key={order.id} className={`ap-order-card ${order.entregue ? 'ap-order-entregue' : order.embalado ? 'ap-order-embalado' : ''}`}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1 }}>
                             <img
                               src={previewImgForOrder(order)}
@@ -238,6 +249,12 @@ export default function AdminPedidos({ onBack, onMount }) {
                                 {order.pago ? '✓ Pago' : 'Pago'}
                               </button>
                             )}
+                            <button
+                              className={`ap-embalado-btn ${order.embalado ? 'ap-embalado-ativo' : ''}`}
+                              onClick={() => handleToggleEmbalado(order.id, order.docId)}
+                            >
+                              {order.embalado ? '✓ Embalado' : 'Embalado'}
+                            </button>
                             <button
                               className={`ap-entregue-btn ${order.entregue ? 'ap-entregue-ativo' : ''}`}
                               onClick={() => handleToggleEntregue(order.id, order.docId)}
@@ -266,7 +283,7 @@ export default function AdminPedidos({ onBack, onMount }) {
                     <h3 className="ap-section-title" style={{ marginTop: '24px' }}>ENTREGA</h3>
                     <div className="ap-orders-list">
                       {entregaOrders.map(order => (
-                        <div key={order.id} className={`ap-order-card ${order.entregue ? 'ap-order-entregue' : ''}`}>
+                        <div key={order.id} className={`ap-order-card ${order.entregue ? 'ap-order-entregue' : order.embalado ? 'ap-order-embalado' : ''}`}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1 }}>
                             <img
                               src={previewImgForOrder(order)}
@@ -297,6 +314,12 @@ export default function AdminPedidos({ onBack, onMount }) {
                                 {order.pago ? '✓ Pago' : 'Pago'}
                               </button>
                             )}
+                            <button
+                              className={`ap-embalado-btn ${order.embalado ? 'ap-embalado-ativo' : ''}`}
+                              onClick={() => handleToggleEmbalado(order.id, order.docId)}
+                            >
+                              {order.embalado ? '✓ Embalado' : 'Embalado'}
+                            </button>
                             <button
                               className={`ap-entregue-btn ${order.entregue ? 'ap-entregue-ativo' : ''}`}
                               onClick={() => handleToggleEntregue(order.id, order.docId)}
