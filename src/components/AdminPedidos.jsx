@@ -206,6 +206,12 @@ export default function AdminPedidos({ onBack, onMount }) {
 
             <h2 className="ch-title">PEDIDOS FINALIZADOS</h2>
 
+            {orders.length > 0 && (
+              <div className="ap-counter">
+                Total de pedidos: <span className="ap-counter-number">{orders.length}</span>
+              </div>
+            )}
+
             {orders.length === 0 ? (
               <div style={{ textAlign: 'center', color: '#fff', margin: '24px 0' }}>
                 Nenhum pedido realizado ainda.
