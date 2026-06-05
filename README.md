@@ -71,3 +71,4 @@ npm run build
 
 - Manter componentes pequenos e reusáveis.
 - Atualizar README quando alterar horários ou lógica de reset.
+
