@@ -24,3 +24,7 @@ yarn-debug.log*
 yarn-error.log*
 .vercel
 dist/
+
+# Documentação e proposta comercial
+documentacao/
+proposta-comercial/

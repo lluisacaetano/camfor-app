@@ -1,60 +1,19 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { IoSettingsSharp } from 'react-icons/io5';
 import './CamforHome.css';
 
-import CestaDetalhes from './CestaDetalhes';
-import MontarCesta from './MontarCesta';
-import AdminLogin from './AdminLogin';
-import AdminHome from './AdminHome';
-import AdminCesta from './AdminCesta';
-import AdminPedidos from './AdminPedidos';
-import AdminProdutos from './AdminProdutos';
-import OrderNotificationToast from './OrderNotificationToast';
 import { subscribeToAdminConfig, clearAdminConfig } from '../services/firestoreService';
 import { isStoreOpen, isWithinBusinessHours, isConfigValidForToday, shouldClearItems } from '../utils/storeHours';
-import useOrderNotifications from '../hooks/useOrderNotifications';
-import { subscribeToAuthChanges, logoutAdmin } from '../services/authService';
 
 export default function CamforHome() {
-  const [showCesta, setShowCesta] = useState(false);
-  const [showMontar, setShowMontar] = useState(false);
-  const [showAdmin, setShowAdmin] = useState(false);
-  const [showAdminHome, setShowAdminHome] = useState(false);
-  const [showAdminCesta, setShowAdminCesta] = useState(false);
-  const [showAdminPedidos, setShowAdminPedidos] = useState(false);
-  const [showAdminProdutos, setShowAdminProdutos] = useState(false);
+  const navigate = useNavigate();
 
   const [adminConfig, setAdminConfig] = useState(null);
   const [storeOpen, setStoreOpen] = useState(false);
   const [isOpenTime, setIsOpenTime] = useState(false);
   const [hasProducts, setHasProducts] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
-
-  // Verifica se admin está logado (em qualquer tela do admin)
-  const isAdminLoggedIn = showAdminHome || showAdminCesta || showAdminPedidos || showAdminProdutos;
-
-  // Escuta mudanças no estado de autenticação
-  useEffect(() => {
-    const unsubscribe = subscribeToAuthChanges((user) => {
-      setCurrentUser(user);
-      // Se o usuário deslogar e estiver em alguma tela admin, volta para home
-      if (!user && isAdminLoggedIn) {
-        setShowAdminHome(false);
-        setShowAdminCesta(false);
-        setShowAdminPedidos(false);
-        setShowAdminProdutos(false);
-      }
-    });
-    return () => unsubscribe();
-  }, [isAdminLoggedIn]);
-
-  // Hook de notificações de pedidos
-  const {
-    notifications,
-    dismissNotification,
-    markAsRead
-  } = useOrderNotifications(isAdminLoggedIn);
 
   // Escuta configuração do admin em tempo real do Firebase
   useEffect(() => {
@@ -118,122 +77,12 @@ export default function CamforHome() {
     setFavicon('/images/logoImagem.png');
   }, []);
 
-  if (showCesta) {
-    return <CestaDetalhes onClose={() => setShowCesta(false)} onFinish={() => setShowCesta(false)} />;
-  }
-  if (showMontar) {
-    return <MontarCesta onBack={() => setShowMontar(false)} />;
-  }
-  if (showAdmin) {
-    return <AdminLogin
-      onBack={() => setShowAdmin(false)}
-      onLoginSuccess={() => {
-        setShowAdmin(false);
-        setShowAdminHome(true);
-      }}
-    />;
-  }
-  if (showAdminHome) {
-    return (
-      <>
-        <OrderNotificationToast
-          notifications={notifications}
-          onDismiss={dismissNotification}
-          onViewOrders={() => {
-            markAsRead();
-            setShowAdminHome(false);
-            setShowAdminPedidos(true);
-          }}
-        />
-        <AdminHome
-          onBack={async () => {
-            await logoutAdmin();
-            setShowAdminHome(false);
-          }}
-          onSelectProducts={() => {
-            setShowAdminHome(false);
-            setShowAdminCesta(true);
-          }}
-          onViewOrders={() => {
-            markAsRead();
-            setShowAdminHome(false);
-            setShowAdminPedidos(true);
-          }}
-          onManageProducts={() => {
-            setShowAdminHome(false);
-            setShowAdminProdutos(true);
-          }}
-        />
-      </>
-    );
-  }
-  if (showAdminCesta) {
-    return (
-      <>
-        <OrderNotificationToast
-          notifications={notifications}
-          onDismiss={dismissNotification}
-          onViewOrders={() => {
-            markAsRead();
-            setShowAdminCesta(false);
-            setShowAdminPedidos(true);
-          }}
-        />
-        <AdminCesta
-          onBack={() => {
-            setShowAdminCesta(false);
-            setShowAdminHome(true);
-          }}
-        />
-      </>
-    );
-  }
-  if (showAdminPedidos) {
-    return (
-      <>
-        <OrderNotificationToast
-          notifications={notifications}
-          onDismiss={dismissNotification}
-          onViewOrders={() => markAsRead()}
-        />
-        <AdminPedidos
-          onBack={() => {
-            setShowAdminPedidos(false);
-            setShowAdminHome(true);
-          }}
-          onMount={markAsRead}
-        />
-      </>
-    );
-  }
-  if (showAdminProdutos) {
-    return (
-      <>
-        <OrderNotificationToast
-          notifications={notifications}
-          onDismiss={dismissNotification}
-          onViewOrders={() => {
-            markAsRead();
-            setShowAdminProdutos(false);
-            setShowAdminPedidos(true);
-          }}
-        />
-        <AdminProdutos
-          onBack={() => {
-            setShowAdminProdutos(false);
-            setShowAdminHome(true);
-          }}
-        />
-      </>
-    );
-  }
-
   return (
     <div className="ch-root">
       {/* Administrador */}
       <button
         className="admin-gear"
-        onClick={() => setShowAdmin(true)}
+        onClick={() => navigate('/admin')}
         aria-label="Admin"
         title="Configurações"
       >
@@ -273,12 +122,12 @@ export default function CamforHome() {
             <div className="d-grid gap-3 mb-4 ch-btn-group">
               <button
                 className="ch-btn"
-                onClick={() => setShowCesta(true)}
+                onClick={() => navigate('/cesta')}
                 disabled={!storeOpen}
               >
                 PEDIR CESTA COMPLETA
               </button>
-              <button className="ch-btn" onClick={() => setShowMontar(true)} disabled={!storeOpen}>MONTAR MINHA CESTA</button>
+              <button className="ch-btn" onClick={() => navigate('/montar')} disabled={!storeOpen}>MONTAR MINHA CESTA</button>
             </div>
           </div>
         </div>

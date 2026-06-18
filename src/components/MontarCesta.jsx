@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Routes, Route, useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './MontarCesta.css';
 import './CestaDetalhes.css';
@@ -9,7 +10,8 @@ import ResumoPedido from './ResumoPedido';
 import { subscribeToAdminConfig, subscribeToProducts } from '../services/firestoreService';
 import { isStoreOpen, getClosedReason, getBusinessHoursText } from '../utils/storeHours';
 
-export default function MontarCesta({ onBack }) {
+export default function MontarCesta() {
+  const navigate = useNavigate();
   const [produtosDisponiveis, setProdutosDisponiveis] = useState([]);
   const [prices, setPrices] = useState({10:0,15:0,18:0});
   const [allProducts, setAllProducts] = useState([]);
@@ -91,13 +93,6 @@ export default function MontarCesta({ onBack }) {
 
   const [cart, setCart] = useState([]);
 
-  const [prevView, setPrevView] = useState(null);
-
-  const [showFinalize, setShowFinalize] = useState(false);
-  const [showRetirada, setShowRetirada] = useState(false);
-  const [showEntrega, setShowEntrega] = useState(false);
-  const [showResumo, setShowResumo] = useState(false); 
-
   const totalCount = cart.reduce((sum, it) => sum + (it.qty || 0), 0);
   const allowedTotals = [10, 15, 18];
   const finalPrice = allowedTotals.includes(totalCount) ? (prices[totalCount] || 0) : null;
@@ -160,77 +155,7 @@ export default function MontarCesta({ onBack }) {
     setQuantidades(q => ({ ...q, [id]: v }));
   }
 
-  if (showRetirada) {
-    return (
-      <Retirada
-        size={totalCount}
-        totalPrice={finalPrice || 0}
-        cartItems={cart}
-        isMontarCesta={true}
-        onBack={() => {
-          setShowRetirada(false);
-          // restaura para a view anterior (resumo ou finalize)
-          if (prevView === 'finalize') setShowFinalize(true);
-          else if (prevView === 'resumo') setShowResumo(true);
-          setPrevView(null);
-        }}
-        onFinish={() => {
-          // finalizar => volta ao home
-          onBack && onBack();
-        }}
-      />
-    );
-  }
-
-  if (showEntrega) {
-    return (
-      <Entrega
-        size={totalCount}
-        totalPrice={finalPrice || 0}
-        cartItems={cart}
-        isMontarCesta={true}
-        onBack={() => {
-          setShowEntrega(false);
-          if (prevView === 'finalize') setShowFinalize(true);
-          else if (prevView === 'resumo') setShowResumo(true);
-          setPrevView(null);
-        }}
-        onFinish={() => {
-          onBack && onBack();
-        }}
-      />
-    );
-  }
-
-  // Renderizar ResumoPedido antes de FinalizarPedido
-  if (showResumo) {
-    return (
-      <ResumoPedido
-        cart={cart}
-        size={totalCount}
-        totalPrice={finalPrice}
-        prices={prices}
-        onBack={() => setShowResumo(false)}
-        onFinalize={() => { setShowResumo(false); setShowFinalize(true); }}
-        onRetirada={() => { setPrevView('resumo'); setShowResumo(false); setShowRetirada(true); }}
-        onEntrega={() => { setPrevView('resumo'); setShowResumo(false); setShowEntrega(true); }}
-      />
-    );
-  }
-
-  if (showFinalize) {
-    return (
-      <FinalizarPedido
-        size={totalCount}
-        // voltar de Finalizar -> mostrar Resumo
-        onBack={() => { setShowFinalize(false); setShowResumo(true); }}
-        onRetirada={() => { setPrevView('finalize'); setShowFinalize(false); setShowRetirada(true); }}
-        onEntrega={() => { setPrevView('finalize'); setShowFinalize(false); setShowEntrega(true); }}
-      />
-    );
-  }
-
-  return (
+  const mainView = (
     <div className="ch-root">
       <div className="container">
         <div className="row justify-content-center">
@@ -238,7 +163,7 @@ export default function MontarCesta({ onBack }) {
 
             {/* Capa + Logo */}
             <div className="ch-cover-wrapper">
-              <button className="cc-back" onClick={onBack} aria-label="Voltar">←</button>
+              <button className="cc-back" onClick={() => navigate('/')} aria-label="Voltar">←</button>
               <div className="ch-cover-inner">
                 <img src="/images/capa.jpg" alt="Capa" className="ch-cover-img" />
               </div>
@@ -385,7 +310,7 @@ export default function MontarCesta({ onBack }) {
                 disabled={storeClosed || !allowedTotals.includes(totalCount)}
                 onClick={() => {
                   if (storeClosed || !allowedTotals.includes(totalCount)) return;
-                  setShowResumo(true); // abre ResumoPedido
+                  navigate('/montar/resumo'); // abre ResumoPedido
                 }}
               >
                 RESUMO DO PEDIDO
@@ -409,5 +334,63 @@ export default function MontarCesta({ onBack }) {
         {allowedTotals.includes(totalCount) && <div className="mc-float-check">✓</div>}
       </div>
     </div>
+  );
+
+  return (
+    <Routes>
+      <Route index element={mainView} />
+      <Route
+        path="resumo"
+        element={
+          <ResumoPedido
+            cart={cart}
+            size={totalCount}
+            totalPrice={finalPrice}
+            prices={prices}
+            onBack={() => navigate('/montar')}
+            onFinalize={() => navigate('/montar/finalizar')}
+            onRetirada={() => navigate('/montar/retirada')}
+            onEntrega={() => navigate('/montar/entrega')}
+          />
+        }
+      />
+      <Route
+        path="finalizar"
+        element={
+          <FinalizarPedido
+            size={totalCount}
+            onBack={() => navigate('/montar/resumo')}
+            onRetirada={() => navigate('/montar/retirada')}
+            onEntrega={() => navigate('/montar/entrega')}
+          />
+        }
+      />
+      <Route
+        path="retirada"
+        element={
+          <Retirada
+            size={totalCount}
+            totalPrice={finalPrice || 0}
+            cartItems={cart}
+            isMontarCesta={true}
+            onBack={() => navigate(-1)}
+            onFinish={() => navigate('/')}
+          />
+        }
+      />
+      <Route
+        path="entrega"
+        element={
+          <Entrega
+            size={totalCount}
+            totalPrice={finalPrice || 0}
+            cartItems={cart}
+            isMontarCesta={true}
+            onBack={() => navigate(-1)}
+            onFinish={() => navigate('/')}
+          />
+        }
+      />
+    </Routes>
   );
 }

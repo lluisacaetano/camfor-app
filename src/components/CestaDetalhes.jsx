@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Routes, Route, useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './CestaDetalhes.css';
 import './MontarCesta.css';
@@ -16,12 +17,8 @@ function cestaImgForSize(sz) {
   return '/images/cestaCompleta.jpg';
 }
 
-export default function CestaDetalhes({ onClose, onFinish }) {
-  const [showFinalize, setShowFinalize] = useState(false);
-  const [showRetirada, setShowRetirada] = useState(false);
-  const [showEntrega, setShowEntrega] = useState(false);
-  const [showResumo, setShowResumo] = useState(false);
-  const [prevView, setPrevView] = useState(null);
+export default function CestaDetalhes() {
+  const navigate = useNavigate();
 
   const [selectedNames, setSelectedNames] = useState([]);
   const [allProducts, setAllProducts] = useState([]);
@@ -94,83 +91,16 @@ export default function CestaDetalhes({ onClose, onFinish }) {
     return true;
   }
 
-  if (showRetirada) {
-    // Converte basketCounts em itens para salvar/visualizar
-    const basketItems = [];
-    const qty = Number(basketCounts[18] || 0);
-    if (qty > 0) {
-      basketItems.push({
-        id: 'cesta18',
-        name: 'Cesta 18 itens',
-        qty,
-        price: prices[18] || 0
-      });
-    }
-    return (
-      <Retirada
-        size={null}
-        cartItems={basketItems} // <-- passar itens convertidos
-        onBack={() => {
-          setShowRetirada(false);
-          if (prevView === 'finalize') setShowFinalize(true);
-          else if (prevView === 'resumo') setShowResumo(true);
-          setPrevView(null);
-        }}
-        onFinish={() => { onFinish && onFinish(); }}
-      />
-    );
-  }
-  if (showEntrega) {
-    const basketItems = [];
-    const qtyEntrega = Number(basketCounts[18] || 0);
-    if (qtyEntrega > 0) {
-      basketItems.push({
-        id: 'cesta18',
-        name: 'Cesta 18 itens',
-        qty: qtyEntrega,
-        price: prices[18] || 0
-      });
-    }
-    return (
-      <Entrega
-        size={null}
-        totalPrice={totalValue}
-        cartItems={basketItems} // <-- passar itens convertidos
-        onBack={() => {
-          setShowEntrega(false);
-          if (prevView === 'finalize') setShowFinalize(true);
-          else if (prevView === 'resumo') setShowResumo(true);
-          setPrevView(null);
-        }}
-        onFinish={() => { onFinish && onFinish(); }}
-      />
-    );
-  }
-
-  // Mostra o Resumo do Pedido antes de Finalizar Pedido
-  if (showResumo) {
-    return (
-      <ResumoPedido
-        order={{ basketCounts }}
-        totalPrice={totalValue}
-        prices={prices}
-        onBack={() => setShowResumo(false)}
-        onFinalize={() => { setShowResumo(false); setShowFinalize(true); }}
-        onRetirada={() => { setPrevView('resumo'); setShowResumo(false); setShowRetirada(true); }}
-        onEntrega={() => { setPrevView('resumo'); setShowResumo(false); setShowEntrega(true); }}
-      />
-    );
-  }
-
-  if (showFinalize) {
-    return (
-      <FinalizarPedido
-        size={totalBaskets || 0}
-        onBack={() => { setShowFinalize(false); setShowResumo(true); }}
-        onRetirada={() => { setPrevView('finalize'); setShowFinalize(false); setShowRetirada(true); }}
-        onEntrega={() => { setPrevView('finalize'); setShowFinalize(false); setShowEntrega(true); }}
-      />
-    );
+  // Converte basketCounts em itens para salvar/visualizar nas telas de
+  // retirada/entrega
+  const basketItems = [];
+  if (totalBaskets > 0) {
+    basketItems.push({
+      id: 'cesta18',
+      name: 'Cesta 18 itens',
+      qty: totalBaskets,
+      price: prices[18] || 0
+    });
   }
 
   const formatBRL = v => {
@@ -180,7 +110,7 @@ export default function CestaDetalhes({ onClose, onFinish }) {
 
   const storeClosed = produtos.length === 0;
 
-  return (
+  const mainView = (
     <div className="ch-root">
       <div className="container">
         <div className="row justify-content-center">
@@ -188,7 +118,7 @@ export default function CestaDetalhes({ onClose, onFinish }) {
 
             {/* Capa + Logo */}
             <div className="ch-cover-wrapper">
-              <button className="cc-back" onClick={onClose} aria-label="Voltar">←</button>
+              <button className="cc-back" onClick={() => navigate('/')} aria-label="Voltar">←</button>
               <div className="ch-cover-inner">
                 <img src="/images/capa.jpg" alt="Capa" className="ch-cover-img" />
               </div>
@@ -287,7 +217,7 @@ export default function CestaDetalhes({ onClose, onFinish }) {
             </div>
 
             <div className="d-grid gap-3 mb-4 ch-btn-group" style={{ marginTop: 18 }}>
-              <button className="ch-btn" onClick={() => setShowResumo(true)} disabled={!canFinalize() || storeClosed}>
+              <button className="ch-btn" onClick={() => navigate('/cesta/resumo')} disabled={!canFinalize() || storeClosed}>
                 RESUMO DO PEDIDO
               </button>
             </div>
@@ -296,5 +226,59 @@ export default function CestaDetalhes({ onClose, onFinish }) {
         </div>
       </div>
     </div>
+  );
+
+  return (
+    <Routes>
+      <Route index element={mainView} />
+      <Route
+        path="resumo"
+        element={
+          <ResumoPedido
+            order={{ basketCounts }}
+            totalPrice={totalValue}
+            prices={prices}
+            onBack={() => navigate('/cesta')}
+            onFinalize={() => navigate('/cesta/finalizar')}
+            onRetirada={() => navigate('/cesta/retirada')}
+            onEntrega={() => navigate('/cesta/entrega')}
+          />
+        }
+      />
+      <Route
+        path="finalizar"
+        element={
+          <FinalizarPedido
+            size={totalBaskets || 0}
+            onBack={() => navigate('/cesta/resumo')}
+            onRetirada={() => navigate('/cesta/retirada')}
+            onEntrega={() => navigate('/cesta/entrega')}
+          />
+        }
+      />
+      <Route
+        path="retirada"
+        element={
+          <Retirada
+            size={null}
+            cartItems={basketItems}
+            onBack={() => navigate(-1)}
+            onFinish={() => navigate('/')}
+          />
+        }
+      />
+      <Route
+        path="entrega"
+        element={
+          <Entrega
+            size={null}
+            totalPrice={totalValue}
+            cartItems={basketItems}
+            onBack={() => navigate(-1)}
+            onFinish={() => navigate('/')}
+          />
+        }
+      />
+    </Routes>
   );
 }
