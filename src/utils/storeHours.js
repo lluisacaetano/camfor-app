@@ -1,5 +1,12 @@
 // Utilitário para controle de horário de funcionamento da loja
 
+// ⚠️⚠️ MODO DE TESTE — força a loja SEMPRE ABERTA para testes locais,
+// ignorando horário comercial e validade da config do dia.
+// Também desativa a limpeza automática da config (para não apagar os
+// produtos reais no Firebase durante o teste).
+// REMOVER (deixar false) antes de subir para produção.
+const FORCE_OPEN = true;
+
 // Horários de funcionamento
 export const OPENING_HOUR = 7;  // 7h - horário oficial exibido ao cliente
 export const OPENING_HOUR_REAL = 6;  // 6h30 - horário real de abertura (se config pronta)
@@ -96,6 +103,8 @@ export function getClosingHourForToday() {
  * Nota: O horário oficial exibido é 7h, mas pedidos são aceitos a partir de 6h30
  */
 export function isWithinBusinessHours() {
+  // Horário comercial REAL (o modo de teste não mente sobre o relógio,
+  // para o modal "Loja fechada" / "Aguarde" continuar correto).
   // Fim de semana sempre fechado
   if (isWeekend()) {
     return false;
@@ -206,6 +215,7 @@ export function wasConfigMadeAfterClosing(updatedAt) {
  * 3. Config feita na SEXTA após 16h, SÁBADO ou DOMINGO → válida para SEGUNDA
  */
 export function isConfigValidForToday(updatedAt) {
+  if (FORCE_OPEN) return true; // MODO DE TESTE
   if (!updatedAt) return false;
 
   try {
@@ -268,6 +278,7 @@ export function isConfigValidForToday(updatedAt) {
  * Retorna true se a config foi feita durante o horário comercial de um dia anterior
  */
 export function shouldClearItems(config) {
+  if (FORCE_OPEN) return false; // MODO DE TESTE — não apaga a config real
   if (!config || !config.updatedAt) return false;
   if (!config.selectedItems || config.selectedItems.length === 0) return false;
 
@@ -307,11 +318,15 @@ export function isStoreOpen(config) {
   // Sem configuração = fechada
   if (!config) return false;
 
-  // Loja fechada manualmente
+  // Loja fechada manualmente (respeitado mesmo no modo de teste)
   if (config.lojaFechada) return false;
 
   // Sem produtos selecionados = fechada
   if (!config.selectedItems || config.selectedItems.length === 0) return false;
+
+  // MODO DE TESTE: havendo produtos e não fechada manualmente, libera a loja
+  // ignorando o horário/validade da config (não afeta o modal, que usa o horário real).
+  if (FORCE_OPEN) return true;
 
   // Fora do horário comercial = fechada
   if (!isWithinBusinessHours()) return false;

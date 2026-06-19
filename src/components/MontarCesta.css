@@ -1,5 +1,164 @@
 @import './CamforHome.css';
 
+/* ============================================================
+   LAYOUT REDESENHADO (Montar) — cabeçalho compacto + 2 colunas
+   ============================================================ */
+.mc-root {
+  align-items: stretch;
+  padding: 0 0 44px;
+}
+
+/* Cabeçalho compacto */
+.mc-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 16px 18px 6px;
+}
+.mc-back {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(247, 244, 236, 0.10);
+  border: 1px solid var(--line);
+  color: var(--paper);
+  font-size: 20px;
+  font-weight: 700;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+.mc-back:hover { background: rgba(247, 244, 236, 0.18); }
+.mc-bar-logo {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--paper);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+.mc-bar-logo img { width: 30px; height: 30px; object-fit: contain; }
+.mc-bar-title {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: #fff;
+  letter-spacing: -0.01em;
+}
+.mc-bar-sub {
+  font-size: 0.72rem;
+  color: var(--mist-2);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+/* Grid */
+.mc-grid {
+  width: 100%;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 6px 18px 0;
+}
+.mc-eyebrow {
+  font-size: 0.7rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+  margin: 18px 0 10px;
+}
+
+/* Cards de tamanho */
+.mc-sizes {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.mc-size {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  background: rgba(247, 244, 236, 0.06);
+  border: 1.5px solid transparent;
+  border-radius: 10px;
+  padding: 11px 8px;
+}
+.mc-size-sel { border-color: var(--accent); background: rgba(217, 138, 61, 0.14); }
+/* "10 itens": número em display, "itens" no corpo, mesma linha */
+.mc-size-h { font-family: var(--body); font-weight: 500; font-size: 0.82rem; color: var(--mist); }
+.mc-size-n { font-family: var(--body); font-weight: 700; font-size: 1rem; color: #fff; }
+.mc-size-p {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.mc-size-sel .mc-size-p { color: var(--accent); }
+
+/* Card "Como funciona" (papel) */
+.mc-info {
+  background: var(--paper);
+  color: var(--ink);
+  border-radius: 18px;
+  padding: 16px 18px;
+  margin-top: 14px;
+  box-shadow: 0 10px 30px rgba(7, 28, 26, 0.22);
+}
+.mc-info h4 { font-family: var(--display); font-weight: 700; font-size: 0.95rem; margin: 0 0 6px; }
+.mc-info p { font-size: 0.86rem; line-height: 1.55; color: #3a5552; margin: 0; }
+.mc-info strong { color: var(--ink); }
+
+/* Coluna lateral — carrinho + resumo */
+.mc-aside-card {
+  background: rgba(247, 244, 236, 0.05);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 16px;
+}
+.mc-aside-card .mc-cart { padding: 0; }
+.mc-aside-foot { margin-top: 14px; }
+.mc-total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.mc-total-k { font-size: 0.8rem; color: var(--mist); }
+.mc-total-v {
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 1.3rem;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+.mc-total-msg { font-size: 0.85rem; color: var(--mist); line-height: 1.5; text-align: center; margin-bottom: 12px; }
+.mc-total-msg strong { color: var(--accent); }
+.mc-finalize-btn { width: 100%; }
+
+/* Itens: stepper como coluna lateral fixa */
+.mc-item .mc-controls { flex: none; }
+
+/* Desktop: duas colunas com resumo fixo */
+@media (min-width: 900px) {
+  .mc-grid {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: 28px;
+    align-items: start;
+  }
+  .mc-aside { position: sticky; top: 18px; }
+  .mc-float-counter { display: none; }
+}
+
 /* ===== PRODUCT LIST ===== */
 .mc-list {
   display: grid;
@@ -102,10 +261,10 @@
   display: inline-flex;
   align-items: center;
   gap: 0;
-  background: linear-gradient(135deg, rgba(38, 198, 218, 0.15) 0%, rgba(0, 172, 193, 0.15) 100%);
+  background: linear-gradient(135deg, rgba(217, 138, 61, 0.15) 0%, rgba(0, 172, 193, 0.15) 100%);
   border-radius: 25px;
   padding: 3px;
-  border: 2px solid rgba(38, 198, 218, 0.3);
+  border: 2px solid rgba(217, 138, 61, 0.3);
 }
 
 .mc-qty-display {
@@ -119,7 +278,7 @@
 }
 
 .mc-plus-btn {
-  background: linear-gradient(135deg, #26c6da 0%, #00acc1 100%);
+  background: linear-gradient(135deg, #D98A3D 0%, #BF7733 100%);
   color: #fff;
   border: none;
   width: 32px;
@@ -132,7 +291,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 8px rgba(38, 198, 218, 0.4);
+  box-shadow: 0 2px 8px rgba(217, 138, 61, 0.4);
 }
 
 .mc-plus-btn:first-child {
@@ -146,7 +305,7 @@
 
 .mc-plus-btn:hover {
   transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(38, 198, 218, 0.5);
+  box-shadow: 0 4px 12px rgba(217, 138, 61, 0.5);
 }
 
 .mc-plus-btn:active {
@@ -166,7 +325,7 @@
 
 /* ===== ADD BUTTON ===== */
 .mc-add-btn {
-  background: linear-gradient(135deg, #26c6da 0%, #00acc1 100%);
+  background: linear-gradient(135deg, #D98A3D 0%, #BF7733 100%);
   color: #fff;
   border: none;
   padding: 10px 16px;
@@ -174,12 +333,12 @@
   cursor: pointer;
   font-weight: 600;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(38, 198, 218, 0.3);
+  box-shadow: 0 2px 8px rgba(217, 138, 61, 0.3);
 }
 
 .mc-add-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(38, 198, 218, 0.4);
+  box-shadow: 0 4px 12px rgba(217, 138, 61, 0.4);
 }
 
 /* ===== CART SECTION ===== */
@@ -212,10 +371,10 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  background: linear-gradient(135deg, rgba(38, 198, 218, 0.08) 0%, rgba(0, 172, 193, 0.08) 100%);
+  background: linear-gradient(135deg, rgba(217, 138, 61, 0.08) 0%, rgba(0, 172, 193, 0.08) 100%);
   padding: 14px;
   border-radius: 16px;
-  border: 2px solid rgba(38, 198, 218, 0.2);
+  border: 2px solid rgba(217, 138, 61, 0.2);
   box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
 
@@ -294,20 +453,20 @@
   font-weight: 700;
   margin: 20px 0;
   padding: 16px;
-  background: rgba(38, 198, 218, 0.1);
+  background: rgba(217, 138, 61, 0.1);
   border-radius: 12px;
-  border: 1px solid rgba(38, 198, 218, 0.2);
+  border: 1px solid rgba(217, 138, 61, 0.2);
 }
 
 .mc-total strong {
-  color: #26c6da;
+  color: #D98A3D;
   font-size: 1.3rem;
 }
 
 /* ===== OBSERVATION BOX ===== */
 .mc-obs-box {
-  background: rgba(38, 198, 218, 0.15);
-  border: 2px solid rgba(38, 198, 218, 0.3);
+  background: rgba(217, 138, 61, 0.15);
+  border: 2px solid rgba(217, 138, 61, 0.3);
   border-radius: 12px;
   padding: 14px 16px;
   margin-bottom: 16px;
@@ -315,7 +474,7 @@
 }
 
 .mc-obs-title {
-  color: #26c6da;
+  color: #D98A3D;
   font-weight: 800;
   font-size: 1.15rem;
   margin-bottom: 6px;
@@ -338,7 +497,7 @@
   gap: 20px;
   margin-top: 12px;
   padding-top: 10px;
-  border-top: 1px solid rgba(38, 198, 218, 0.2);
+  border-top: 1px solid rgba(217, 138, 61, 0.2);
 }
 
 .mc-legend-item {
@@ -399,7 +558,7 @@
   background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%);
   color: #fff;
   padding: 12px 16px;
-  border-radius: 50px;
+  border-radius: 14px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
   display: flex;
   align-items: center;
@@ -553,5 +712,101 @@
   .mc-cart-remove {
     padding: 8px 10px;
     font-size: 0.6rem;
+  }
+}
+
+/* ===== OVERRIDES FINAIS (novo layout) ===== */
+.mc-main .mc-list { padding: 0; margin-top: 12px; }
+
+/* Contador flutuante: padrão terracota (válido = verde, excedente = vermelho) */
+.mc-float-counter {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-deep) 100%);
+  color: #fff;
+  border-radius: 16px;
+}
+
+@media (max-width: 576px) {
+  .mc-main .mc-list { padding: 0; }
+}
+
+/* ===== /montar: padrões específicos ===== */
+/* Lista de produtos em coluna única (são muitos itens) */
+.montar-root .mc-list { grid-template-columns: 1fr; }
+
+/* "Tamanho da cesta" fica fora (acima) do card do carrinho */
+.montar-root .mc-aside-card { margin-top: 18px; }
+
+/* Esconde o contador flutuante no desktop (corrige a base display:flex
+   declarada após o display:none da media query) */
+@media (min-width: 900px) {
+  .montar-root .mc-float-counter { display: none; }
+}
+
+/* Bloco "Tamanho da cesta": borda ao redor (sem preenchimento, pra não
+   competir com os cards internos) */
+.mc-sizes-box {
+  background: rgba(247, 244, 236, 0.05);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 14px 16px;
+}
+
+/* Tamanho da cesta — alternância desktop/mobile.
+   Desktop: bloco no painel direito (mc-sizes-box). Mobile: bloco solto na
+   coluna principal, antes dos produtos, sem o box externo. */
+.mc-sizes-mobile { display: none; }
+@media (max-width: 899px) {
+  .mc-sizes-mobile { display: block; }
+  .mc-aside .mc-sizes-box { display: none; }
+  /* Sem o box externo, cada tamanho ganha uma borda própria pra se definir */
+  .mc-sizes-mobile .mc-size { border-color: var(--line); }
+}
+
+/* ===== Ajustes SOMENTE no mobile da /montar ===== */
+@media (max-width: 899px) {
+  /* Régua → conteúdo mais justo (estava 36px, assimétrico) */
+  .montar-root .cd-head { padding-bottom: 14px; }
+  /* Sem "valor final" no mobile — o contador flutuante já mostra os itens */
+  .montar-root .mc-total-row { display: none; }
+}
+
+/* Contador flutuante (mobile) IGUAL ao do /admin/cesta (.adm-float):
+   translúcido quando vazio, laranja com itens, verde no máximo. Sem ícone.
+   (não declara `display` aqui pra não vencer o display:none do desktop) */
+.montar-root .mc-float-counter {
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 66px;
+  padding: 12px 10px;
+  border-radius: 16px;
+  text-align: center;
+  background: rgba(247, 244, 236, 0.12);
+  border: 1px solid var(--line);
+  color: var(--paper);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.3);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+.montar-root .mc-float-counter.mc-float-has {
+  background: linear-gradient(135deg, var(--accent), var(--accent-deep));
+  border-color: transparent;
+  box-shadow: 0 12px 28px rgba(217, 138, 61, 0.4);
+}
+.montar-root .mc-float-counter.mc-float-max {
+  background: linear-gradient(135deg, var(--leaf), #3f8a52);
+  box-shadow: 0 12px 28px rgba(91, 166, 107, 0.4);
+}
+.montar-root .mc-float-number { font-family: var(--display); font-weight: 800; font-size: 1.5rem; line-height: 1; color: #fff; }
+.montar-root .mc-float-label { font-size: 0.66rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.9; color: #fff; }
+
+/* Mobile: tamanho selecionado (total atingido) = borda laranja 2px,
+   cantos arredondados e fundo neutro (sem tom alaranjado dentro) */
+@media (max-width: 899px) {
+  .mc-sizes-mobile .mc-size { border-radius: 14px; }
+  .mc-sizes-mobile .mc-size-sel {
+    border-color: var(--accent);
+    border-width: 2px;
+    background: rgba(247, 244, 236, 0.06);
   }
 }

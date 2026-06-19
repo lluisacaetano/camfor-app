@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import 'bootstrap/dist/css/bootstrap.min.css';
 import './AdminCesta.css';
+import '../styles/admin.css';
+import { IoSearchOutline } from 'react-icons/io5';
 import { handleImageError } from '../utils/imageUtils';
 import { saveAdminConfig, getAdminConfig, getProducts, seedProducts } from '../services/firestoreService';
 
@@ -11,6 +12,7 @@ export default function AdminCesta({ onBack }) {
   const [valor10, setValor10] = useState('');
   const [valor15, setValor15] = useState('');
   const [valor18, setValor18] = useState('');
+  const [busca, setBusca] = useState('');
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
 
   // Carrega produtos do Firebase
@@ -18,7 +20,6 @@ export default function AdminCesta({ onBack }) {
     async function loadProducts() {
       try {
         let prods = await getProducts();
-        // Se não existem produtos, popula com os iniciais
         if (prods.length === 0) {
           await seedProducts();
           prods = await getProducts();
@@ -66,7 +67,6 @@ export default function AdminCesta({ onBack }) {
     return parseInt(digits, 10) / 100;
   }
 
-  // Validação para habilitar salvar: pelo menos 1 item selecionado e valores preenchidos
   const totalSelected = selecionados.length;
   const v10 = parseBRL(valor10);
   const v15 = parseBRL(valor15);
@@ -74,33 +74,18 @@ export default function AdminCesta({ onBack }) {
   const canSave = totalSelected >= 1 && v10 > 0 && v15 > 0 && v18 > 0;
 
   function handleCheck(nome) {
-    // Toggle com limite de 18 itens
     setSelecionados(sel => {
-      if (sel.includes(nome)) {
-        return sel.filter(n => n !== nome);
-      }
+      if (sel.includes(nome)) return sel.filter(n => n !== nome);
       if (sel.length >= 18) {
         alert('Você já selecionou o máximo de 18 itens.');
-        return sel; 
+        return sel;
       }
       return [...sel, nome];
     });
   }
 
   async function handleSalvar() {
-    if (selecionados.length < 1) {
-      alert('Selecione pelo menos 1 item.');
-      return;
-    }
-    const v10 = parseBRL(valor10);
-    const v15 = parseBRL(valor15);
-    const v18 = parseBRL(valor18);
-    if (!v10 || !v15 || !v18) {
-      alert('Preencha todos os valores das cestas (valores válidos maiores que 0).');
-      return;
-    }
-
-    // Salva seleção e preços no Firestore
+    if (!canSave) return;
     try {
       await saveAdminConfig(selecionados, { 10: v10, 15: v15, 18: v18 });
       setShowSuccessPopup(true);
@@ -115,234 +100,104 @@ export default function AdminCesta({ onBack }) {
     onBack && onBack();
   }
 
+  const normalizar = (s) => (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+  const buscaNorm = normalizar(busca);
+  const filtrados = produtos.filter(p => normalizar(p.nome).includes(buscaNorm));
+
   return (
-    <div className="ch-root">
-      <div className="container">
-        <div className="row justify-content-center">
-          <div className="col-12 col-md-10 col-lg-8">
-            <div className="ch-cover-wrapper">
-              <button className="cc-back" onClick={onBack} aria-label="Voltar">←</button>
-              <div className="ch-cover-inner">
-                <img src="/images/capa.jpg" alt="Capa" className="ch-cover-img" />
-              </div>
-              <div className="ch-logo">
-                <img src="/images/logoImagem.png" alt="CAMFOR" className="ch-logo-img" />
-              </div>
-            </div>
-            <h2 className="ch-title">SELECIONAR PRODUTOS</h2>
-
-            {/* Contador de Itens */}
-            <div className="admin-note">
-              <div className="admin-remaining">
-                {totalSelected === 0
-                  ? 'Selecione os itens que deseja incluir na cesta.'
-                  : `Você selecionou ${totalSelected} item${totalSelected > 1 ? 's' : ''}.`}
-              </div>
-            </div>
-
-            <div className="admin-prod-list">
-              {loading ? (
-                <div style={{ textAlign: 'center', color: '#fff', padding: '20px' }}>
-                  Carregando produtos...
-                </div>
-              ) : produtos.length === 0 ? (
-                <div style={{ textAlign: 'center', color: '#fff', padding: '20px' }}>
-                  Nenhum produto cadastrado.
-                </div>
-              ) : (
-                produtos.map((prod) => {
-                  const nome = prod.nome;
-                  // Suporta tanto URLs do Firebase quanto caminhos locais
-                  const imgSrc = prod.imagem.startsWith('http')
-                    ? prod.imagem
-                    : `/images/produtos/${prod.imagem}`;
-                  const isDisabled = !selecionados.includes(nome) && selecionados.length >= 18;
-                  return (
-                    <label
-                      key={prod.docId || nome}
-                      className={`admin-prod-item ${isDisabled ? 'admin-prod-item--disabled' : ''}`}
-                      aria-disabled={isDisabled ? 'true' : 'false'}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={selecionados.includes(nome)}
-                        onChange={() => handleCheck(nome)}
-                        disabled={isDisabled}
-                      />
-                      <img
-                        src={imgSrc}
-                        alt={nome}
-                        className="admin-prod-img"
-                        onError={handleImageError}
-                      />
-                      <span className="admin-prod-name">{nome}</span>
-                    </label>
-                  );
-                })
-              )}
-            </div>
-            <div className="admin-values">
-              <label className="admin-label">Valor da Cesta Pequena (10 itens)</label>
-              <input
-                className="admin-input"
-                type="text"
-                placeholder="R$ 0,00"
-                value={valor10}
-                onChange={e => setValor10(formatBRL(e.target.value))}
-              />
-              <label className="admin-label">Valor da Cesta Média (15 itens)</label>
-              <input
-                className="admin-input"
-                type="text"
-                placeholder="R$ 0,00"
-                value={valor15}
-                onChange={e => setValor15(formatBRL(e.target.value))}
-              />
-              <label className="admin-label">Valor da Cesta Grande (18 itens)</label>
-              <input
-                className="admin-input"
-                type="text"
-                placeholder="R$ 0,00"
-                value={valor18}
-                onChange={e => setValor18(formatBRL(e.target.value))}
-              />
-            </div>
-            <div className="d-grid gap-3 mb-4 ch-btn-group" style={{ marginTop: '18px' }}>
-              <button
-                className="ch-btn"
-                onClick={handleSalvar}
-                disabled={!canSave}
-                title={!canSave ? 'Selecione ao menos 1 item e preencha todos os valores' : 'Salvar configuração'}
-              >
-                SALVAR
-              </button>
-            </div>
+    <div className="ch-root adm-root">
+      <div className="adm-wrap">
+        <div className="ch-cover-wrapper">
+          <button className="cc-back" onClick={onBack} aria-label="Voltar">←</button>
+          <div className="ch-cover-inner">
+            <img src="/images/capa.png" alt="Capa" className="ch-cover-img" />
+          </div>
+          <div className="ch-logo">
+            <img src="/images/logoEmblema.png" alt="CAMFOR" className="ch-logo-img" />
           </div>
         </div>
-      </div>
-      <div className="ch-logos-bottom"><img src="/images/logo-ifmg.png" alt="IFMG" className="ch-ifmg-bottom" /><img src="/images/logo-sicoob.png" alt="SICOOB" className="ch-sicoob-bottom" /></div>
-      <footer className="ch-footer-bar"><div className="ch-footer-content"><span className="ch-copyright-text"><span className="ch-copyright-symbol">©</span><span className="ch-copyright-year"> 2026</span><span className="ch-copyright-divider">|</span><span className="ch-copyright-names">Desenvolvido por Luisa Caetano Araujo, Júlia Cristina Martins de Almeida Nakano, Maria Eduarda Siqueira Silva e Yasmin Stefane Faria</span></span></div></footer>
-
-      {/* Contador Flutuante */}
-      <div className={`ac-float-counter ${totalSelected > 0 ? 'ac-float-has-items' : ''} ${totalSelected >= 18 ? 'ac-float-max' : ''}`}>
-        <div className="ac-float-number">{totalSelected}</div>
-        <div className="ac-float-label">
-          {totalSelected === 1 ? 'item' : 'itens'}
+        <div className="ch-content adm-head">
+          <div className="ch-eyebrow">Agricultura Familiar</div>
+          <h2 className="ch-title">Produtos do dia</h2>
+          <div className="ch-rule" />
         </div>
-        {totalSelected >= 18 && <div className="ac-float-check">✓</div>}
+        {/* Preços */}
+        <div className="adm-eyebrow">Preço das cestas</div>
+        <div className="adm-prices">
+          <div className="adm-pcard">
+            <div className="pl">Cesta 10 itens</div>
+            <div className="pin"><span>R$</span><input type="text" inputMode="numeric" placeholder="0,00" value={valor10.replace('R$', '').trim()} onChange={e => setValor10(formatBRL(e.target.value))} /></div>
+          </div>
+          <div className="adm-pcard">
+            <div className="pl">Cesta 15 itens</div>
+            <div className="pin"><span>R$</span><input type="text" inputMode="numeric" placeholder="0,00" value={valor15.replace('R$', '').trim()} onChange={e => setValor15(formatBRL(e.target.value))} /></div>
+          </div>
+          <div className="adm-pcard">
+            <div className="pl">Cesta 18 itens</div>
+            <div className="pin"><span>R$</span><input type="text" inputMode="numeric" placeholder="0,00" value={valor18.replace('R$', '').trim()} onChange={e => setValor18(formatBRL(e.target.value))} /></div>
+          </div>
+        </div>
+
+        {/* Seleção de itens */}
+        <div className="adm-eyebrow adm-eyebrow-gap">Itens disponíveis</div>
+        <div className="adm-search">
+          <IoSearchOutline size={18} color="rgba(247,244,236,.5)" />
+          <input type="text" placeholder="Pesquisar produto..." value={busca} onChange={e => setBusca(e.target.value)} />
+        </div>
+
+        {loading ? (
+          <div className="adm-empty">Carregando produtos...</div>
+        ) : filtrados.length === 0 ? (
+          <div className="adm-empty">Nenhum produto encontrado.</div>
+        ) : (
+          <div className="adm-psel">
+            {filtrados.map((prod) => {
+              const nome = prod.nome;
+              const imgSrc = prod.imagem?.startsWith('http') ? prod.imagem : `/images/produtos/${prod.imagem}`;
+              const sel = selecionados.includes(nome);
+              const isDisabled = !sel && selecionados.length >= 18;
+              return (
+                <div
+                  key={prod.docId || nome}
+                  className={`adm-pchip ${sel ? 'sel' : ''}`}
+                  style={isDisabled ? { opacity: 0.45, pointerEvents: 'none' } : undefined}
+                  onClick={() => handleCheck(nome)}
+                >
+                  <img src={imgSrc} alt={nome} onError={handleImageError} />
+                  <span className="nm">{nome}</span>
+                  <span className="ck" />
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        <div className="adm-cesta-save">
+          <button className="adm-btn adm-btn-acc" onClick={handleSalvar} disabled={!canSave}>Salvar configuração</button>
+        </div>
       </div>
 
-      {/* Popup de Sucesso */}
+      {/* Contador flutuante (lado direito) */}
+      <div className={`adm-float ${totalSelected > 0 ? 'has' : ''} ${totalSelected >= 18 ? 'max' : ''}`}>
+        <div className="adm-float-n">{totalSelected}</div>
+        <div className="adm-float-l">{totalSelected === 1 ? 'item' : 'itens'}</div>
+      </div>
+
+      <div className="ch-apoio-eyebrow">Apoio</div>
+      <div className="ch-logos-bottom"><img src="/images/logo-ifmg.png" alt="IFMG" className="ch-ifmg-bottom" /><img src="/images/logo-sicoob.png" alt="SICOOB" className="ch-sicoob-bottom" /></div>
+
       {showSuccessPopup && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.6)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 9999,
-          backdropFilter: 'blur(4px)',
-          animation: 'fadeIn 0.2s ease'
-        }}>
-          <div style={{
-            backgroundColor: '#fff',
-            borderRadius: '20px',
-            padding: '32px 28px',
-            maxWidth: '340px',
-            width: '90%',
-            boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
-            animation: 'slideUp 0.3s ease',
-            textAlign: 'center'
-          }}>
-            {/* Ícone */}
-            <div style={{
-              width: '70px',
-              height: '70px',
-              borderRadius: '50%',
-              background: 'linear-gradient(135deg, #28a745 0%, #20c997 100%)',
-              boxShadow: '0 8px 25px rgba(40, 167, 69, 0.4)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto 18px',
-              fontSize: '36px',
-              color: '#fff'
-            }}>
-              ✓
+        <div className="adm-modal-backdrop" onClick={handleCloseSuccessPopup}>
+          <div className="adm-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="adm-modal-icon ok">✓</div>
+            <h3 className="adm-modal-title">Configuração salva!</h3>
+            <p className="adm-modal-text">Os produtos e preços do dia foram atualizados com sucesso.</p>
+            <div className="adm-modal-actions">
+              <button className="adm-modal-btn primary" onClick={handleCloseSuccessPopup}>OK</button>
             </div>
-
-            {/* Título */}
-            <h3 style={{
-              fontSize: '1.5rem',
-              fontWeight: '800',
-              color: '#28a745',
-              margin: '0 0 12px',
-              letterSpacing: '0.5px'
-            }}>
-              Sucesso!
-            </h3>
-
-            {/* Mensagem */}
-            <p style={{
-              color: '#555',
-              fontSize: '1rem',
-              lineHeight: '1.5',
-              margin: '0 0 24px'
-            }}>
-              Configuração salva com sucesso!
-            </p>
-
-            {/* Botão */}
-            <button
-              onClick={handleCloseSuccessPopup}
-              style={{
-                width: '100%',
-                padding: '14px',
-                fontSize: '1rem',
-                fontWeight: '700',
-                color: '#fff',
-                background: 'linear-gradient(135deg, #28a745 0%, #20c997 100%)',
-                border: 'none',
-                borderRadius: '50px',
-                cursor: 'pointer',
-                boxShadow: '0 4px 15px rgba(40, 167, 69, 0.4)',
-                transition: 'all 0.2s ease'
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.transform = 'translateY(-2px)';
-                e.target.style.boxShadow = '0 6px 20px rgba(40, 167, 69, 0.5)';
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.transform = 'translateY(0)';
-                e.target.style.boxShadow = '0 4px 15px rgba(40, 167, 69, 0.4)';
-              }}
-            >
-              OK
-            </button>
           </div>
         </div>
       )}
-
-      <style>{`
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        @keyframes slideUp {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-      `}</style>
     </div>
   );
 }

@@ -4,7 +4,6 @@ import { BrowserRouter, Routes, Route, Outlet, Navigate, useNavigate, useOutletC
 import CamforHome from './components/CamforHome';
 import CestaDetalhes from './components/CestaDetalhes';
 import MontarCesta from './components/MontarCesta';
-import AdminLogin from './components/AdminLogin';
 import AdminHome from './components/AdminHome';
 import AdminCesta from './components/AdminCesta';
 import AdminPedidos from './components/AdminPedidos';
@@ -26,7 +25,7 @@ function AdminLayout() {
   useEffect(() => {
     const unsubscribe = subscribeToAuthChanges((user) => {
       setAuthed(!!user);
-      if (!user) navigate('/admin', { replace: true });
+      if (!user) navigate('/', { replace: true });
     });
     return () => unsubscribe();
   }, [navigate]);
@@ -42,9 +41,9 @@ function AdminLayout() {
       <OrderNotificationToast
         notifications={notifications}
         onDismiss={dismissNotification}
-        onViewOrders={() => {
+        onViewOrders={(orderId) => {
           markAsRead();
-          navigate('/admin/pedidos');
+          navigate(orderId ? `/admin/pedidos?pedido=${orderId}` : '/admin/pedidos');
         }}
       />
       <Outlet context={{ markAsRead }} />
@@ -87,16 +86,6 @@ function AdminProdutosPage() {
   return <AdminProdutos onBack={() => navigate('/admin/painel')} />;
 }
 
-function AdminLoginPage() {
-  const navigate = useNavigate();
-  return (
-    <AdminLogin
-      onBack={() => navigate('/')}
-      onLoginSuccess={() => navigate('/admin/painel')}
-    />
-  );
-}
-
 function App() {
   return (
     <BrowserRouter>
@@ -105,7 +94,6 @@ function App() {
         <Route path="/cesta/*" element={<CestaDetalhes />} />
         <Route path="/montar/*" element={<MontarCesta />} />
 
-        <Route path="/admin" element={<AdminLoginPage />} />
         <Route element={<AdminLayout />}>
           <Route path="/admin/painel" element={<AdminHomePage />} />
           <Route path="/admin/cesta" element={<AdminCestaPage />} />

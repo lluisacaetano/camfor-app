@@ -74,17 +74,17 @@
   font-weight: 700;
   letter-spacing: 0.5px;
   white-space: nowrap;
-  background: linear-gradient(135deg, #26c6da 0%, #00acc1 100%);
+  background: linear-gradient(135deg, #D98A3D 0%, #BF7733 100%);
   color: #fff;
   border: none;
-  box-shadow: 0 3px 10px rgba(38, 198, 218, 0.3);
+  box-shadow: 0 3px 10px rgba(217, 138, 61, 0.3);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .ent-cep-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(38, 198, 218, 0.4);
+  box-shadow: 0 5px 15px rgba(217, 138, 61, 0.4);
 }
 
 .ent-cep-btn:active {
@@ -140,8 +140,8 @@
 
 /* PIX info box - mesmo estilo do "Como funciona" */
 .ent-pix-box {
-  background: rgba(38, 198, 218, 0.15);
-  border: 2px solid rgba(38, 198, 218, 0.3);
+  background: rgba(217, 138, 61, 0.15);
+  border: 2px solid rgba(217, 138, 61, 0.3);
   border-radius: 12px;
   padding: 14px 16px;
   margin-top: 12px;
@@ -149,7 +149,7 @@
 }
 
 .ent-pix-title {
-  color: #26c6da;
+  color: #D98A3D;
   font-weight: 800;
   font-size: 1.05rem;
   margin-bottom: 6px;
@@ -202,7 +202,7 @@
 }
 
 .ent-toggle.active {
-  background: #26c6da;
+  background: #D98A3D;
 }
 
 .ent-toggle::after {
@@ -235,17 +235,17 @@
   text-align: center;
   padding: 12px 16px;
   border-radius: 12px;
-  border: 2px solid rgba(38, 198, 218, 0.3);
+  border: 2px solid rgba(217, 138, 61, 0.3);
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   background: #fff;
-  color: #0a4d5c;
+  color: #0E3F3A;
   font-weight: 700;
   font-size: 1.1rem;
   transition: border-color 0.2s ease;
 }
 
 .ent-change-input:focus {
-  border-color: #26c6da;
+  border-color: #D98A3D;
   outline: none;
 }
 
@@ -267,7 +267,7 @@
 }
 
 .ent-select:focus {
-  outline: 2px solid #26c6da;
+  outline: 2px solid #D98A3D;
 }
 
 /* Campos readonly */
@@ -298,7 +298,7 @@
 }
 
 .pix-popup-container {
-  background: linear-gradient(145deg, #0d6478 0%, #0a4d5c 50%, #083a47 100%);
+  background: linear-gradient(145deg, #11504A 0%, #0E3F3A 50%, #083a47 100%);
   border-radius: 24px;
   padding: 28px 24px;
   width: 100%;
@@ -307,7 +307,7 @@
   overflow-y: auto;
   box-shadow:
     0 20px 60px rgba(0, 0, 0, 0.5),
-    0 0 0 1px rgba(38, 198, 218, 0.2),
+    0 0 0 1px rgba(217, 138, 61, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
   animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   /* Hide scrollbar while allowing scroll */
@@ -341,8 +341,8 @@
 .pix-popup-icon {
   width: 70px;
   height: 70px;
-  background: linear-gradient(135deg, rgba(38, 198, 218, 0.2) 0%, rgba(38, 198, 218, 0.1) 100%);
-  border: 2px solid rgba(38, 198, 218, 0.3);
+  background: linear-gradient(135deg, rgba(217, 138, 61, 0.2) 0%, rgba(217, 138, 61, 0.1) 100%);
+  border: 2px solid rgba(217, 138, 61, 0.3);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -390,8 +390,8 @@
 
 /* Valor do pedido */
 .pix-popup-value {
-  background: rgba(38, 198, 218, 0.15);
-  border: 2px solid rgba(38, 198, 218, 0.3);
+  background: rgba(217, 138, 61, 0.15);
+  border: 2px solid rgba(217, 138, 61, 0.3);
   border-radius: 16px;
   padding: 16px;
   text-align: center;
@@ -410,7 +410,7 @@
 
 .pix-value-amount {
   display: block;
-  color: #26c6da;
+  color: #D98A3D;
   font-size: 2rem;
   font-weight: 800;
 }
@@ -443,7 +443,7 @@
 }
 
 .pix-key-value {
-  color: #0a4d5c;
+  color: #0E3F3A;
   font-size: 1.1rem;
   font-weight: 700;
   font-family: 'Monaco', 'Consolas', monospace;
@@ -451,7 +451,7 @@
 }
 
 .pix-copy-btn {
-  background: linear-gradient(135deg, #26c6da 0%, #00acc1 100%);
+  background: linear-gradient(135deg, #D98A3D 0%, #BF7733 100%);
   border: none;
   border-radius: 8px;
   padding: 8px;
@@ -465,7 +465,7 @@
 
 .pix-copy-btn:hover {
   transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(38, 198, 218, 0.4);
+  box-shadow: 0 4px 12px rgba(217, 138, 61, 0.4);
 }
 
 .pix-copy-btn:active {
@@ -507,7 +507,7 @@
 
 .pix-timer-progress {
   fill: none;
-  stroke: #26c6da;
+  stroke: #D98A3D;
   stroke-width: 6;
   stroke-linecap: round;
   transition: stroke-dashoffset 1s linear;

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import './AdminHome.css';
+import '../styles/admin.css';
+import { IoLogOutOutline, IoCartOutline, IoClipboardOutline, IoLeafOutline } from 'react-icons/io5';
 import { fecharLoja, abrirLoja } from '../services/storeControl';
-import { subscribeToAdminConfig } from '../services/firestoreService';
+import { subscribeToAdminConfig, subscribeToProducts } from '../services/firestoreService';
 import { isStoreOpen } from '../utils/storeHours';
-import { logoutAdmin } from '../services/authService';
 
 export default function AdminHome({ onBack, onSelectProducts, onViewOrders, onManageProducts }) {
   const [lojaFechada, setLojaFechada] = useState(false);
@@ -12,20 +13,27 @@ export default function AdminHome({ onBack, onSelectProducts, onViewOrders, onMa
   const [showNoProductsPopup, setShowNoProductsPopup] = useState(false);
   const [adminConfig, setAdminConfig] = useState(null);
   const [lojaRealmenteAberta, setLojaRealmenteAberta] = useState(false);
+  const [totalProdutos, setTotalProdutos] = useState(0);
 
   // Escuta o status da loja em tempo real
   useEffect(() => {
     const unsubscribe = subscribeToAdminConfig((config) => {
       setLojaFechada(config?.lojaFechada || false);
       setAdminConfig(config);
-      // Verifica se a loja está REALMENTE aberta para os clientes
       setLojaRealmenteAberta(isStoreOpen(config));
     });
     return () => unsubscribe();
   }, []);
 
+  // Total de produtos cadastrados (catálogo)
+  useEffect(() => {
+    const unsubscribe = subscribeToProducts((prods) => setTotalProdutos(prods.length));
+    return () => unsubscribe();
+  }, []);
+
+  const itensSelecionados = adminConfig?.selectedItems?.length || 0;
+
   function handleClickFecharLoja() {
-    // Se está tentando abrir e não tem produtos, mostra popup
     if (!lojaRealmenteAberta) {
       const hasProducts = adminConfig?.selectedItems && adminConfig.selectedItems.length > 0;
       if (!hasProducts) {
@@ -57,381 +65,130 @@ export default function AdminHome({ onBack, onSelectProducts, onViewOrders, onMa
     }
   }
 
-  function handleCancelModal() {
-    setShowModal(false);
-  }
+  const statusMsg = lojaRealmenteAberta
+    ? 'Os clientes podem fazer pedidos agora.'
+    : (itensSelecionados === 0)
+      ? 'Sem produtos configurados para hoje.'
+      : lojaFechada
+        ? 'Fechada manualmente.'
+        : 'Fora do horário de atendimento.';
+
   return (
-    <div className="ch-root">
-      <div className="container">
-        <div className="row justify-content-center">
-          <div className="col-12 col-md-10 col-lg-8">
-            {/* Capa + Logo */}
-            <div className="ch-cover-wrapper">
-              <button className="cc-back" onClick={onBack} aria-label="Voltar">←</button>
-              <div className="ch-cover-inner">
-                <img 
-                  src="/images/capa.jpg" 
-                  alt="Produtos Agricultura Familiar"
-                  className="ch-cover-img"
-                />
-              </div>
+    <div className="ch-root adm-root">
+      <button className="adm-sair" onClick={onBack}>
+        <IoLogOutOutline size={16} /> Sair
+      </button>
 
-              {/* Logo */}
-              <div className="ch-logo">
-                <img 
-                  src="/images/logoImagem.png" 
-                  alt="CAMFOR - Agricultura Familiar"
-                  className="ch-logo-img"
-                />
-              </div>
-            </div>
+      <div className="adm-wrap">
+        <div className="ch-cover-wrapper">
+          <div className="ch-cover-inner">
+            <img src="/images/capa.png" alt="Produtos Agricultura Familiar" className="ch-cover-img" />
+          </div>
+          <div className="ch-logo">
+            <img src="/images/logoEmblema.png" alt="CAMFOR" className="ch-logo-img" />
+          </div>
+        </div>
+        <div className="ch-content adm-head">
+          <div className="ch-eyebrow">Agricultura Familiar</div>
+          <h2 className="ch-title">Painel administrativo</h2>
+          <div className="ch-rule" />
+        </div>
 
-            {/* Título */}
-            <h2 className="ch-title">
-              PAINEL ADMINISTRATIVO
-            </h2>
-
-            {/* Status da Loja + Botão */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              marginBottom: '16px',
-              padding: '12px 14px',
-              borderRadius: '10px',
-              backgroundColor: lojaRealmenteAberta ? '#e8f5e9' : '#ffebee',
-              border: lojaRealmenteAberta ? '2px solid #66bb6a' : '2px solid #ef5350',
-              boxShadow: '0 2px 6px rgba(0,0,0,0.08)'
-            }}>
-              <div style={{ flex: 1 }}>
-                <div style={{
-                  fontSize: '14px',
-                  fontWeight: 'bold',
-                  color: lojaRealmenteAberta ? '#2e7d32' : '#c62828',
-                  marginBottom: '3px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px'
-                }}>
-                  <span style={{ fontSize: '15px' }}>{lojaRealmenteAberta ? '🟢' : '🔴'}</span>
-                  LOJA {lojaRealmenteAberta ? 'ABERTA' : 'FECHADA'}
-                </div>
-                <div style={{
-                  fontSize: '11px',
-                  color: lojaRealmenteAberta ? '#388e3c' : '#d32f2f',
-                  opacity: 0.9,
-                  lineHeight: '1.3'
-                }}>
-                  {lojaRealmenteAberta
-                    ? 'Os clientes podem fazer pedidos'
-                    : (!adminConfig?.selectedItems || adminConfig.selectedItems.length === 0)
-                      ? 'Sem produtos configurados'
-                      : lojaFechada
-                        ? 'Fechada manualmente'
-                        : 'Fora do horário'
-                  }
-                </div>
-              </div>
-              <button
-                style={{
-                  padding: '10px 18px',
-                  fontSize: '12px',
-                  fontWeight: '600',
-                  color: '#fff',
-                  backgroundColor: lojaRealmenteAberta ? '#ef5350' : '#66bb6a',
-                  border: 'none',
-                  borderRadius: '8px',
-                  cursor: loading ? 'not-allowed' : 'pointer',
-                  transition: 'all 0.2s ease',
-                  boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-                  minWidth: '100px',
-                  opacity: loading ? 0.6 : 1,
-                  whiteSpace: 'nowrap'
-                }}
-                onClick={handleClickFecharLoja}
-                disabled={loading}
-                onMouseEnter={(e) => {
-                  if (!loading) {
-                    e.target.style.transform = 'translateY(-1px)';
-                    e.target.style.boxShadow = '0 4px 8px rgba(0,0,0,0.25)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.transform = 'translateY(0)';
-                  e.target.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
-                }}
-              >
-                {loading ? 'PROCESSANDO...' : (lojaRealmenteAberta ? 'FECHAR LOJA' : 'ABRIR LOJA')}
-              </button>
-            </div>
-
-            {/* Botões */}
-            <div className="d-grid gap-3 mb-4 ch-btn-group">
-              <button
-                className="ch-btn"
-                onClick={onSelectProducts}
-              >
-                SELECIONAR PRODUTOS
-              </button>
-              <button
-                className="ch-btn"
-                onClick={onViewOrders}
-              >
-                VER PEDIDOS
-              </button>
-              <button
-                className="ch-btn"
-                onClick={onManageProducts}
-              >
-                GERENCIAR PRODUTOS
-              </button>
+        {/* Status da loja */}
+        <div className={`adm-status ${lojaRealmenteAberta ? 'adm-status-open' : ''}`}>
+          <div className="adm-status-head">
+            <span className="adm-status-dot" />
+            <div>
+              <div className="k">Loja {lojaRealmenteAberta ? 'aberta' : 'fechada'}</div>
+              <div className="d">{statusMsg}</div>
             </div>
           </div>
+          <div className="sp" />
+          <button
+            className={`adm-btn ${lojaRealmenteAberta ? 'adm-btn-red' : 'adm-btn-acc'}`}
+            onClick={handleClickFecharLoja}
+            disabled={loading}
+          >
+            {loading ? 'Processando...' : (lojaRealmenteAberta ? 'Fechar loja' : 'Abrir loja')}
+          </button>
+        </div>
+
+        {/* Ações */}
+        <div className="adm-actions">
+          <button className="adm-acard" onClick={onSelectProducts}>
+            <div className="ic"><IoCartOutline /></div>
+            <div className="adm-acard-body">
+              <h4>Selecionar produtos do dia</h4>
+              <p>Defina os itens disponíveis e os preços das cestas de hoje.</p>
+              <div className="stat">{itensSelecionados} {itensSelecionados === 1 ? 'item selecionado' : 'itens selecionados'}</div>
+            </div>
+          </button>
+
+          <button className="adm-acard" onClick={onViewOrders}>
+            <div className="ic"><IoClipboardOutline /></div>
+            <div className="adm-acard-body">
+              <h4>Ver pedidos</h4>
+              <p>Acompanhe os pedidos de retirada e entrega do dia.</p>
+              <div className="stat">Retirada e entrega</div>
+            </div>
+          </button>
+
+          <button className="adm-acard" onClick={onManageProducts}>
+            <div className="ic"><IoLeafOutline /></div>
+            <div className="adm-acard-body">
+              <h4>Gerenciar produtos</h4>
+              <p>Cadastre, edite ou remova produtos do catálogo.</p>
+              <div className="stat">{totalProdutos} {totalProdutos === 1 ? 'produto' : 'produtos'}</div>
+            </div>
+          </button>
         </div>
       </div>
 
-      {/* Logo SICOOB */}
-      <div className="ch-logos-bottom"><img src="/images/logo-ifmg.png" alt="IFMG" className="ch-ifmg-bottom" /><img src="/images/logo-sicoob.png" alt="SICOOB" className="ch-sicoob-bottom" /></div>
-      <footer className="ch-footer-bar"><div className="ch-footer-content"><span className="ch-copyright-text"><span className="ch-copyright-symbol">©</span><span className="ch-copyright-year"> 2026</span><span className="ch-copyright-divider">|</span><span className="ch-copyright-names">Desenvolvido por Luisa Caetano Araujo, Júlia Cristina Martins de Almeida Nakano, Maria Eduarda Siqueira Silva e Yasmin Stefane Faria</span></span></div></footer>
+      <div className="ch-apoio-eyebrow">Apoio</div>
+      <div className="ch-logos-bottom">
+        <img src="/images/logo-ifmg.png" alt="IFMG" className="ch-ifmg-bottom" />
+        <img src="/images/logo-sicoob.png" alt="SICOOB" className="ch-sicoob-bottom" />
+      </div>
 
-      {/* Modal de Confirmação */}
+      {/* Modal confirmar abrir/fechar */}
       {showModal && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.6)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 9999,
-          backdropFilter: 'blur(4px)',
-          animation: 'fadeIn 0.2s ease'
-        }}>
-          <div style={{
-            backgroundColor: '#fff',
-            borderRadius: '16px',
-            padding: '32px',
-            maxWidth: '420px',
-            width: '90%',
-            boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
-            animation: 'slideUp 0.3s ease',
-            position: 'relative'
-          }}>
-            {/* Ícone */}
-            <div style={{
-              width: '64px',
-              height: '64px',
-              borderRadius: '50%',
-              backgroundColor: !lojaRealmenteAberta ? '#e8f5e9' : '#ffebee',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto 20px',
-              fontSize: '32px'
-            }}>
-              {!lojaRealmenteAberta ? '✅' : '⚠️'}
+        <div className="adm-modal-backdrop" onClick={() => setShowModal(false)}>
+          <div className="adm-modal" onClick={(e) => e.stopPropagation()}>
+            <div className={`adm-modal-icon ${lojaRealmenteAberta ? 'warn' : 'ok'}`}>
+              {lojaRealmenteAberta ? '!' : '✓'}
             </div>
-
-            {/* Título */}
-            <h3 style={{
-              fontSize: '22px',
-              fontWeight: '700',
-              color: '#333',
-              textAlign: 'center',
-              marginBottom: '12px',
-              lineHeight: '1.3'
-            }}>
-              {!lojaRealmenteAberta ? 'Abrir a Loja?' : 'Fechar a Loja?'}
-            </h3>
-
-            {/* Mensagem */}
-            <p style={{
-              fontSize: '15px',
-              color: '#666',
-              textAlign: 'center',
-              lineHeight: '1.6',
-              marginBottom: '28px'
-            }}>
-              {!lojaRealmenteAberta
-                ? 'A loja será aberta e os clientes poderão fazer pedidos.'
-                : 'Isso impedirá novos pedidos e todos os produtos selecionados serão desmarcados.'
-              }
+            <h3 className="adm-modal-title">{lojaRealmenteAberta ? 'Fechar a loja?' : 'Abrir a loja?'}</h3>
+            <p className="adm-modal-text">
+              {lojaRealmenteAberta
+                ? 'Isso impedirá novos pedidos e os produtos selecionados serão desmarcados.'
+                : 'A loja será aberta e os clientes poderão fazer pedidos.'}
             </p>
-
-            {/* Botões */}
-            <div style={{
-              display: 'flex',
-              gap: '12px'
-            }}>
+            <div className="adm-modal-actions">
+              <button className="adm-modal-btn ghost" onClick={() => setShowModal(false)}>Cancelar</button>
               <button
-                onClick={handleCancelModal}
-                style={{
-                  flex: 1,
-                  padding: '14px',
-                  fontSize: '15px',
-                  fontWeight: '600',
-                  color: '#666',
-                  backgroundColor: '#f5f5f5',
-                  border: '1px solid #ddd',
-                  borderRadius: '10px',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease'
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.backgroundColor = '#e0e0e0';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.backgroundColor = '#f5f5f5';
-                }}
-              >
-                Cancelar
-              </button>
-              <button
+                className={`adm-modal-btn ${lojaRealmenteAberta ? 'danger' : 'primary'}`}
                 onClick={handleConfirmFecharLoja}
-                style={{
-                  flex: 1,
-                  padding: '14px',
-                  fontSize: '15px',
-                  fontWeight: '600',
-                  color: '#fff',
-                  backgroundColor: !lojaRealmenteAberta ? '#66bb6a' : '#ef5350',
-                  border: 'none',
-                  borderRadius: '10px',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.transform = 'translateY(-1px)';
-                  e.target.style.boxShadow = '0 6px 16px rgba(0,0,0,0.2)';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.transform = 'translateY(0)';
-                  e.target.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
-                }}
               >
-                {!lojaRealmenteAberta ? 'Sim, Abrir' : 'Sim, Fechar'}
+                {lojaRealmenteAberta ? 'Sim, fechar' : 'Sim, abrir'}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Popup Sem Produtos */}
+      {/* Popup sem produtos */}
       {showNoProductsPopup && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.6)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 9999,
-          backdropFilter: 'blur(4px)',
-          animation: 'fadeIn 0.2s ease'
-        }} onClick={() => setShowNoProductsPopup(false)}>
-          <div style={{
-            backgroundColor: '#fff',
-            borderRadius: '20px',
-            padding: '32px 28px',
-            maxWidth: '340px',
-            width: '90%',
-            boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
-            animation: 'slideUp 0.3s ease',
-            textAlign: 'center'
-          }} onClick={(e) => e.stopPropagation()}>
-            {/* Ícone */}
-            <div style={{
-              width: '70px',
-              height: '70px',
-              borderRadius: '50%',
-              background: 'linear-gradient(135deg, #ffc107 0%, #ffb300 100%)',
-              boxShadow: '0 8px 25px rgba(255, 193, 7, 0.4)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto 18px',
-              fontSize: '36px',
-              fontWeight: 'bold',
-              color: '#333'
-            }}>
-              !
+        <div className="adm-modal-backdrop" onClick={() => setShowNoProductsPopup(false)}>
+          <div className="adm-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="adm-modal-icon warn">!</div>
+            <h3 className="adm-modal-title">Atenção</h3>
+            <p className="adm-modal-text">Você precisa selecionar os produtos antes de abrir a loja.</p>
+            <div className="adm-modal-actions">
+              <button className="adm-modal-btn primary" onClick={handleGoToSelectProducts}>Selecionar produtos</button>
             </div>
-
-            {/* Título */}
-            <h3 style={{
-              fontSize: '1.5rem',
-              fontWeight: '800',
-              color: '#e6a700',
-              margin: '0 0 12px',
-              letterSpacing: '0.5px'
-            }}>
-              Atenção
-            </h3>
-
-            {/* Mensagem */}
-            <p style={{
-              color: '#555',
-              fontSize: '1rem',
-              lineHeight: '1.5',
-              margin: '0 0 24px'
-            }}>
-              Você precisa selecionar os produtos antes de abrir a loja!
-            </p>
-
-            {/* Botão */}
-            <button
-              onClick={handleGoToSelectProducts}
-              style={{
-                width: '100%',
-                padding: '14px',
-                fontSize: '1rem',
-                fontWeight: '700',
-                color: '#fff',
-                background: 'linear-gradient(135deg, #26c6da 0%, #00acc1 100%)',
-                border: 'none',
-                borderRadius: '50px',
-                cursor: 'pointer',
-                boxShadow: '0 4px 15px rgba(38, 198, 218, 0.4)',
-                transition: 'all 0.2s ease'
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.transform = 'translateY(-2px)';
-                e.target.style.boxShadow = '0 6px 20px rgba(38, 198, 218, 0.5)';
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.transform = 'translateY(0)';
-                e.target.style.boxShadow = '0 4px 15px rgba(38, 198, 218, 0.4)';
-              }}
-            >
-              SELECIONAR PRODUTOS
-            </button>
           </div>
         </div>
       )}
-
-      <style>{`
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        @keyframes slideUp {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-      `}</style>
     </div>
   );
 }

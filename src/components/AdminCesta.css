@@ -2,31 +2,31 @@
 
 .admin-gear {
   position: absolute;
-  top: calc(env(safe-area-inset-top, 0) + 12px);
-  right: 12px;
-  background: rgba(255,255,255,0.95);
-  border: none;
-  color: #0a4d5c;
-  width: 40px;
-  height: 40px;
+  top: calc(env(safe-area-inset-top, 0) + 16px);
+  right: 16px;
+  background: rgba(247, 244, 236, 0.10);
+  border: 1px solid var(--line);
+  color: var(--paper);
+  width: 42px;
+  height: 42px;
   padding: 0;
   border-radius: 50%;
   cursor: pointer;
   z-index: 100;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: background 0.2s ease, transform 0.2s ease;
 }
 .admin-gear:hover {
-  background: #fff;
+  background: rgba(247, 244, 236, 0.18);
   transform: rotate(45deg);
-  box-shadow: 0 4px 15px rgba(0,0,0,0.25);
 }
 .admin-gear svg {
-  color: #0a4d5c !important;
-  fill: #0a4d5c;
+  color: var(--paper) !important;
+  fill: var(--paper);
 }
 
 .admin-login {
@@ -55,7 +55,7 @@
 }
 
 .admin-input:focus {
-  border-color: rgba(38, 198, 218, 0.5);
+  border-color: rgba(217, 138, 61, 0.5);
   background: rgba(255,255,255,0.12);
 }
 
@@ -135,7 +135,7 @@
 }
 
 .admin-prod-item input[type="checkbox"] {
-  accent-color: #26c6da;
+  accent-color: #D98A3D;
   width: 20px;
   height: 20px;
 }
@@ -180,7 +180,7 @@
   background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
   color: #fff;
   padding: 12px 16px;
-  border-radius: 50px;
+  border-radius: 14px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
   display: flex;
   align-items: center;
@@ -192,8 +192,8 @@
 }
 
 .ac-float-counter.ac-float-has-items {
-  background: linear-gradient(135deg, #26c6da 0%, #00acc1 100%);
-  box-shadow: 0 4px 20px rgba(38, 198, 218, 0.4);
+  background: linear-gradient(135deg, #D98A3D 0%, #BF7733 100%);
+  box-shadow: 0 4px 20px rgba(217, 138, 61, 0.4);
 }
 
 .ac-float-counter.ac-float-max {

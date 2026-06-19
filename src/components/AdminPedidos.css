@@ -62,8 +62,8 @@
 }
 
 .ap-order-time {
-  background: rgba(38, 198, 218, 0.2);
-  color: #26c6da;
+  background: rgba(217, 138, 61, 0.2);
+  color: #D98A3D;
   padding: 2px 8px;
   border-radius: 12px;
   font-size: 0.8rem;
@@ -71,7 +71,7 @@
 }
 
 .ap-view-btn {
-  background: #26c6da;
+  background: #D98A3D;
   color: #fff;
   border: none;
   padding: 8px 16px;
@@ -84,7 +84,7 @@
 }
 
 .ap-view-btn:hover {
-  background: #1fa5b8;
+  background: #BF7733;
 }
 
 .ap-btn-group {
@@ -321,7 +321,7 @@
 /* Pagamento */
 .od-payment-badge {
   font-weight: 700;
-  color: #26c6da;
+  color: #D98A3D;
 }
 
 .od-troco-sim {
@@ -335,7 +335,7 @@
 }
 
 .od-item-price {
-  color: #26c6da;
+  color: #D98A3D;
   font-weight: 700;
   font-size: 0.95rem;
   flex-shrink: 0;
@@ -345,8 +345,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: rgba(38, 198, 218, 0.08);
-  border: 1px solid rgba(38, 198, 218, 0.2);
+  background: rgba(217, 138, 61, 0.08);
+  border: 1px solid rgba(217, 138, 61, 0.2);
 }
 
 .od-total-label {
@@ -356,7 +356,7 @@
 }
 
 .od-total-value {
-  color: #26c6da;
+  color: #D98A3D;
   font-weight: 700;
   font-size: 1.2rem;
 }

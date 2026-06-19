@@ -47,7 +47,7 @@
 }
 
 .ret-info-title {
-  color: #26c6da;
+  color: #D98A3D;
   font-size: 1.1rem;
   font-weight: 700;
   margin: 0 0 16px;
@@ -62,7 +62,7 @@
 }
 
 .ret-info-text strong {
-  color: #26c6da;
+  color: #D98A3D;
 }
 
 .ret-map-container {
@@ -74,17 +74,17 @@
 .ret-map-link {
   display: block;
   text-align: center;
-  color: #26c6da;
+  color: #D98A3D;
   font-weight: 600;
   font-size: 0.95rem;
   text-decoration: none;
   padding: 10px;
-  background: rgba(38, 198, 218, 0.15);
+  background: rgba(217, 138, 61, 0.15);
   border-radius: 8px;
   transition: background 0.2s ease;
 }
 
 .ret-map-link:hover {
-  background: rgba(38, 198, 218, 0.25);
-  color: #26c6da;
+  background: rgba(217, 138, 61, 0.25);
+  color: #D98A3D;
 }

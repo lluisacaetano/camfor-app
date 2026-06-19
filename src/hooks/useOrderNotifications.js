@@ -85,6 +85,7 @@ export default function useOrderNotifications(isAdminLoggedIn) {
       clientName: order.nome || 'Cliente',
       items: order.items?.length || 0,
       tipo: order.tipo || 'retirada',
+      total: order.total || 0,
       timestamp: new Date()
     };
 

@@ -53,7 +53,7 @@ export default function AdminLogin({ onBack, onLoginSuccess }) {
             <div className="ch-cover-wrapper">
               <button className="cc-back" onClick={onBack} aria-label="Voltar">←</button>
               <div className="ch-cover-inner">
-                <img src="/images/capa.jpg" alt="Capa" className="ch-cover-img" />
+                <img src="/images/capa.png" alt="Capa" className="ch-cover-img" />
               </div>
               <div className="ch-logo">
                 <img src="/images/logoImagem.png" alt="CAMFOR" className="ch-logo-img" />
@@ -108,16 +108,6 @@ export default function AdminLogin({ onBack, onLoginSuccess }) {
         <img src="/images/logo-ifmg.png" alt="IFMG" className="ch-ifmg-bottom" />
         <img src="/images/logo-sicoob.png" alt="SICOOB" className="ch-sicoob-bottom" />
       </div>
-      <footer className="ch-footer-bar">
-        <div className="ch-footer-content">
-          <span className="ch-copyright-text">
-            <span className="ch-copyright-symbol">©</span>
-            <span className="ch-copyright-year"> 2026</span>
-            <span className="ch-copyright-divider">|</span>
-            <span className="ch-copyright-names">Desenvolvido por Luisa Caetano Araujo, Júlia Cristina Martins de Almeida Nakano, Maria Eduarda Siqueira Silva e Yasmin Stefane Faria</span>
-          </span>
-        </div>
-      </footer>
     </div>
   );
 }

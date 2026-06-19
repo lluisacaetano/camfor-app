@@ -3,12 +3,10 @@ import { Routes, Route, useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './MontarCesta.css';
 import './CestaDetalhes.css';
-import FinalizarPedido from './FinalizarPedido';
-import Retirada from './Retirada';
-import Entrega from './Entrega';
 import ResumoPedido from './ResumoPedido';
 import { subscribeToAdminConfig, subscribeToProducts } from '../services/firestoreService';
 import { isStoreOpen, getClosedReason, getBusinessHoursText } from '../utils/storeHours';
+import { IoTrashOutline } from 'react-icons/io5';
 
 export default function MontarCesta() {
   const navigate = useNavigate();
@@ -155,100 +153,116 @@ export default function MontarCesta() {
     setQuantidades(q => ({ ...q, [id]: v }));
   }
 
+  const fmtBRL = v => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
   const mainView = (
-    <div className="ch-root">
-      <div className="container">
-        <div className="row justify-content-center">
-          <div className="col-12 col-md-10 col-lg-8">
+    <div className="ch-root mc-root cd-root montar-root">
+      {/* Cabeçalho — capa com foto + medalhão (padrão das demais telas) */}
+      <div className="cd-top">
+        <div className="ch-cover-wrapper">
+          <button className="cc-back" onClick={() => navigate('/')} aria-label="Voltar">←</button>
+          <div className="ch-cover-inner"><img src="/images/capa.png" alt="Capa CAMFOR" className="ch-cover-img" /></div>
+          <div className="ch-logo"><img src="/images/logoEmblema.png" alt="CAMFOR" className="ch-logo-img" /></div>
+        </div>
+        <div className="ch-content cd-head">
+          <div className="ch-eyebrow">Agricultura Familiar</div>
+          <h2 className="ch-title">Montar minha cesta</h2>
+          <div className="ch-rule" />
+        </div>
+      </div>
 
-            {/* Capa + Logo */}
-            <div className="ch-cover-wrapper">
-              <button className="cc-back" onClick={() => navigate('/')} aria-label="Voltar">←</button>
-              <div className="ch-cover-inner">
-                <img src="/images/capa.jpg" alt="Capa" className="ch-cover-img" />
-              </div>
-              <div className="ch-logo">
-                <img src="/images/logoImagem.png" alt="CAMFOR" className="ch-logo-img" />
-              </div>
+      <div className="mc-grid">
+        {/* Coluna principal */}
+        <div className="mc-main">
+          <div className="mc-info">
+            <h4>Como funciona</h4>
+            <p>
+              Escolha <strong>exatamente 10, 15 ou 18 itens</strong> para montar sua cesta.
+              Você pode adicionar até <strong>2 unidades</strong> de cada produto.
+            </p>
+            <p>
+              Nos produtos vendidos por peso (<strong>variação de 200g a 1kg</strong>), cada
+              unidade corresponde a uma porção dentro dessa faixa de peso, e não a uma unidade
+              avulsa do produto.
+            </p>
+          </div>
+
+          {/* Tamanho da cesta — versão mobile (antes dos produtos, sem box externo) */}
+          <div className="mc-sizes-mobile">
+            <div className="mc-eyebrow">Tamanho da cesta</div>
+            <div className="mc-sizes">
+              {allowedTotals.map(sz => (
+                <div key={sz} className={`mc-size ${totalCount === sz ? 'mc-size-sel' : ''}`}>
+                  <div className="mc-size-h"><span className="mc-size-n">{sz}</span> itens</div>
+                  <div className="mc-size-p">{prices[sz] ? fmtBRL(prices[sz]) : '—'}</div>
+                </div>
+              ))}
             </div>
+          </div>
 
-            <h2 className="ch-title">MONTAR MINHA CESTA</h2>
-
-            {/* Cards de preços das cestas */}
-            <div className="cd-prices">
-              <div className="cd-price-item">
-                <div className="cd-price-size">10 itens</div>
-                <div className="cd-price-value">{prices[10] ? Number(prices[10]).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '—'}</div>
-              </div>
-              <div className="cd-price-item">
-                <div className="cd-price-size">15 itens</div>
-                <div className="cd-price-value">{prices[15] ? Number(prices[15]).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '—'}</div>
-              </div>
-              <div className="cd-price-item">
-                <div className="cd-price-size">18 itens</div>
-                <div className="cd-price-value">{prices[18] ? Number(prices[18]).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '—'}</div>
-              </div>
-            </div>
-
-            {/* Observação sobre quantidade */}
-            <div className="mc-obs-box">
-              <div className="mc-obs-title">Como funciona:</div>
-              <div className="mc-obs-text">
-                Escolha <strong>exatamente 10, 15 ou 18 itens</strong> para montar sua cesta.
-                <br />Você pode adicionar até <strong>2 unidades</strong> de cada produto.
-                <br />A quantidade de cada produto está indicada no card.
-              </div>
-            </div>
-
-            {/* Lista de Produtos */}
-            <div className="mc-list">
-              {produtosDisponiveis.map(prod => {
-                const unidade = prod.unidade || 'g';
-                const descricao = unidade === 'un' ? '1 maço/unidade' : unidade === 'pct' ? '1 bandeja' : 'Variação de 200g a 1kg';
-                return (
-                <div className="mc-item" key={prod.id}>
-                  <img
-                    className="mc-prod-img"
-                    src={prod.img}
-                    alt={prod.name}
-                    onError={e => {
-                      const cur = e.currentTarget;
-                      const attempt = parseInt(cur.dataset.attempt || '0', 10);
-                      const baseSrc = prod.img.replace(/\.(jpg|jpeg|png)$/i, '');
-                      const extensions = ['.jpeg', '.png'];
-                      if (attempt < extensions.length) {
-                        cur.dataset.attempt = String(attempt + 1);
-                        cur.src = baseSrc + extensions[attempt];
-                      } else {
-                        cur.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjYwIiBmaWxsPSIjZTBlMGUwIi8+PHRleHQgeD0iNDAiIHk9IjM1IiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTAiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiPlNlbSBpbWFnZW08L3RleHQ+PC9zdmc+';
-                      }
-                    }}
-                  />
-                  <div className="mc-prod-info">
-                    <div className="mc-prod-name">{prod.name}</div>
-                    <div className="mc-controls">
-                      <div className="mc-qty-wrap">
-                        <button className="mc-plus-btn" onClick={() => handleDecrement(prod)}>-</button>
-                        <div className="mc-qty-display">{quantidades[prod.id] || 0}</div>
-                        <button
-                          className="mc-plus-btn"
-                          onClick={() => handleIncrement(prod)}
-                          disabled={(quantidades[prod.id] || 0) >= 2}
-                          title={(quantidades[prod.id] || 0) >= 2 ? 'Máximo 2 unidades' : ''}
-                        >
-                          +
-                        </button>
-                      </div>
-                    </div>
-                    <span className={`mc-badge-inline mc-badge-inline-${unidade}`}>{descricao}</span>
+          <div className="mc-eyebrow">Produtos do dia</div>
+          <div className="mc-list">
+            {produtosDisponiveis.map(prod => {
+              const unidade = prod.unidade || 'g';
+              const descricao = unidade === 'un' ? '1 maço/unidade' : unidade === 'pct' ? '1 bandeja' : 'Variação de 200g a 1kg';
+              return (
+              <div className="mc-item" key={prod.id}>
+                <img
+                  className="mc-prod-img"
+                  src={prod.img}
+                  alt={prod.name}
+                  onError={e => {
+                    const cur = e.currentTarget;
+                    const attempt = parseInt(cur.dataset.attempt || '0', 10);
+                    const baseSrc = prod.img.replace(/\.(jpg|jpeg|png)$/i, '');
+                    const extensions = ['.jpeg', '.png'];
+                    if (attempt < extensions.length) {
+                      cur.dataset.attempt = String(attempt + 1);
+                      cur.src = baseSrc + extensions[attempt];
+                    } else {
+                      cur.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjYwIiBmaWxsPSIjZTBlMGUwIi8+PHRleHQgeD0iNDAiIHk9IjM1IiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTAiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiPlNlbSBpbWFnZW08L3RleHQ+PC9zdmc+';
+                    }
+                  }}
+                />
+                <div className="mc-prod-info">
+                  <div className="mc-prod-name">{prod.name}</div>
+                  <span className={`mc-badge-inline mc-badge-inline-${unidade}`}>{descricao}</span>
+                </div>
+                <div className="mc-controls">
+                  <div className="mc-qty-wrap">
+                    <button className="mc-plus-btn" onClick={() => handleDecrement(prod)}>-</button>
+                    <div className="mc-qty-display">{quantidades[prod.id] || 0}</div>
+                    <button
+                      className="mc-plus-btn"
+                      onClick={() => handleIncrement(prod)}
+                      disabled={(quantidades[prod.id] || 0) >= 2}
+                      title={(quantidades[prod.id] || 0) >= 2 ? 'Máximo 2 unidades' : ''}
+                    >
+                      +
+                    </button>
                   </div>
                 </div>
-              );
-              })}
-            </div>
+              </div>
+            );
+            })}
+          </div>
+        </div>
 
-            {/* Carrinho */}
-            <h3 className="mc-cart-title">Carrinho</h3>
+        {/* Coluna lateral — carrinho + resumo */}
+        <div className="mc-aside">
+          <div className="mc-sizes-box">
+            <div className="mc-eyebrow" style={{ marginTop: 0 }}>Tamanho da cesta</div>
+            <div className="mc-sizes">
+              {allowedTotals.map(sz => (
+                <div key={sz} className={`mc-size ${totalCount === sz ? 'mc-size-sel' : ''}`}>
+                  <div className="mc-size-h"><span className="mc-size-n">{sz}</span> itens</div>
+                  <div className="mc-size-p">{prices[sz] ? fmtBRL(prices[sz]) : '—'}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="mc-aside-card">
+            <div className="mc-eyebrow" style={{ marginTop: 0 }}>Carrinho</div>
             <div className="mc-cart">
               {cart.length === 0 && <div className="mc-empty">Carrinho vazio</div>}
               {cart.map(item => (
@@ -277,61 +291,50 @@ export default function MontarCesta() {
                       <div className="mc-qty-display">{item.qty}</div>
                       <button className="mc-plus-btn" onClick={() => updateCartQty(item.id, item.qty + 1)} disabled={item.qty >= 2}>+</button>
                     </div>
-                    <button className="mc-cart-remove" onClick={() => removeFromCart(item.id)}>REMOVER</button>
+                    <button className="mc-cart-remove" onClick={() => removeFromCart(item.id)} aria-label="Remover" title="Remover"><IoTrashOutline /></button>
                   </div>
                 </div>
               ))}
             </div>
 
-            {/* Resumo */}
-            <div className="mc-cart-summary" style={{ marginTop: '14px', textAlign: 'center', color: 'rgba(255,255,255,0.95)' }}>
-              <div style={{ fontWeight: 700, marginBottom: 6 }}>Total: {totalCount} itens</div>
+            <div className="mc-aside-foot">
               {storeClosed ? (
-                <div style={{ fontSize: '0.95rem', opacity: 0.9 }}>
-                  <div>Loja fechada</div>
-                  {closedReason && <div style={{ fontSize: '0.85rem', marginTop: 4 }}>{closedReason}</div>}
-                  <div style={{ fontSize: '0.8rem', marginTop: 6, opacity: 0.8 }}>Horário: {getBusinessHoursText()}</div>
+                <div className="mc-total-msg">
+                  Loja fechada{closedReason ? ` · ${closedReason}` : ''}
                 </div>
               ) : finalPrice !== null ? (
-                <div style={{ fontSize: '1.05rem', fontWeight: 700 }}>
-                  Valor final: {Number(finalPrice).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                <div className="mc-total-row">
+                  <span className="mc-total-k">{totalCount} itens · valor final</span>
+                  <span className="mc-total-v">{fmtBRL(finalPrice)}</span>
                 </div>
               ) : (
-                <div style={{ fontSize: '0.95rem', opacity: 0.9 }}>
-                  Para finalizar, a quantidade deve ser exatamente 10, 15 ou 18 itens.
+                <div className="mc-total-msg">
+                  Selecione exatamente 10, 15 ou 18 itens. <strong>{totalCount}</strong> selecionados.
                 </div>
               )}
-            </div>
-
-            {/* Botão finalizar pedido */}
-            <div className="d-grid gap-3 mb-4 ch-btn-group" style={{ marginTop: '10px' }}>
               <button
-                className="ch-btn mc-finalize-btn"
+                className="ch-btn ch-btn-primary mc-finalize-btn"
                 disabled={storeClosed || !allowedTotals.includes(totalCount)}
                 onClick={() => {
                   if (storeClosed || !allowedTotals.includes(totalCount)) return;
-                  navigate('/montar/resumo'); // abre ResumoPedido
+                  navigate('/montar/resumo');
                 }}
               >
-                RESUMO DO PEDIDO
+                Resumo do pedido
               </button>
             </div>
-
           </div>
         </div>
       </div>
 
-      {/* Logo Sicoob */}
+      {/* Selos + rodapé */}
+      <div className="ch-apoio-eyebrow">Apoio</div>
       <div className="ch-logos-bottom"><img src="/images/logo-ifmg.png" alt="IFMG" className="ch-ifmg-bottom" /><img src="/images/logo-sicoob.png" alt="SICOOB" className="ch-sicoob-bottom" /></div>
-      <footer className="ch-footer-bar"><div className="ch-footer-content"><span className="ch-copyright-text"><span className="ch-copyright-symbol">©</span><span className="ch-copyright-year"> 2026</span><span className="ch-copyright-divider">|</span><span className="ch-copyright-names">Desenvolvido por Luisa Caetano Araujo, Júlia Cristina Martins de Almeida Nakano, Maria Eduarda Siqueira Silva e Yasmin Stefane Faria</span></span></div></footer>
 
-      {/* Contador Flutuante */}
-      <div className={`mc-float-counter ${allowedTotals.includes(totalCount) ? 'mc-float-valid' : ''} ${totalCount > 18 ? 'mc-float-over' : ''}`}>
+      {/* Contador Flutuante (mobile) — mesmo padrão do /admin/cesta */}
+      <div className={`mc-float-counter ${totalCount > 0 ? 'mc-float-has' : ''} ${allowedTotals.includes(totalCount) ? 'mc-float-max' : ''}`}>
         <div className="mc-float-number">{totalCount}</div>
-        <div className="mc-float-label">
-          {totalCount === 0 ? 'itens' : totalCount === 1 ? 'item' : 'itens'}
-        </div>
-        {allowedTotals.includes(totalCount) && <div className="mc-float-check">✓</div>}
+        <div className="mc-float-label">{totalCount === 1 ? 'item' : 'itens'}</div>
       </div>
     </div>
   );
@@ -347,46 +350,9 @@ export default function MontarCesta() {
             size={totalCount}
             totalPrice={finalPrice}
             prices={prices}
+            cartItems={cart}
+            isMontarCesta={true}
             onBack={() => navigate('/montar')}
-            onFinalize={() => navigate('/montar/finalizar')}
-            onRetirada={() => navigate('/montar/retirada')}
-            onEntrega={() => navigate('/montar/entrega')}
-          />
-        }
-      />
-      <Route
-        path="finalizar"
-        element={
-          <FinalizarPedido
-            size={totalCount}
-            onBack={() => navigate('/montar/resumo')}
-            onRetirada={() => navigate('/montar/retirada')}
-            onEntrega={() => navigate('/montar/entrega')}
-          />
-        }
-      />
-      <Route
-        path="retirada"
-        element={
-          <Retirada
-            size={totalCount}
-            totalPrice={finalPrice || 0}
-            cartItems={cart}
-            isMontarCesta={true}
-            onBack={() => navigate(-1)}
-            onFinish={() => navigate('/')}
-          />
-        }
-      />
-      <Route
-        path="entrega"
-        element={
-          <Entrega
-            size={totalCount}
-            totalPrice={finalPrice || 0}
-            cartItems={cart}
-            isMontarCesta={true}
-            onBack={() => navigate(-1)}
             onFinish={() => navigate('/')}
           />
         }

@@ -1,6 +1,10 @@
-import React, { useState, useMemo } from 'react';
-import 'bootstrap/dist/css/bootstrap.min.css';
+import React, { useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import './ResumoPedido.css';
+import Retirada from './Retirada';
+import Entrega from './Entrega';
+import { IoStorefrontOutline, IoArrowForward } from 'react-icons/io5';
+import { MdDeliveryDining } from 'react-icons/md';
 
 function cestaImgForSize(sz) {
   if (sz === 10) return '/images/cesta10itens.png';
@@ -15,12 +19,13 @@ export default function ResumoPedido({
   totalPrice = null,
   prices: propPrices = null,
   onBack,
-  onConfirm,
-  onFinalize
+  cartItems = [],
+  isMontarCesta = false,
+  size = null,
+  onFinish
 }) {
-  const [payment] = useState('pix');
-  const [needChange] = useState(false);
-  const [changeFor] = useState('');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const metodo = searchParams.get('metodo');
 
   const prices = useMemo(() => {
     // Usa os preços passados via prop primeiro
@@ -110,17 +115,6 @@ export default function ResumoPedido({
 
   const isCartCesta = Array.isArray(cart) && cart.length && totalPrice != null;
 
-  function handleFinalize() {
-    if (onFinalize) {
-      onFinalize();
-      return;
-    }
-    if (payment === 'cash' && needChange && !changeFor) {
-      return;
-    }
-    onConfirm && onConfirm({ total: computedTotal, payment, changeFor });
-  }
-
   // grava o cart atual para fallback (para garantir que Retirada/Entrega consigam recuperar os itens
   // ao gerar a mensagem de WhatsApp, caso a prop items venha vazia)
   React.useEffect(() => {
@@ -137,74 +131,118 @@ export default function ResumoPedido({
 
   return (
     <div className="ch-root">
-      <div className="container">
-        <div className="row justify-content-center">
-          <div className="col-12 col-md-10 col-lg-8">
+      <div className="cd-top">
+        <div className="ch-cover-wrapper">
+          <button className="cc-back" onClick={onBack} aria-label="Voltar">←</button>
+          <div className="ch-cover-inner">
+            <img src="/images/capa.png" alt="Capa CAMFOR" className="ch-cover-img" />
+          </div>
+          <div className="ch-logo">
+            <img src="/images/logoEmblema.png" alt="CAMFOR" className="ch-logo-img" />
+          </div>
+        </div>
+        <div className="ch-content cd-head">
+          <div className="ch-eyebrow">Agricultura Familiar</div>
+          <h2 className="ch-title">Resumo do pedido</h2>
+          <div className="ch-rule" />
+        </div>
 
-            <div className="ch-cover-wrapper">
-              <button className="cc-back" onClick={onBack} aria-label="Voltar">←</button>
-              <div className="ch-cover-inner">
-                <img src="/images/capa.jpg" alt="Capa" className="ch-cover-img" />
-              </div>
-              <div className="ch-logo">
-                <img src="/images/logoImagem.png" alt="CAMFOR" className="ch-logo-img" />
-              </div>
-            </div>
-
-            <h2 className="ch-title">RESUMO DO PEDIDO</h2>
-
-            <div className="rp-section">
-
-              {/* Painel de Pedidos */}
-              <div className="rp-order-panel">
-                {orderLines.length > 0 ? (
-                  <>
-                    {orderLines.map(line => (
-                      <div key={line.key} className="rp-order-row">
-                        <img
-                          src={line.img}
-                          alt={line.title}
-                          className="rp-order-img"
-                          onError={e => {
-                            const cur = e.currentTarget;
-                            const src = cur.src || '';
-                            if (src.match(/\.jpg$/i)) {
-                              cur.src = src.replace(/\.jpg$/i, '.png');
-                            } else if (src.match(/\.jpeg$/i)) {
-                              cur.src = src.replace(/\.jpeg$/i, '.png');
-                            } else if (src.match(/\.png$/i)) {
-                              cur.src = '/images/placeholder.png';
-                            } else {
-                              cur.src = '/images/placeholder.png';
-                            }
-                          }}
-                        />
-                        <div className="rp-order-info">
-                          <div className="rp-order-title">{line.title}</div>
-                          <div className="rp-order-meta">Quantidade: {line.qty}</div>
-                        </div>
-                        {/* Quando vier de MontarCesta (isCartCesta) não mostrar preço por item */}
-                        {!isCartCesta && <div className="rp-order-value">{ (line.total && line.total>0) ? formatBRL(line.total) : '—' }</div>}
-                      </div>
-                    ))}
-                    <div className="rp-divider" />
-                    <div className="rp-order-total">
-                      <div className="rp-order-total-label">Total</div>
-                      <div className="rp-order-total-value">{formatBRL(displayTotal)}</div>
+        <div className="rp-grid">
+          {/* Coluna esquerda — itens do pedido */}
+          <div className="rp-main">
+            <div className="rp-card">
+              {orderLines.length > 0 ? (
+                orderLines.map(line => (
+                  <div key={line.key} className="rp-row">
+                    <img
+                      src={line.img}
+                      alt={line.title}
+                      className="rp-img"
+                      onError={e => {
+                        const cur = e.currentTarget;
+                        const src = cur.src || '';
+                        if (src.match(/\.jpg$/i)) {
+                          cur.src = src.replace(/\.jpg$/i, '.png');
+                        } else if (src.match(/\.jpeg$/i)) {
+                          cur.src = src.replace(/\.jpeg$/i, '.png');
+                        } else {
+                          cur.src = '/images/placeholder.png';
+                        }
+                      }}
+                    />
+                    <div className="rp-info">
+                      <div className="rp-name">{line.title}</div>
+                      <div className="rp-meta">Quantidade: {line.qty}</div>
                     </div>
-                  </>
-                ) : (
-                  <div className="rp-empty">Nenhum item selecionado.</div>
-                )}
+                    {/* Quando vier de MontarCesta (isCartCesta) não mostrar preço por item */}
+                    {!isCartCesta && <div className="rp-val">{(line.total && line.total > 0) ? formatBRL(line.total) : '—'}</div>}
+                  </div>
+                ))
+              ) : (
+                <div className="rp-empty">Nenhum item selecionado.</div>
+              )}
+            </div>
+          </div>
+
+          {/* Coluna direita — total + como receber */}
+          <div className="rp-aside">
+            <div className="rp-panel">
+              <div className="rp-total">
+                <span className="rp-total-k">Total</span>
+                <span className="rp-total-v">{formatBRL(displayTotal)}</span>
               </div>
 
-              <div className="rp-actions">
-                <button className="ch-btn mc-finalize-btn" onClick={handleFinalize} disabled={displayTotal <= 0}>FINALIZAR PEDIDO</button>
-              </div>
-             </div>
-           </div>
-         </div>
-       </div>
-     </div>
-   );
- }
+              <div className="rp-eyebrow rp-eyebrow-method">Como quer receber?</div>
+
+              <button className="rp-opt" onClick={() => setSearchParams({ metodo: 'entrega' })} disabled={displayTotal <= 0}>
+                <span className="rp-opt-ic"><MdDeliveryDining size={24} /></span>
+                <span className="rp-opt-body">
+                  <span className="rp-opt-t">Entrega</span>
+                  <span className="rp-opt-d">Receba no seu endereço</span>
+                </span>
+                <IoArrowForward className="rp-opt-arrow" />
+              </button>
+
+              <button className="rp-opt" onClick={() => setSearchParams({ metodo: 'retirada' })} disabled={displayTotal <= 0}>
+                <span className="rp-opt-ic"><IoStorefrontOutline size={21} /></span>
+                <span className="rp-opt-body">
+                  <span className="rp-opt-t">Retirada</span>
+                  <span className="rp-opt-d">Retire no ponto da cooperativa</span>
+                </span>
+                <IoArrowForward className="rp-opt-arrow" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="ch-apoio-eyebrow">Apoio</div>
+      <div className="ch-logos-bottom">
+        <img src="/images/logo-ifmg.png" alt="IFMG" className="ch-ifmg-bottom" />
+        <img src="/images/logo-sicoob.png" alt="SICOOB" className="ch-sicoob-bottom" />
+      </div>
+
+      {metodo === 'retirada' && (
+        <Retirada
+          cartItems={cartItems}
+          totalPrice={displayTotal}
+          isMontarCesta={isMontarCesta}
+          size={size}
+          onBack={() => setSearchParams({})}
+          onFinish={onFinish}
+        />
+      )}
+
+      {metodo === 'entrega' && (
+        <Entrega
+          cartItems={cartItems}
+          totalPrice={displayTotal}
+          isMontarCesta={isMontarCesta}
+          size={size}
+          onBack={() => setSearchParams({})}
+          onFinish={onFinish}
+        />
+      )}
+    </div>
+  );
+}

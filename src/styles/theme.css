@@ -1,0 +1,59 @@
+/* ============================================================
+   CAMFOR — Design tokens (paleta verde-eucalipto + acento marigold)
+   Camada central de identidade. Os componentes usam estes valores.
+   ============================================================ */
+:root {
+  /* Marca — verde eucalipto */
+  --pine-900: #0B302C;
+  --pine-800: #0E3F3A;
+  --pine-700: #11504A;
+
+  /* Acento — terracota suave (colheita) */
+  --accent: #D98A3D;
+  --accent-deep: #BF7733;
+  /* aliases legados (mesmos valores) */
+  --marigold: #D98A3D;
+  --marigold-deep: #BF7733;
+
+  /* Funcionais */
+  --leaf: #5BA66B;
+
+  /* Neutros */
+  --paper: #F7F4EC;
+  --paper-2: #FCFAF4;
+  --ink: #0B2B2F;
+  --mist: rgba(247, 244, 236, 0.74);
+  --mist-2: rgba(247, 244, 236, 0.5);
+  --line: rgba(247, 244, 236, 0.14);
+
+  /* Tipografia */
+  --display: 'Bricolage Grotesque', system-ui, -apple-system, sans-serif;
+  --body: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* Raio padrão */
+  --radius: 14px;
+}
+
+/* Tipografia base — corpo em Plus Jakarta Sans */
+body {
+  font-family: var(--body);
+}
+
+/* Títulos em Bricolage Grotesque (display) */
+h1, h2, h3,
+.ch-title, .ch-closed-title,
+.cd-title, .mc-cart-title,
+.al-title, .ah-title {
+  font-family: var(--display);
+  letter-spacing: -0.01em;
+}
+
+/* Evita o zoom automático do iOS/Safari ao focar campos:
+   campos com fonte < 16px disparam o zoom. Forçamos 16px no mobile. */
+@media (max-width: 768px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}

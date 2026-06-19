@@ -1,5 +1,98 @@
 @import './CamforHome.css';
 
+/* Cabeçalho padrão (capa + medalhão) — alinhado à largura da grade.
+   Reaproveita ch-cover-wrapper / ch-logo / ch-content / ch-rule e seus
+   espaçamentos (capa→medalhão 92px, régua→conteúdo 28px). */
+.cd-top {
+  width: 100%;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 18px;
+}
+.cd-head { padding-bottom: 28px; }
+.cd-head .ch-eyebrow { display: block; }
+
+/* Folga abaixo da grade → linha do Apoio fica simétrica (30px / 30px)
+   como nas demais telas. */
+.cd-root .mc-grid { padding-bottom: 30px; }
+
+/* ----- Ajustes específicos da tela /cesta (escopados em .cd-root) ----- */
+
+/* "Como funciona": cartão escuro translúcido (sem fundo branco). */
+.cd-root .mc-info {
+  background: rgba(247, 244, 236, 0.05);
+  color: var(--mist);
+  border: 1px solid var(--line);
+  box-shadow: none;
+}
+/* Na /cesta o "Como funciona" é o 1º item da coluna → alinha o topo com o
+   card lateral. Na /montar ele vem depois dos tamanhos, então mantém o
+   espaçamento padrão. */
+.cd-root .mc-main > .mc-info:first-child { margin-top: 0; }
+.cd-root .mc-info h4 { color: #fff; }
+.cd-root .mc-info p { color: var(--mist); }
+.cd-root .mc-info strong { color: var(--paper); }
+
+/* Itens disponíveis: cards mais compactos */
+.cd-root .mc-item {
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: rgba(247, 244, 236, 0.05);
+  border: 1px solid var(--line);
+  box-shadow: none;
+}
+.cd-root .mc-item:hover { background: rgba(247, 244, 236, 0.08); }
+.cd-root .mc-prod-img {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  box-shadow: none;
+}
+.cd-root .mc-prod-info { gap: 2px; }
+.cd-root .mc-prod-name { font-size: 0.9rem; font-weight: 600; }
+
+/* Variação: subtítulo discreto (sem pill colorida), igual à tela de produtos */
+.cd-root .mc-badge-inline {
+  font-size: 0.74rem;
+  font-weight: 500;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--mist-2);
+  margin-top: 0;
+}
+
+/* Mobile (layout empilhado, < 900px): respiro acima do card lateral
+   (Sua cesta / Carrinho), separando a lista de itens da finalização. */
+@media (max-width: 899px) {
+  .cd-root .mc-aside { margin-top: 26px; }
+}
+
+/* Carrinho (/montar): mesmo cartão escuro translúcido dos itens, sem o
+   gradiente colorido e a borda grossa anteriores. */
+.cd-root .mc-cart-item {
+  background: rgba(247, 244, 236, 0.05);
+  border: 1px solid var(--line);
+  box-shadow: none;
+  border-radius: 14px;
+  padding: 10px 12px;
+}
+.cd-root .mc-cart-img { width: 48px; height: 48px; border-radius: 10px; box-shadow: none; }
+.cd-root .mc-cart-name { font-size: 0.9rem; font-weight: 600; }
+.cd-root .mc-cart-remove {
+  background: rgba(214, 69, 69, 0.16);
+  color: #e89090;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  font-size: 1.05rem;
+}
+.cd-root .mc-cart-remove:hover { background: rgba(214, 69, 69, 0.26); transform: none; }
+
 /* Lista de Produtos - Grid 2 colunas */
 .cd-list {
   list-style: none;
@@ -152,8 +245,8 @@
   flex-wrap: nowrap;
 }
 .cd-price-item {
-  background: rgba(38, 198, 218, 0.15);
-  border: 2px solid rgba(38, 198, 218, 0.3);
+  background: rgba(217, 138, 61, 0.15);
+  border: 2px solid rgba(217, 138, 61, 0.3);
   padding: 14px 20px;
   border-radius: 12px;
   display: flex;
@@ -204,3 +297,49 @@
     padding: 10px 8px;
   }
 }
+
+/* ============================================================
+   CESTA — coluna lateral "Sua cesta" (novo layout)
+   ============================================================ */
+.cd-basket-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.cd-basket-img {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  object-fit: cover;
+  background: #fff;
+  flex: none;
+}
+.cd-basket-info { display: flex; flex-direction: column; gap: 3px; }
+.cd-basket-name { color: #fff; font-weight: 600; font-size: 0.95rem; }
+.cd-basket-price {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.cd-basket-price span {
+  font-family: var(--body);
+  font-weight: 500;
+  font-size: 0.78rem;
+  color: var(--mist-2);
+}
+.cd-qty-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.cd-qty-label { color: var(--mist); font-size: 0.88rem; font-weight: 500; }
+
+/* Espaçamento entre parágrafos do card "Como funciona" */
+.cd-root .mc-info p + p { margin-top: 8px; }

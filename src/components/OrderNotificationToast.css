@@ -1,129 +1,84 @@
 .ont-container {
   position: fixed;
-  top: 20px;
-  right: 20px;
-  z-index: 9999;
+  top: 18px;
+  right: 18px;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  max-width: 340px;
-  width: calc(100% - 40px);
+  z-index: 400;
+  width: 300px;
+  max-width: calc(100vw - 36px);
 }
 
 .ont-toast {
+  position: relative;
   display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  background: linear-gradient(135deg, #0a4d5c 0%, #0d6478 100%);
-  border-radius: 12px;
-  padding: 14px 16px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  align-items: center;
+  gap: 11px;
+  background: linear-gradient(165deg, var(--pine-700), var(--pine-800));
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  border-radius: 13px;
+  padding: 12px 14px;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.45);
   cursor: pointer;
-  animation: ont-slide-in 0.3s ease-out;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  overflow: hidden;
+  animation: ont-in 0.3s ease-out;
 }
+@keyframes ont-in { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
 
-.ont-toast:hover {
-  transform: translateX(-4px);
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.4);
+.ont-toast::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2px;
+  width: 100%;
+  background: rgba(217, 138, 61, 0.5);
+  transform-origin: left;
+  animation: ont-bar 8s linear forwards;
 }
-
-@keyframes ont-slide-in {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
+@keyframes ont-bar { from { transform: scaleX(1); } to { transform: scaleX(0); } }
 
 .ont-icon {
-  flex-shrink: 0;
-  width: 40px;
-  height: 40px;
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: rgba(217, 138, 61, 0.16);
+  color: var(--accent);
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+.ont-icon svg { width: 18px; height: 18px; }
+
+.ont-content { flex: 1; min-width: 0; }
+.ont-eyebrow {
+  font-size: 0.56rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
   display: flex;
   align-items: center;
-  justify-content: center;
-  animation: ont-bell-shake 0.5s ease-in-out;
+  gap: 5px;
 }
-
-@keyframes ont-bell-shake {
-  0%, 100% { transform: rotate(0); }
-  20% { transform: rotate(15deg); }
-  40% { transform: rotate(-15deg); }
-  60% { transform: rotate(10deg); }
-  80% { transform: rotate(-10deg); }
-}
-
-.ont-bell {
-  font-size: 20px;
-}
-
-.ont-content {
-  flex: 1;
-  min-width: 0;
-}
-
-.ont-title {
-  font-size: 14px;
-  font-weight: 700;
-  color: #4ade80;
-  margin-bottom: 4px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.ont-message {
-  font-size: 15px;
-  color: #ffffff;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.ont-details {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.7);
-  margin-top: 4px;
-}
+.ont-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 3px rgba(217, 138, 61, 0.25); }
+.ont-name { font-family: var(--display); font-weight: 700; font-size: 0.92rem; color: #fff; margin-top: 3px; }
+.ont-meta { font-size: 0.72rem; color: var(--mist); margin-top: 1px; }
 
 .ont-close {
-  flex-shrink: 0;
-  width: 24px;
-  height: 24px;
+  position: absolute;
+  top: 7px;
+  right: 8px;
+  width: 20px;
+  height: 20px;
   border: none;
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.7);
-  border-radius: 50%;
-  font-size: 18px;
-  line-height: 1;
+  background: transparent;
+  color: var(--mist-2);
+  font-size: 16px;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
+  border-radius: 6px;
+  line-height: 1;
 }
-
-.ont-close:hover {
-  background: rgba(255, 255, 255, 0.2);
-  color: #ffffff;
-}
-
-/* Mobile */
-@media (max-width: 480px) {
-  .ont-container {
-    top: 10px;
-    right: 10px;
-    left: 10px;
-    width: auto;
-    max-width: none;
-  }
-
-  .ont-toast {
-    padding: 12px 14px;
-  }
-}
+.ont-close:hover { background: rgba(247, 244, 236, 0.1); color: var(--paper); }

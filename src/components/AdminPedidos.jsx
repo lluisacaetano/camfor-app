@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import 'bootstrap/dist/css/bootstrap.min.css';
+import { useSearchParams } from 'react-router-dom';
 import './AdminPedidos.css';
+import '../styles/admin.css';
+import { IoTrashOutline, IoEyeOutline, IoStorefrontOutline } from 'react-icons/io5';
+import { MdDeliveryDining } from 'react-icons/md';
 import { subscribeToOrders, clearAllOrders, updateOrder, deleteOrder, subscribeToProducts } from '../services/firestoreService';
 import { handleImageError } from '../utils/imageUtils';
 
@@ -11,170 +14,119 @@ function cestaImgForSize(sz) {
   return '/images/cestaCompleta.jpg';
 }
 
-// nova função: determina imagem de preview para o card do pedido
-function previewImgForOrder(order) {
-  // Sempre retorna a imagem da cesta completa
-  return '/images/cestaCompleta.jpg';
-}
-
 function getOrderItemCount(order) {
-  // Retorna a quantidade total de itens do pedido
   if (!order) return 0;
-
-  // Se tiver items, soma as quantidades
   if (Array.isArray(order.items) && order.items.length > 0) {
     return order.items.reduce((sum, item) => sum + (item.qty || 1), 0);
   }
-
-  // Se for cesta fechada com basketCounts
   if (order.basketCounts) {
     return (order.basketCounts[10] || 0) + (order.basketCounts[15] || 0) + (order.basketCounts[18] || 0);
   }
-
-  // Se tiver size, é o tamanho da cesta
-  if (order.size) {
-    return order.size;
-  }
-
+  if (order.size) return order.size;
   return 0;
 }
 
-// Calcula tempo decorrido desde o pedido
 function getElapsedTime(timestamp) {
   if (!timestamp) return '';
-
-  const orderTime = new Date(timestamp);
-  const now = new Date();
-  const diffMs = now - orderTime;
-  const diffMins = Math.floor(diffMs / 60000);
-
+  const diffMins = Math.floor((new Date() - new Date(timestamp)) / 60000);
   if (diffMins < 1) return 'agora';
   if (diffMins === 1) return 'há 1 min';
   if (diffMins < 60) return `há ${diffMins} min`;
-
   const diffHours = Math.floor(diffMins / 60);
   if (diffHours === 1) return 'há 1 hora';
   if (diffHours < 24) return `há ${diffHours} horas`;
-
   const diffDays = Math.floor(diffHours / 24);
-  if (diffDays === 1) return 'há 1 dia';
-  return `há ${diffDays} dias`;
+  return diffDays === 1 ? 'há 1 dia' : `há ${diffDays} dias`;
+}
+
+function getInitials(nome) {
+  return (nome || '?').trim().split(/\s+/).slice(0, 2).map(w => w[0] || '').join('').toUpperCase() || '?';
+}
+
+const fmtBRL = v => {
+  try { return Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
+  catch { return 'R$ 0,00'; }
+};
+
+// Classe da tag de pagamento (cor por método)
+function pillClass(pagamento) {
+  const s = (pagamento || '').toLowerCase();
+  if (s.includes('pix')) return 'pix';
+  if (s.includes('dinheiro')) return 'dinheiro';
+  if (s.includes('art')) return 'cartao'; // cartão de crédito/débito
+  return 'din';
+}
+
+// Rótulo curto da tag de pagamento
+function pillLabel(pagamento) {
+  if (!pagamento) return '—';
+  const s = pagamento.toLowerCase();
+  if (s.includes('art')) return 'Cartão';
+  if (s.includes('retirada')) return 'Retirada';
+  return pagamento;
 }
 
 export default function AdminPedidos({ onBack, onMount }) {
   const [orders, setOrders] = useState([]);
   const [products, setProducts] = useState([]);
-  const [selectedOrderId, setSelectedOrderId] = useState(null);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(null); // Guarda o pedido a ser excluído
-  const [, setTick] = useState(0); // Para forçar re-render a cada minuto
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
+  const [tab, setTab] = useState('todos');
+  const [, setTick] = useState(0);
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  // Executa onMount quando o componente é montado (marca notificações como lidas)
-  useEffect(() => {
-    if (onMount) {
-      onMount();
-    }
-  }, [onMount]);
+  useEffect(() => { if (onMount) onMount(); }, [onMount]);
 
-  // Escuta pedidos em tempo real do Firestore
   useEffect(() => {
-    const unsubscribe = subscribeToOrders((ordersList) => {
-      setOrders(ordersList);
-    });
+    const unsubscribe = subscribeToOrders((ordersList) => setOrders(ordersList));
     return () => unsubscribe();
   }, []);
 
-  // Escuta produtos para obter unidade
   useEffect(() => {
-    const unsubscribe = subscribeToProducts((prods) => {
-      setProducts(prods);
-    });
+    const unsubscribe = subscribeToProducts((prods) => setProducts(prods));
     return () => unsubscribe();
   }, []);
 
-  // Atualiza o contador de tempo a cada minuto
   useEffect(() => {
-    const interval = setInterval(() => {
-      setTick(t => t + 1);
-    }, 60000); // 1 minuto
+    const interval = setInterval(() => setTick(t => t + 1), 60000);
     return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
-    // Auto-clear orders at midnight
     function scheduleAutoCleanup() {
       const now = new Date();
       const tomorrow = new Date(now);
       tomorrow.setDate(tomorrow.getDate() + 1);
       tomorrow.setHours(0, 0, 0, 0);
-
-      const timeUntilMidnight = tomorrow - now;
-
       const timeoutId = setTimeout(async () => {
         await clearAllOrders();
-        scheduleAutoCleanup(); // reschedule for next day
-      }, timeUntilMidnight);
-
+        scheduleAutoCleanup();
+      }, tomorrow - now);
       return timeoutId;
     }
-
     const timeoutId = scheduleAutoCleanup();
     return () => clearTimeout(timeoutId);
   }, []);
 
-  function handleClearAll() {
-    setShowClearConfirm(true);
-  }
-
   async function confirmClearAll() {
-    try {
-      await clearAllOrders();
-    } catch (e) {
-      console.error('Erro ao limpar pedidos:', e);
-    }
+    try { await clearAllOrders(); } catch (e) { console.error('Erro ao limpar pedidos:', e); }
     setShowClearConfirm(false);
   }
-
   async function handleToggleEntregue(orderId, docId) {
     const order = orders.find(o => o.id === orderId);
-    if (order && docId) {
-      try {
-        await updateOrder(docId, { entregue: !order.entregue });
-      } catch (e) {
-        console.error('Erro ao atualizar pedido:', e);
-      }
-    }
+    if (order && docId) { try { await updateOrder(docId, { entregue: !order.entregue }); } catch (e) { console.error(e); } }
   }
-
   async function handleTogglePago(orderId, docId) {
     const order = orders.find(o => o.id === orderId);
-    if (order && docId) {
-      try {
-        await updateOrder(docId, { pago: !order.pago });
-      } catch (e) {
-        console.error('Erro ao atualizar pagamento:', e);
-      }
-    }
+    if (order && docId) { try { await updateOrder(docId, { pago: !order.pago }); } catch (e) { console.error(e); } }
   }
-
   async function handleToggleEmbalado(orderId, docId) {
     const order = orders.find(o => o.id === orderId);
-    if (order && docId) {
-      try {
-        await updateOrder(docId, { embalado: !order.embalado });
-      } catch (e) {
-        console.error('Erro ao atualizar embalagem:', e);
-      }
-    }
+    if (order && docId) { try { await updateOrder(docId, { embalado: !order.embalado }); } catch (e) { console.error(e); } }
   }
-
   async function confirmDeleteOrder() {
     if (showDeleteConfirm && showDeleteConfirm.docId) {
-      try {
-        await deleteOrder(showDeleteConfirm.docId);
-      } catch (e) {
-        console.error('Erro ao excluir pedido:', e);
-      }
+      try { await deleteOrder(showDeleteConfirm.docId); } catch (e) { console.error(e); }
     }
     setShowDeleteConfirm(null);
   }
@@ -182,331 +134,150 @@ export default function AdminPedidos({ onBack, onMount }) {
   const retiradaOrders = orders.filter(o => o.tipo === 'retirada');
   const entregaOrders = orders.filter(o => o.tipo === 'entrega');
 
-  if (selectedOrderId !== null) {
-    const selectedOrder = orders.find(o => o.id === selectedOrderId);
-    if (selectedOrder) {
-      return <OrderDetail order={selectedOrder} products={products} onBack={() => setSelectedOrderId(null)} />;
-    }
+  // Detalhe derivado da URL (?pedido=<docId>) — assim o "voltar" do navegador
+  // remove o parâmetro e retorna automaticamente para a lista.
+  const pedidoDocId = searchParams.get('pedido');
+  const selectedOrder = pedidoDocId ? orders.find(o => o.docId === pedidoDocId) : null;
+  if (selectedOrder) {
+    return <OrderDetail order={selectedOrder} products={products} onBack={() => setSearchParams({})} />;
+  }
+
+  const lista = tab === 'todos' ? orders : tab === 'retirada' ? retiradaOrders : entregaOrders;
+
+  function renderOrder(order) {
+    const count = getOrderItemCount(order);
+    return (
+      <div key={order.id} className={`adm-ocard ${order.entregue ? 'done' : ''}`}>
+        <div className="av">{getInitials(order.nome)}</div>
+        <div className="info">
+          <div className="nm">
+            {order.nome}
+            <span className={`adm-pill ${pillClass(order.pagamento)}`}>{pillLabel(order.pagamento)}</span>
+          </div>
+          <div className="meta">{count} {count === 1 ? 'item' : 'itens'} · {order.tipo === 'entrega' ? 'Entrega' : 'Retirada'} · {getElapsedTime(order.timestamp)}</div>
+        </div>
+        <div className="tot">{fmtBRL(order.total || 0)}</div>
+        <div className="adm-oact">
+          <button className="adm-mini ver" onClick={() => setSearchParams({ pedido: order.docId })}>Ver</button>
+          <button className={`adm-mini pago ${order.pago ? 'on' : ''}`} onClick={() => handleTogglePago(order.id, order.docId)}>Pago</button>
+          <button className={`adm-mini emb ${order.embalado ? 'on' : ''}`} onClick={() => handleToggleEmbalado(order.id, order.docId)}>Embalado</button>
+          <button className={`adm-mini ent ${order.entregue ? 'on' : ''}`} onClick={() => handleToggleEntregue(order.id, order.docId)}>Entregue</button>
+          <button className="adm-mini del" onClick={() => setShowDeleteConfirm(order)} title="Excluir pedido"><IoTrashOutline size={15} /></button>
+        </div>
+      </div>
+    );
+  }
+
+  function renderRow(order) {
+    const count = getOrderItemCount(order);
+    return (
+      <tr key={order.id} className={order.entregue ? 'done' : ''}>
+        <td>
+          <div className="otab-cli">
+            <div className="av">{getInitials(order.nome)}</div>
+            <div>
+              <div className="nm">{order.nome}</div>
+              <div className="ph">{getElapsedTime(order.timestamp)}</div>
+            </div>
+          </div>
+        </td>
+        <td><span className={`otab-tipo ${order.tipo === 'entrega' ? 'ent' : 'ret'}`}>{order.tipo === 'entrega' ? 'Entrega' : 'Retirada'}</span></td>
+        <td className="otab-itens">{count} {count === 1 ? 'item' : 'itens'}</td>
+        <td><span className={`adm-pill ${pillClass(order.pagamento)}`}>{pillLabel(order.pagamento)}</span></td>
+        <td className="otab-tot">{fmtBRL(order.total || 0)}</td>
+        <td>
+          <div className="otab-acoes">
+            <button className="adm-mini ver" onClick={() => setSearchParams({ pedido: order.docId })}>Ver</button>
+            <button className={`adm-mini pago ${order.pago ? 'on' : ''}`} onClick={() => handleTogglePago(order.id, order.docId)}>Pago</button>
+            <button className={`adm-mini emb ${order.embalado ? 'on' : ''}`} onClick={() => handleToggleEmbalado(order.id, order.docId)}>Embalado</button>
+            <button className={`adm-mini ent ${order.entregue ? 'on' : ''}`} onClick={() => handleToggleEntregue(order.id, order.docId)}>Entregue</button>
+            <button className="adm-mini del" onClick={() => setShowDeleteConfirm(order)} title="Excluir pedido"><IoTrashOutline size={14} /></button>
+          </div>
+        </td>
+      </tr>
+    );
   }
 
   return (
-    <div className="ch-root">
-      <div className="container">
-        <div className="row justify-content-center">
-          <div className="col-12 col-md-10 col-lg-8">
-            <div className="ch-cover-wrapper">
-              <button className="cc-back" onClick={onBack} aria-label="Voltar">←</button>
-              <div className="ch-cover-inner">
-                <img src="/images/capa.jpg" alt="Capa" className="ch-cover-img" />
-              </div>
-              <div className="ch-logo">
-                <img src="/images/logoImagem.png" alt="CAMFOR" className="ch-logo-img" />
-              </div>
+    <div className="ch-root adm-root">
+      <div className="adm-wrap">
+        <div className="ch-cover-wrapper">
+          <button className="cc-back" onClick={onBack} aria-label="Voltar">←</button>
+          <div className="ch-cover-inner"><img src="/images/capa.png" alt="Capa" className="ch-cover-img" /></div>
+          <div className="ch-logo"><img src="/images/logoEmblema.png" alt="CAMFOR" className="ch-logo-img" /></div>
+        </div>
+        <div className="ch-content adm-head">
+          <div className="ch-eyebrow">Agricultura Familiar</div>
+          <h2 className="ch-title">Pedidos diários</h2>
+          <div className="ch-rule" />
+        </div>
+
+        {orders.length === 0 ? (
+          <div className="adm-empty">Nenhum pedido realizado ainda.</div>
+        ) : (
+          <>
+            <div className="adm-tabs">
+              <button className={`adm-tab ${tab === 'todos' ? 'on' : ''}`} onClick={() => setTab('todos')}>Todos ({orders.length})</button>
+              <button className={`adm-tab ${tab === 'entrega' ? 'on' : ''}`} onClick={() => setTab('entrega')} title="Entrega">
+                <MdDeliveryDining className="adm-tab-ic" size={18} /><span className="ttxt">Entrega ({entregaOrders.length})</span>
+              </button>
+              <button className={`adm-tab ${tab === 'retirada' ? 'on' : ''}`} onClick={() => setTab('retirada')} title="Retirada">
+                <IoStorefrontOutline className="adm-tab-ic" size={16} /><span className="ttxt">Retirada ({retiradaOrders.length})</span>
+              </button>
+              <button className="adm-tab-clear" onClick={() => setShowClearConfirm(true)} title="Limpar todos os pedidos">
+                <IoTrashOutline size={15} /><span className="ttxt"> Limpar</span>
+              </button>
             </div>
 
-            <h2 className="ch-title">PEDIDOS FINALIZADOS</h2>
-
-            {orders.length > 0 && (
-              <div className="ap-counter">
-                Total de pedidos: <span className="ap-counter-number">{orders.length}</span>
-              </div>
-            )}
-
-            {orders.length === 0 ? (
-              <div style={{ textAlign: 'center', color: '#fff', margin: '24px 0' }}>
-                Nenhum pedido realizado ainda.
-              </div>
+            {lista.length === 0 ? (
+              <div className="adm-empty">Nenhum pedido nesta categoria.</div>
             ) : (
               <>
-                {/* RETIRADA */}
-                {retiradaOrders.length > 0 && (
-                  <>
-                    <h3 className="ap-section-title">RETIRADA</h3>
-                    <div className="ap-orders-list">
-                      {retiradaOrders.map(order => (
-                        <div key={order.id} className={`ap-order-card ${order.entregue ? 'ap-order-entregue' : order.embalado ? 'ap-order-embalado' : ''}`}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1 }}>
-                            <img
-                              src={previewImgForOrder(order)}
-                              alt="preview"
-                              style={{ width: 56, height: 48, objectFit: 'cover', borderRadius: 8, background: '#fff', flexShrink: 0 }}
-                              onError={handleImageError}
-                            />
-                            <div className="ap-card-content" style={{ minWidth: 0 }}>
-                              <div className="ap-order-name">{order.nome}</div>
-                              <div className="ap-order-meta">
-                                {getOrderItemCount(order)} {getOrderItemCount(order) === 1 ? 'item' : 'itens'}
-                                <span className="ap-order-time">{getElapsedTime(order.timestamp)}</span>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="ap-btn-group">
-                            <button
-                              className="ap-view-btn"
-                              onClick={() => setSelectedOrderId(order.id)}
-                            >
-                              Visualizar
-                            </button>
-                            {order.pagamento === 'PIX' && (
-                              <button
-                                className={`ap-pago-btn ${order.pago ? 'ap-pago-ativo' : ''}`}
-                                onClick={() => handleTogglePago(order.id, order.docId)}
-                              >
-                                {order.pago ? '✓ Pago' : 'Pago'}
-                              </button>
-                            )}
-                            <button
-                              className={`ap-embalado-btn ${order.embalado ? 'ap-embalado-ativo' : ''}`}
-                              onClick={() => handleToggleEmbalado(order.id, order.docId)}
-                            >
-                              {order.embalado ? '✓ Embalado' : 'Embalado'}
-                            </button>
-                            <button
-                              className={`ap-entregue-btn ${order.entregue ? 'ap-entregue-ativo' : ''}`}
-                              onClick={() => handleToggleEntregue(order.id, order.docId)}
-                            >
-                              {order.entregue ? '✓ Entregue' : 'Entregue'}
-                            </button>
-                            <button
-                              className="ap-delete-btn"
-                              onClick={() => setShowDeleteConfirm(order)}
-                              title="Excluir pedido"
-                            >
-                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
-                              </svg>
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </>
-                )}
-
-                {/* ENTREGA */}
-                {entregaOrders.length > 0 && (
-                  <>
-                    <h3 className="ap-section-title" style={{ marginTop: '24px' }}>ENTREGA</h3>
-                    <div className="ap-orders-list">
-                      {entregaOrders.map(order => (
-                        <div key={order.id} className={`ap-order-card ${order.entregue ? 'ap-order-entregue' : order.embalado ? 'ap-order-embalado' : ''}`}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1 }}>
-                            <img
-                              src={previewImgForOrder(order)}
-                              alt="preview"
-                              style={{ width: 56, height: 48, objectFit: 'cover', borderRadius: 8, background: '#fff', flexShrink: 0 }}
-                              onError={handleImageError}
-                            />
-                            <div className="ap-card-content" style={{ minWidth: 0 }}>
-                              <div className="ap-order-name">{order.nome}</div>
-                              <div className="ap-order-meta">
-                                {getOrderItemCount(order)} {getOrderItemCount(order) === 1 ? 'item' : 'itens'}
-                                <span className="ap-order-time">{getElapsedTime(order.timestamp)}</span>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="ap-btn-group">
-                            <button
-                              className="ap-view-btn"
-                              onClick={() => setSelectedOrderId(order.id)}
-                            >
-                              Visualizar
-                            </button>
-                            {order.pagamento === 'PIX' && (
-                              <button
-                                className={`ap-pago-btn ${order.pago ? 'ap-pago-ativo' : ''}`}
-                                onClick={() => handleTogglePago(order.id, order.docId)}
-                              >
-                                {order.pago ? '✓ Pago' : 'Pago'}
-                              </button>
-                            )}
-                            <button
-                              className={`ap-embalado-btn ${order.embalado ? 'ap-embalado-ativo' : ''}`}
-                              onClick={() => handleToggleEmbalado(order.id, order.docId)}
-                            >
-                              {order.embalado ? '✓ Embalado' : 'Embalado'}
-                            </button>
-                            <button
-                              className={`ap-entregue-btn ${order.entregue ? 'ap-entregue-ativo' : ''}`}
-                              onClick={() => handleToggleEntregue(order.id, order.docId)}
-                            >
-                              {order.entregue ? '✓ Entregue' : 'Entregue'}
-                            </button>
-                            <button
-                              className="ap-delete-btn"
-                              onClick={() => setShowDeleteConfirm(order)}
-                              title="Excluir pedido"
-                            >
-                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
-                              </svg>
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </>
-                )}
-
-                {/* CLEAR BUTTON - centered at bottom */}
-                <div style={{ display: 'flex', justifyContent: 'center', marginTop: 24, marginBottom: 12 }}>
-                  <button
-                    className="ap-view-btn"
-                    onClick={handleClearAll}
-                    title="Limpar todos os pedidos do localStorage"
-                    style={{ background: '#ff6b6b', borderRadius: 8 }}
-                  >
-                    LIMPAR PEDIDOS
-                  </button>
+                {/* Tabela (desktop) */}
+                <div className="adm-otable-wrap">
+                  <table className="adm-otable">
+                    <thead>
+                      <tr><th>Cliente</th><th>Tipo</th><th>Itens</th><th>Pagamento</th><th>Total</th><th>Ações</th></tr>
+                    </thead>
+                    <tbody>{lista.map(renderRow)}</tbody>
+                  </table>
                 </div>
+                {/* Cards (mobile) */}
+                <div className="adm-ocards">{lista.map(renderOrder)}</div>
               </>
             )}
-          </div>
-        </div>
+
+            <div className="adm-ped-total">Total de pedidos: <b>{orders.length}</b></div>
+          </>
+        )}
       </div>
 
+      <div className="ch-apoio-eyebrow">Apoio</div>
       <div className="ch-logos-bottom"><img src="/images/logo-ifmg.png" alt="IFMG" className="ch-ifmg-bottom" /><img src="/images/logo-sicoob.png" alt="SICOOB" className="ch-sicoob-bottom" /></div>
-      <footer className="ch-footer-bar"><div className="ch-footer-content"><span className="ch-copyright-text"><span className="ch-copyright-symbol">©</span><span className="ch-copyright-year"> 2026</span><span className="ch-copyright-divider">|</span><span className="ch-copyright-names">Desenvolvido por Luisa Caetano Araujo, Júlia Cristina Martins de Almeida Nakano, Maria Eduarda Siqueira Silva e Yasmin Stefane Faria</span></span></div></footer>
 
-      {/* Popup de confirmação para limpar pedidos */}
       {showClearConfirm && (
-        <div style={{
-          position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: 'rgba(10, 77, 92, 0.85)', zIndex: 9999
-        }}>
-          <div style={{
-            background: 'linear-gradient(135deg, #0a4d5c 0%, #0d6478 100%)',
-            color: '#fff',
-            padding: '30px 24px',
-            borderRadius: 16,
-            width: '90%',
-            maxWidth: 380,
-            textAlign: 'center',
-            boxShadow: '0 10px 40px rgba(0,0,0,0.4)'
-          }}>
-            <div style={{
-              width: 70,
-              height: 70,
-              margin: '0 auto 16px',
-              background: 'rgba(255, 107, 107, 0.15)',
-              borderRadius: '50%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              border: '3px solid #ff6b6b'
-            }}>
-              <span style={{ fontSize: 32 }}>⚠️</span>
-            </div>
-            <h3 style={{ margin: '0 0 8px', fontSize: '1.3rem', fontWeight: 800, letterSpacing: '1px' }}>LIMPAR PEDIDOS</h3>
-            <p style={{ margin: '0 0 24px', opacity: 0.95, fontSize: '0.95rem', lineHeight: 1.5 }}>
-              Deseja realmente apagar TODOS os pedidos?<br/>Esta ação não pode ser desfeita.
-            </p>
-            <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
-              <button
-                onClick={() => setShowClearConfirm(false)}
-                style={{
-                  background: 'rgba(255,255,255,0.15)',
-                  color: '#fff',
-                  border: '2px solid rgba(255,255,255,0.3)',
-                  padding: '12px 24px',
-                  borderRadius: 50,
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  fontSize: '0.95rem'
-                }}
-              >
-                CANCELAR
-              </button>
-              <button
-                onClick={confirmClearAll}
-                style={{
-                  background: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%)',
-                  color: '#fff',
-                  border: 'none',
-                  padding: '12px 24px',
-                  borderRadius: 50,
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  fontSize: '0.95rem',
-                  boxShadow: '0 4px 15px rgba(255, 107, 107, 0.4)'
-                }}
-              >
-                LIMPAR
-              </button>
+        <div className="adm-modal-backdrop" onClick={() => setShowClearConfirm(false)}>
+          <div className="adm-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="adm-modal-icon warn">!</div>
+            <h3 className="adm-modal-title">Limpar todos os pedidos?</h3>
+            <p className="adm-modal-text">Todos os pedidos serão apagados. Esta ação não pode ser desfeita.</p>
+            <div className="adm-modal-actions">
+              <button className="adm-modal-btn ghost" onClick={() => setShowClearConfirm(false)}>Cancelar</button>
+              <button className="adm-modal-btn danger" onClick={confirmClearAll}>Limpar tudo</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Popup de confirmação para excluir pedido */}
       {showDeleteConfirm && (
-        <div style={{
-          position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: 'rgba(10, 77, 92, 0.85)', zIndex: 9999
-        }}>
-          <div style={{
-            background: 'linear-gradient(135deg, #0a4d5c 0%, #0d6478 100%)',
-            color: '#fff',
-            padding: '30px 24px',
-            borderRadius: 16,
-            width: '90%',
-            maxWidth: 380,
-            textAlign: 'center',
-            boxShadow: '0 10px 40px rgba(0,0,0,0.4)'
-          }}>
-            <div style={{
-              width: 70,
-              height: 70,
-              margin: '0 auto 16px',
-              background: 'rgba(255, 107, 107, 0.15)',
-              borderRadius: '50%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              border: '3px solid #ff6b6b'
-            }}>
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ff6b6b" strokeWidth="2">
-                <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
-                <line x1="10" y1="11" x2="10" y2="17"/>
-                <line x1="14" y1="11" x2="14" y2="17"/>
-              </svg>
-            </div>
-            <h3 style={{ margin: '0 0 8px', fontSize: '1.3rem', fontWeight: 800, letterSpacing: '1px' }}>EXCLUIR PEDIDO</h3>
-            <p style={{ margin: '0 0 24px', opacity: 0.95, fontSize: '0.95rem', lineHeight: 1.5 }}>
-              Deseja realmente excluir o pedido de<br/><strong>{showDeleteConfirm.nome}</strong>?
-            </p>
-            <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
-              <button
-                onClick={() => setShowDeleteConfirm(null)}
-                style={{
-                  background: 'rgba(255,255,255,0.15)',
-                  color: '#fff',
-                  border: '2px solid rgba(255,255,255,0.3)',
-                  padding: '12px 24px',
-                  borderRadius: 50,
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  fontSize: '0.95rem'
-                }}
-              >
-                CANCELAR
-              </button>
-              <button
-                onClick={confirmDeleteOrder}
-                style={{
-                  background: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%)',
-                  color: '#fff',
-                  border: 'none',
-                  padding: '12px 24px',
-                  borderRadius: 50,
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  fontSize: '0.95rem',
-                  boxShadow: '0 4px 15px rgba(255, 107, 107, 0.4)'
-                }}
-              >
-                EXCLUIR
-              </button>
+        <div className="adm-modal-backdrop" onClick={() => setShowDeleteConfirm(null)}>
+          <div className="adm-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="adm-modal-icon warn">!</div>
+            <h3 className="adm-modal-title">Excluir pedido?</h3>
+            <p className="adm-modal-text">Deseja realmente excluir o pedido de <strong style={{ color: '#fff' }}>{showDeleteConfirm.nome}</strong>?</p>
+            <div className="adm-modal-actions">
+              <button className="adm-modal-btn ghost" onClick={() => setShowDeleteConfirm(null)}>Cancelar</button>
+              <button className="adm-modal-btn danger" onClick={confirmDeleteOrder}>Excluir</button>
             </div>
           </div>
         </div>
@@ -516,101 +287,50 @@ export default function AdminPedidos({ onBack, onMount }) {
 }
 
 function OrderDetail({ order, products = [], onBack }) {
-  const formatBRL = v => {
-    try { return Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
-    catch { return 'R$ 0,00'; }
-  };
-
-  // Retorna descrição do badge de unidade
   function getUnitBadge(unidade) {
     if (unidade === 'un') return { text: '1 maço/unidade', className: 'od-badge-un' };
     if (unidade === 'pct') return { text: '1 bandeja', className: 'od-badge-pct' };
     if (unidade === 'g') return { text: 'Variação de 200g a 1kg', className: 'od-badge-g' };
     return null;
   }
-
-  // Busca a unidade do produto no banco de dados pelo nome
   function getProductUnidade(itemName) {
-    if (!itemName) return 'g'; // padrão
-    if (!products || products.length === 0) return 'g'; // produtos não carregados ainda
-
-    // Normaliza o nome para comparação (remove acentos, lowercase)
-    const normalizedItemName = itemName
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toLowerCase()
-      .trim();
-
-    const product = products.find(p => {
-      if (!p.nome) return false;
-      const normalizedProdName = p.nome
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .toLowerCase()
-        .trim();
-      return normalizedProdName === normalizedItemName;
-    });
-
+    if (!itemName || !products || products.length === 0) return 'g';
+    const norm = s => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+    const product = products.find(p => p.nome && norm(p.nome) === norm(itemName));
     return product?.unidade || 'g';
   }
-
-  // normalize name -> product id filename
   function imgFromName(name) {
     if (!name) return null;
-    const id = String(name || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    const id = String(name || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
     return `/images/produtos/${id}.jpg`;
   }
-
-  // Resolve itens a serem exibidos no detalhe
   function getDisplayItems(order) {
-    // Se for montar cesta, SEMPRE mostrar os itens detalhados
     if (order.source === 'montar') {
       if (Array.isArray(order.items) && order.items.length > 0) {
         return order.items.map(it => ({
-          id: it.id || (it.name ? it.name.toLowerCase().replace(/\s+/g,'-') : 'item'),
-          name: it.name || it.id || 'Item',
-          qty: it.qty || 1,
-          price: Number(it.price || 0),
-          img: it.img || imgFromName(it.name || it.id),
-          unidade: it.unidade || null
+          id: it.id || (it.name ? it.name.toLowerCase().replace(/\s+/g, '-') : 'item'),
+          name: it.name || it.id || 'Item', qty: it.qty || 1, price: Number(it.price || 0),
+          img: it.img || imgFromName(it.name || it.id), unidade: it.unidade || null
         }));
       }
-      // Se não tiver items, não exibir nada ou mostrar mensagem
       return [];
     }
-
-    // Para outros tipos de pedidos (cestas fechadas)
     if (Array.isArray(order.items) && order.items.length > 0) {
       return order.items.map(it => {
-        const id = it.id || (it.name ? it.name.toLowerCase().replace(/\s+/g,'-') : null);
+        const id = it.id || (it.name ? it.name.toLowerCase().replace(/\s+/g, '-') : null);
         const name = it.name || it.id || 'Item';
         let img = it.img;
-
-        // Se for uma cesta fechada (cesta10, cesta15, cesta18), usar a imagem correta
         if (id && String(id).toLowerCase().startsWith('cesta')) {
           const match = String(id).match(/cesta(\d{2})/i);
-          const sz = match ? Number(match[1]) : null;
-          img = cestaImgForSize(sz);
-        } else if (!img && name) {
-          img = imgFromName(name);
-        }
-
-        return {
-          id,
-          name,
-          qty: it.qty || 1,
-          price: Number(it.price || 0),
-          img: img || null,
-          unidade: it.unidade || null
-        };
+          img = cestaImgForSize(match ? Number(match[1]) : null);
+        } else if (!img && name) { img = imgFromName(name); }
+        return { id, name, qty: it.qty || 1, price: Number(it.price || 0), img: img || null, unidade: it.unidade || null };
       });
     }
-
     if (order.size) {
       const sz = Number(order.size);
       return [{ id: `cesta${sz}`, name: `Cesta ${sz} itens`, qty: 1, price: Number(order.total || 0), img: cestaImgForSize(sz), unidade: null }];
     }
-
     return [];
   }
 
@@ -618,124 +338,97 @@ function OrderDetail({ order, products = [], onBack }) {
   const isMontarCesta = order && order.source === 'montar';
 
   return (
-    <div className="ch-root">
-      <div className="container">
-        <div className="row justify-content-center">
-          <div className="col-12 col-md-10 col-lg-8">
-            <div className="ch-cover-wrapper">
-              <button className="cc-back" onClick={onBack} aria-label="Voltar">←</button>
-              <div className="ch-cover-inner">
-                <img src="/images/capa.jpg" alt="Capa" className="ch-cover-img" />
-              </div>
-              <div className="ch-logo">
-                <img src="/images/logoImagem.png" alt="CAMFOR" className="ch-logo-img" />
-              </div>
-            </div>
+    <div className="ch-root adm-root">
+      <div className="adm-wrap">
+        <div className="ch-cover-wrapper">
+          <button className="cc-back" onClick={onBack} aria-label="Voltar">←</button>
+          <div className="ch-cover-inner"><img src="/images/capa.png" alt="Capa" className="ch-cover-img" /></div>
+          <div className="ch-logo"><img src="/images/logoEmblema.png" alt="CAMFOR" className="ch-logo-img" /></div>
+        </div>
+        <div className="ch-content adm-head">
+          <div className="ch-eyebrow">Agricultura Familiar</div>
+          <h2 className="ch-title">Detalhes do pedido</h2>
+          <div className="ch-rule" />
+        </div>
 
-            <h2 className="ch-title">DETALHES DO PEDIDO</h2>
-
-            {/* Dados do Cliente */}
-            <div className="od-section">
-              <h3 className="od-subtitle">Dados do Cliente</h3>
-              <div className="od-info">
-                <div className="od-info-row">
-                  <span className="od-label">Nome:</span>
-                  <span className="od-value">{order.nome}</span>
+        <div className="odt-grid">
+          <div className="odt-col">
+            {/* Cliente */}
+            <div className="odt-card">
+              <div className="adm-eyebrow">Cliente</div>
+              <div className="odt-cli">
+                <div className="odt-av">{getInitials(order.nome)}</div>
+                <div className="odt-cli-info">
+                  <div className="odt-name">{order.nome}</div>
+                  <a className="odt-phone" href={`tel:${String(order.telefone || '').replace(/\D/g, '')}`}>{order.telefone}</a>
                 </div>
-                <div className="od-info-row">
-                  <span className="od-label">Telefone:</span>
-                  <span className="od-value">{order.telefone}</span>
-                </div>
-                {order.tipo === 'entrega' && (
-                  <>
-                    <div className="od-info-row">
-                      <span className="od-label">Endereço:</span>
-                      <span className="od-value">{order.rua}, {order.numero} - {order.bairro}</span>
-                    </div>
-                    <div className="od-info-row">
-                      <span className="od-label">Cidade/UF:</span>
-                      <span className="od-value">{order.cidade}, {order.uf}</span>
-                    </div>
-                  </>
-                )}
               </div>
+              {order.tipo === 'entrega' && (
+                <div className="odt-meta">
+                  <div className="odt-addr-eyebrow">Endereço de entrega</div>
+                  <div className="odt-addr-text">
+                    {order.rua}, {order.numero}{order.complemento ? ` — ${order.complemento}` : ''}<br />
+                    {order.bairro} · {order.cidade}/{order.uf}{order.cep ? ` · ${order.cep}` : ''}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Pagamento */}
-            <div className="od-section">
-              <h3 className="od-subtitle">Pagamento</h3>
-              <div className="od-info">
-                <div className="od-info-row">
-                  <span className="od-label">Forma de Pagamento:</span>
-                  <span className="od-value od-payment-badge">
-                    {order.pagamento || 'Não informado'}
+            <div className="odt-card">
+              <div className="adm-eyebrow">Pagamento</div>
+              <div className="odt-row">
+                <span className="odt-row-k">Tipo</span>
+                <span className="odt-row-v">{order.tipo === 'entrega' ? 'Entrega' : 'Retirada'}</span>
+              </div>
+              <div className="odt-row">
+                <span className="odt-row-k">Forma de pagamento</span>
+                <span className="odt-row-v">{pillLabel(order.pagamento)}</span>
+              </div>
+              {order.pagamento === 'Dinheiro' && (
+                <div className="odt-row">
+                  <span className="odt-row-k">Troco</span>
+                  <span className="odt-row-v">
+                    {order.precisaTroco && order.valorTroco && order.valorTroco !== 'R$ 0,00' ? `Para ${order.valorTroco}` : 'Não precisa'}
                   </span>
                 </div>
-                {order.pagamento === 'Dinheiro' && (
-                  <div className="od-info-row">
-                    <span className="od-label">Precisa de troco?</span>
-                    <span className="od-value">
-                      {order.precisaTroco && order.valorTroco && order.valorTroco !== 'R$ 0,00' ? (
-                        <span className="od-troco-sim">Sim - para {order.valorTroco}</span>
-                      ) : (
-                        <span className="od-troco-nao">Não precisa</span>
-                      )}
-                    </span>
-                  </div>
-                )}
-              </div>
+              )}
             </div>
+          </div>
 
-            {/* Itens do Pedido */}
-            <div className="od-section">
-              <h3 className="od-subtitle">Itens do Pedido</h3>
-              <div className="od-items">
-                {itemsToRender.length > 0 ? (
-                  itemsToRender.map((item, idx) => {
-                    const isCesta = item.id && String(item.id).toLowerCase().startsWith('cesta');
-                    const imgSrc = item.img || (isCesta ? cestaImgForSize(Number((String(item.id||'').match(/cesta(\d{2})/i)||[])[1])) : '/images/placeholder.png');
-                    // Usa unidade salva no item, ou busca no banco de dados
-                    const unidade = item.unidade || getProductUnidade(item.name);
-                    const badge = !isCesta ? getUnitBadge(unidade) : null;
-                    return (
-                      <div key={idx} className="od-item">
-                        <img
-                          src={imgSrc}
-                          alt={item.name}
-                          className="od-item-img"
-                          onError={handleImageError}
-                        />
-                        <div className="od-item-info">
-                          <div className="od-item-name">{item.name || 'Item'}</div>
-                          <div className="od-item-qty">Quantidade: {item.qty || 1}</div>
-                          {badge && (
-                            <span className={`od-item-badge ${badge.className}`}>{badge.text}</span>
-                          )}
-                        </div>
-                        {/* NÃO mostra preço por item se for MontarCesta */}
-                        {!isMontarCesta && item.price ? (
-                          <div className="od-item-price">{formatBRL((item.qty || 1) * Number(item.price))}</div>
-                        ) : null}
+          <div className="odt-col">
+            {/* Itens */}
+            <div className="odt-card">
+              <div className="adm-eyebrow">Itens do pedido ({itemsToRender.reduce((s, i) => s + (i.qty || 1), 0)})</div>
+              <div className="odt-items">
+                {itemsToRender.length > 0 ? itemsToRender.map((item, idx) => {
+                  const isCesta = item.id && String(item.id).toLowerCase().startsWith('cesta');
+                  const imgSrc = item.img || (isCesta ? cestaImgForSize(Number((String(item.id || '').match(/cesta(\d{2})/i) || [])[1])) : '/images/placeholder.png');
+                  const unidade = item.unidade || getProductUnidade(item.name);
+                  const badge = !isCesta ? getUnitBadge(unidade) : null;
+                  return (
+                    <div key={idx} className="odt-item">
+                      <img src={imgSrc} alt={item.name} onError={handleImageError} />
+                      <div className="odt-item-info">
+                        <div className="odt-item-name">{item.name || 'Item'}</div>
+                        <div className="odt-item-meta">Qtd: {item.qty || 1}{badge ? ` · ${badge.text}` : ''}</div>
                       </div>
-                    );
-                  })
-                ) : (
-                  <div style={{ color: '#fff', opacity: 0.8 }}>Nenhum item registrado.</div>
-                )}
+                      {!isMontarCesta && item.price ? <div className="odt-item-price">{fmtBRL((item.qty || 1) * Number(item.price))}</div> : null}
+                    </div>
+                  );
+                }) : <div className="adm-empty">Nenhum item registrado.</div>}
               </div>
-            </div>
-
-            {/* Total */}
-            <div className="od-section od-total">
-              <div className="od-total-label">Total:</div>
-              <div className="od-total-value">{formatBRL(order.total || 0)}</div>
+              <div className="odt-total">
+                <span>Total</span>
+                <span className="odt-total-v">{fmtBRL(order.total || 0)}</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
+      <div className="ch-apoio-eyebrow">Apoio</div>
       <div className="ch-logos-bottom"><img src="/images/logo-ifmg.png" alt="IFMG" className="ch-ifmg-bottom" /><img src="/images/logo-sicoob.png" alt="SICOOB" className="ch-sicoob-bottom" /></div>
-      <footer className="ch-footer-bar"><div className="ch-footer-content"><span className="ch-copyright-text"><span className="ch-copyright-symbol">©</span><span className="ch-copyright-year"> 2026</span><span className="ch-copyright-divider">|</span><span className="ch-copyright-names">Desenvolvido por Luisa Caetano Araujo, Júlia Cristina Martins de Almeida Nakano, Maria Eduarda Siqueira Silva e Yasmin Stefane Faria</span></span></div></footer>
     </div>
   );
 }
