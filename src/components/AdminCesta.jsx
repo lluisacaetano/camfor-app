@@ -5,6 +5,7 @@ import { IoSearchOutline, IoImageOutline } from 'react-icons/io5';
 import { handleImageError } from '../utils/imageUtils';
 import { saveAdminConfig, getAdminConfig, getProducts, seedProducts } from '../services/firestoreService';
 import { generateStoryDataUrl } from '../utils/storyImage';
+import Loading from './Loading';
 
 export default function AdminCesta({ onBack }) {
   const [produtos, setProdutos] = useState([]);
@@ -203,8 +204,8 @@ export default function AdminCesta({ onBack }) {
 
         <div className="adm-cesta-save">
           <button className="adm-btn adm-btn-acc" onClick={handleSalvar} disabled={!canSave}>Salvar configuração</button>
-          <button className="adm-btn adm-btn-ghost" onClick={handleGerarStory} disabled={!canSave || gerandoStory}>
-            <IoImageOutline size={18} /> {gerandoStory ? 'Gerando…' : 'Gerar Story'}
+          <button className="adm-btn adm-btn-ghost" onClick={handleGerarStory} disabled={selecionados.length === 0 || gerandoStory}>
+            <IoImageOutline size={18} /> Gerar Story
           </button>
         </div>
         {!canSave && (
@@ -230,12 +231,14 @@ export default function AdminCesta({ onBack }) {
             <div className="adm-modal-actions">
               <button className="adm-modal-btn ghost" onClick={handleCloseSuccessPopup}>OK</button>
               <button className="adm-modal-btn primary" onClick={handleGerarStory} disabled={gerandoStory}>
-                {gerandoStory ? 'Gerando…' : 'Gerar Story'}
+                Gerar Story
               </button>
             </div>
           </div>
         </div>
       )}
+
+      {gerandoStory && <Loading message="Gerando a imagem do dia…" />}
     </div>
   );
 }
