@@ -5,7 +5,7 @@
 // Também desativa a limpeza automática da config (para não apagar os
 // produtos reais no Firebase durante o teste).
 // REMOVER (deixar false) antes de subir para produção.
-const FORCE_OPEN = true;
+const FORCE_OPEN = false;
 
 // Horários de funcionamento
 export const OPENING_HOUR = 7;  // 7h - horário oficial exibido ao cliente
