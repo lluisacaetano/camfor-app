@@ -1,0 +1,51 @@
+{
+  "_obs": [
+    "Coordenadas MEDIDAS no arquivo real storyDiario.png (941x1672) — não 1080x1920.",
+    "px_941 = use direto com o template como está (941x1672).",
+    "px_1080 = só se você REDIMENSIONAR o template para 1080x1920 (fator 1.1477).",
+    "Plaquinhas medidas por detecção de componentes (precisão de software).",
+    "Fonte do preço calibrada para CABER na plaqueta (108px estoura)."
+  ],
+
+  "px_941": {
+    "canvas": { "width": 941, "height": 1672, "template": "storyDiario.png" },
+    "items": {
+      "max": 18,
+      "box": { "x": 95, "y": 686, "w": 580, "h": 568 },
+      "columns": [
+        { "icon_cx": 132, "text_x": 177 },
+        { "icon_cx": 422, "text_x": 467 }
+      ],
+      "icon_size": 62,
+      "line_height_max": 70,
+      "rule": "rows = ceil(n/2); line_height = min(70, box.h/rows); 1a_linha_cy = box.y + line_height/2; baseline vertical no centro da linha (cy).",
+      "font": { "family": "Bebas Neue", "size": 46, "color": "#184F1F", "letter_spacing": 1, "case": "UPPER", "align": "left", "baseline": "middle" }
+    },
+    "prices": {
+      "center_x": { "10": 186, "15": 454, "18": 720 },
+      "value":    { "cy": 1432, "align": "center", "italic_deg": 10, "font": { "family": "Anton", "size": 58, "color": "#FFFFFF" }, "shadow": { "color": "rgba(0,0,0,0.30)", "offset_y": 3, "blur": 6 } },
+      "currency": { "text": "R$", "x": "center_x - 98", "y": 1398, "align": "left", "font": { "family": "Anton", "size": 30, "color": "#FFFFFF" } }
+    }
+  },
+
+  "px_1080": {
+    "canvas": { "width": 1080, "height": 1920, "obs": "redimensione storyDiario.png para 1080x1920" },
+    "items": {
+      "max": 18,
+      "box": { "x": 109, "y": 787, "w": 666, "h": 652 },
+      "columns": [
+        { "icon_cx": 151, "text_x": 203 },
+        { "icon_cx": 484, "text_x": 536 }
+      ],
+      "icon_size": 71,
+      "line_height_max": 80,
+      "rule": "rows = ceil(n/2); line_height = min(80, box.h/rows); 1a_linha_cy = box.y + line_height/2.",
+      "font": { "family": "Bebas Neue", "size": 53, "color": "#184F1F", "letter_spacing": 1, "case": "UPPER", "align": "left", "baseline": "middle" }
+    },
+    "prices": {
+      "center_x": { "10": 213, "15": 521, "18": 826 },
+      "value":    { "cy": 1644, "align": "center", "italic_deg": 10, "font": { "family": "Anton", "size": 67, "color": "#FFFFFF" }, "shadow": { "color": "rgba(0,0,0,0.30)", "offset_y": 3, "blur": 7 } },
+      "currency": { "text": "R$", "x": "center_x - 112", "y": 1604, "align": "left", "font": { "family": "Anton", "size": 34, "color": "#FFFFFF" } }
+    }
+  }
+}

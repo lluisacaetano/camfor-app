@@ -285,8 +285,16 @@
 .adm-head + .adm-eyebrow { margin-top: 0; }
 
 /* Cesta: botão salvar centralizado */
-.adm-cesta-save { display: flex; justify-content: center; margin-top: 22px; }
+.adm-cesta-save { display: flex; justify-content: center; gap: 12px; margin-top: 22px; flex-wrap: wrap; }
 .adm-cesta-save .adm-btn { min-width: 240px; }
+.adm-btn-ghost {
+  background: rgba(247, 244, 236, 0.08);
+  color: var(--paper);
+  border: 1px solid var(--line);
+  padding: 13px 18px;
+}
+.adm-btn-ghost:hover:not(:disabled) { background: rgba(247, 244, 236, 0.16); }
+.adm-cesta-hint { text-align: center; font-size: 0.82rem; color: var(--mist-2); margin-top: 12px; }
 
 /* Contador flutuante (lado direito) */
 .adm-float {

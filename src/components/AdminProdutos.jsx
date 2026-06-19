@@ -167,7 +167,7 @@ export default function AdminProdutos({ onBack }) {
               const imgSrc = prod.imagem && prod.imagem.startsWith('http') ? prod.imagem : `/images/produtos/${prod.imagem}`;
               return (
                 <div key={prod.docId} className="adm-prow">
-                  <img src={imgSrc} alt={prod.nome} onError={handleImageError} />
+                  <img src={imgSrc} alt={prod.nome} loading="lazy" decoding="async" onError={handleImageError} />
                   <div className="adm-prow-info">
                     <span className="nm">{prod.nome}</span>
                     <span className="adm-prow-unit">{UNIT_LABEL[prod.unidade] || 'Peso'}</span>

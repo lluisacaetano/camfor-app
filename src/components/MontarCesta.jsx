@@ -211,6 +211,8 @@ export default function MontarCesta() {
                   className="mc-prod-img"
                   src={prod.img}
                   alt={prod.name}
+                  loading="lazy"
+                  decoding="async"
                   onError={e => {
                     const cur = e.currentTarget;
                     const attempt = parseInt(cur.dataset.attempt || '0', 10);

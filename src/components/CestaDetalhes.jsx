@@ -147,7 +147,7 @@ export default function CestaDetalhes() {
                   const descricao = unidade === 'un' ? '1 maço/unidade' : unidade === 'pct' ? '1 bandeja' : 'Variação de 200g a 1kg';
                   return (
                     <div className="mc-item" key={idx}>
-                      <img src={imgSrc} alt={p.name} className="mc-prod-img" onError={handleImageError} />
+                      <img src={imgSrc} alt={p.name} className="mc-prod-img" loading="lazy" decoding="async" onError={handleImageError} />
                       <div className="mc-prod-info">
                         <div className="mc-prod-name">{p.name}</div>
                         <span className={`mc-badge-inline mc-badge-inline-${unidade}`}>{descricao}</span>

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import './AdminCesta.css';
 import '../styles/admin.css';
-import { IoSearchOutline } from 'react-icons/io5';
+import { IoSearchOutline, IoImageOutline } from 'react-icons/io5';
 import { handleImageError } from '../utils/imageUtils';
 import { saveAdminConfig, getAdminConfig, getProducts, seedProducts } from '../services/firestoreService';
+import { generateStoryDataUrl } from '../utils/storyImage';
 
 export default function AdminCesta({ onBack }) {
   const [produtos, setProdutos] = useState([]);
@@ -14,6 +15,7 @@ export default function AdminCesta({ onBack }) {
   const [valor18, setValor18] = useState('');
   const [busca, setBusca] = useState('');
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+  const [gerandoStory, setGerandoStory] = useState(false);
 
   // Carrega produtos do Firebase
   useEffect(() => {
@@ -100,6 +102,33 @@ export default function AdminCesta({ onBack }) {
     onBack && onBack();
   }
 
+  // Monta o story "Cesta do dia" com os itens e preços atuais e baixa o PNG.
+  async function handleGerarStory() {
+    if (!canSave || gerandoStory) return;
+    setGerandoStory(true);
+    try {
+      const items = selecionados.map((nome) => {
+        const prod = produtos.find((p) => p.nome === nome);
+        const src = prod && prod.imagem
+          ? (prod.imagem.startsWith('http') ? prod.imagem : `/images/produtos/${prod.imagem}`)
+          : '';
+        return { name: nome, src };
+      });
+      const dataUrl = await generateStoryDataUrl({ items, prices: { 10: v10, 15: v15, 18: v18 } });
+      const a = document.createElement('a');
+      a.href = dataUrl;
+      a.download = 'cesta-do-dia.png';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    } catch (e) {
+      console.error('Erro ao gerar story', e);
+      alert('Não foi possível gerar a imagem. Tente novamente.');
+    } finally {
+      setGerandoStory(false);
+    }
+  }
+
   const normalizar = (s) => (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
   const buscaNorm = normalizar(busca);
   const filtrados = produtos.filter(p => normalizar(p.nome).includes(buscaNorm));
@@ -163,7 +192,7 @@ export default function AdminCesta({ onBack }) {
                   style={isDisabled ? { opacity: 0.45, pointerEvents: 'none' } : undefined}
                   onClick={() => handleCheck(nome)}
                 >
-                  <img src={imgSrc} alt={nome} onError={handleImageError} />
+                  <img src={imgSrc} alt={nome} loading="lazy" decoding="async" onError={handleImageError} />
                   <span className="nm">{nome}</span>
                   <span className="ck" />
                 </div>
@@ -174,7 +203,13 @@ export default function AdminCesta({ onBack }) {
 
         <div className="adm-cesta-save">
           <button className="adm-btn adm-btn-acc" onClick={handleSalvar} disabled={!canSave}>Salvar configuração</button>
+          <button className="adm-btn adm-btn-ghost" onClick={handleGerarStory} disabled={!canSave || gerandoStory}>
+            <IoImageOutline size={18} /> {gerandoStory ? 'Gerando…' : 'Gerar Story'}
+          </button>
         </div>
+        {!canSave && (
+          <p className="adm-cesta-hint">Selecione os itens e defina os 3 preços para salvar e gerar o story.</p>
+        )}
       </div>
 
       {/* Contador flutuante (lado direito) */}
@@ -193,7 +228,10 @@ export default function AdminCesta({ onBack }) {
             <h3 className="adm-modal-title">Configuração salva!</h3>
             <p className="adm-modal-text">Os produtos e preços do dia foram atualizados com sucesso.</p>
             <div className="adm-modal-actions">
-              <button className="adm-modal-btn primary" onClick={handleCloseSuccessPopup}>OK</button>
+              <button className="adm-modal-btn ghost" onClick={handleCloseSuccessPopup}>OK</button>
+              <button className="adm-modal-btn primary" onClick={handleGerarStory} disabled={gerandoStory}>
+                {gerandoStory ? 'Gerando…' : 'Gerar Story'}
+              </button>
             </div>
           </div>
         </div>
