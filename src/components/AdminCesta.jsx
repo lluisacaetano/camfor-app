@@ -74,7 +74,9 @@ export default function AdminCesta({ onBack }) {
   const v10 = parseBRL(valor10);
   const v15 = parseBRL(valor15);
   const v18 = parseBRL(valor18);
-  const canSave = totalSelected >= 1 && v10 > 0 && v15 > 0 && v18 > 0;
+  // 0 itens: salvar libera para FECHAR a loja (saveAdminConfig marca lojaFechada).
+  // 1+ itens: exige os 3 preços para abrir/configurar o dia.
+  const canSave = totalSelected === 0 || (v10 > 0 && v15 > 0 && v18 > 0);
 
   function handleCheck(nome) {
     setSelecionados(sel => {
@@ -208,7 +210,9 @@ export default function AdminCesta({ onBack }) {
             <IoImageOutline size={18} /> Gerar Story
           </button>
         </div>
-        {!canSave && (
+        {totalSelected === 0 ? (
+          <p className="adm-cesta-hint">Sem itens selecionados: salvar vai <strong>fechar a loja</strong> para hoje.</p>
+        ) : !canSave && (
           <p className="adm-cesta-hint">Selecione os itens e defina os 3 preços para salvar e gerar o story.</p>
         )}
       </div>
