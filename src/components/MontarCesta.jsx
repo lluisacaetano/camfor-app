@@ -100,11 +100,18 @@ export default function MontarCesta() {
   const storeClosed = !storeOpen;
   const closedReason = storeClosed ? getClosedReason(adminConfig) : '';
 
+  // Só é permitido repetir (2 unidades) até MAX_REPETIDOS produtos; os demais ficam em 1
+  const MAX_REPETIDOS = 2;
+  const repetidos = Object.values(quantidades).filter(n => n >= 2).length;
+  const podeAumentar = qty => qty === 0 || (qty === 1 && repetidos < MAX_REPETIDOS);
+
   // Incrementa quantidade e atualiza carrinho automaticamente
   function handleIncrement(prod) {
     setQuantidades(q => {
       const current = q[prod.id] || 0;
-      if (current >= 2) return q; // Máximo 2 unidades por produto 
+      const repetidosAgora = Object.values(q).filter(n => n >= 2).length;
+      if (current >= 2) return q;
+      if (current === 1 && repetidosAgora >= MAX_REPETIDOS) return q;
       const nextQty = current + 1;
       // Atualiza o carrinho
       setCart(prev => {
@@ -142,7 +149,9 @@ export default function MontarCesta() {
 
   function updateCartQty(id, value) {
     const num = Number(value);
-    const v = Number.isNaN(num) ? 0 : Math.min(2, Math.max(0, Math.floor(num)));
+    let v = Number.isNaN(num) ? 0 : Math.min(2, Math.max(0, Math.floor(num)));
+    const atual = quantidades[id] || 0;
+    if (v === 2 && atual < 2 && repetidos >= MAX_REPETIDOS) v = atual;
     if (v <= 0) {
       // Remove do carrinho e zera quantidade
       setCart(prev => prev.filter(i => i.id !== id));
@@ -178,7 +187,8 @@ export default function MontarCesta() {
             <h4>Como funciona</h4>
             <p>
               Escolha <strong>exatamente 10, 15 ou 18 itens</strong> para montar sua cesta.
-              Você pode adicionar até <strong>2 unidades</strong> de cada produto.
+              Você pode repetir (<strong>2 unidades</strong>) apenas <strong>{MAX_REPETIDOS} produtos</strong>;
+              os demais podem ser adicionados uma vez.
             </p>
             <p>
               Nos produtos vendidos por peso (<strong>variação de 200g a 1kg</strong>), cada
@@ -237,8 +247,10 @@ export default function MontarCesta() {
                     <button
                       className="mc-plus-btn"
                       onClick={() => handleIncrement(prod)}
-                      disabled={(quantidades[prod.id] || 0) >= 2}
-                      title={(quantidades[prod.id] || 0) >= 2 ? 'Máximo 2 unidades' : ''}
+                      disabled={!podeAumentar(quantidades[prod.id] || 0)}
+                      title={!podeAumentar(quantidades[prod.id] || 0)
+                        ? ((quantidades[prod.id] || 0) >= 2 ? 'Máximo 2 unidades' : `Você já repetiu ${MAX_REPETIDOS} produtos`)
+                        : ''}
                     >
                       +
                     </button>
@@ -291,7 +303,7 @@ export default function MontarCesta() {
                     <div className="mc-qty-wrap">
                       <button className="mc-plus-btn" onClick={() => updateCartQty(item.id, item.qty - 1)}>-</button>
                       <div className="mc-qty-display">{item.qty}</div>
-                      <button className="mc-plus-btn" onClick={() => updateCartQty(item.id, item.qty + 1)} disabled={item.qty >= 2}>+</button>
+                      <button className="mc-plus-btn" onClick={() => updateCartQty(item.id, item.qty + 1)} disabled={!podeAumentar(item.qty)}>+</button>
                     </div>
                     <button className="mc-cart-remove" onClick={() => removeFromCart(item.id)} aria-label="Remover" title="Remover"><IoTrashOutline /></button>
                   </div>
